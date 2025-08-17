@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Documantation</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="assets/images/favicon.png"
+    />
+
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <!-- animate css -->
+    <link rel="stylesheet" href="assets/css/animate.css" />
+    <!-- font-awesome v4.6.3 css -->
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <!-- style css -->
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <!-- responsive css -->
+    <link rel="stylesheet" href="assets/css/responsive.css" />
+    <!-- modernizr css -->
+    <script src="assets/js/vendor/modernizr-2.8.3.min.js"></script>
+  </head>
+
+  <body>
+    <div class="sidebar-wrap">
+      <ul>
+        <li class="active"><a href="index.html">Introduction</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="structure.html"> File Structure</a></li>
+        <li><a href="components.html">Components</a></li>
+        <li><a href="pwa.html">PWA</a></li>
+      </ul>
+    </div>
+    <div class="header-area">
+      <div class="logo">
+        <img src="assets/images/logo.png" alt="" />
+      </div>
+      <h2>Installation</h2>
+    </div>
+
+    <div class="main-container">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10">
+            <div class="card-wrap">
+              <div class="installation-wrap">
+                <h3>PWA Configuration</h3>
+                <p>
+                  Shopo is based on Reactjs create-react-app and has its
+                  README.md which you can find very useful.
+                </p>
+                <p>To get started follow this steps:</p>
+
+                <strong>
+                  Open vite.config.js and change your logo in manifest variable
+                </strong>
+                <p>
+                  <per class="code" data-language="js">
+                    manifest: { <br />
+                    name: "Shopo", <br />
+                    short_name: "Shopo",<br />
+                    description: "Shopo",<br />
+                    start_url: "/",<br />
+                    display: "standalone",<br />
+                    background_color: "#FFBB38",<br />
+                    theme_color: "#FFBB38",<br />
+                    icons: [<br />
+                    {<br />
+                    src: "/192.png",<br />
+                    sizes: "192x192",<br />
+                    purpose: "any maskable",<br />
+                    },<br />
+                    {<br />
+                    src: "/512.png",<br />
+                    sizes: "512x512",<br />
+                    purpose: "maskable any",<br />
+                    },<br />
+                    ],<br />
+                    },<br />
+                  </per>
+                </p>
+
+                <b
+                  >Note: Make sure you have SSL Certificate , As this is
+                  mandatory to deploy PWA.</b
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- jquery latest version -->
+    <script src="assets/js/vendor/jquery-2.2.4.min.js "></script>
+    <!-- popper.min.js -->
+    <script src="assets/js/vendor/popper.min.js "></script>
+    <!-- bootstrap js -->
+    <script src="assets/js/bootstrap.min.js "></script>
+    <!-- main js -->
+    <script src="assets/js/scripts.js "></script>
+  </body>
+</html>
