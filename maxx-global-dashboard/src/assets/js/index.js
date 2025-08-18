@@ -1,0 +1,12 @@
+import "./jquery.min.js";
+import "./popper.min.js";
+import "./bootstrap.min.js";
+import "./jquery-migrate.js";
+import "./jquery-ui.min.js";
+import "./circle-progress.min.js";
+import "./datatables.min.js";
+import "./jquery-jvectormap.js";
+import "./jvector-map.js";
+import "./charts.js";
+import "./slickslider.min.js";
+import "./main.js";
