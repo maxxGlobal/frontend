@@ -1,9 +1,14 @@
+export type PermissionFlags = {
+  required?: string;
+  anyOf?: string[];
+  allOf?: string[];
+};
 export type MenuChild = {
   id: string;
   label: string;
   to?: string;
   href?: string;
-};
+} & PermissionFlags;
 
 export type MenuItem = {
   id: string;
@@ -12,7 +17,7 @@ export type MenuItem = {
   to?: string;
   href?: string;
   children?: MenuChild[];
-};
+} & PermissionFlags;
 
 const DashboardIconHTML = `
 <svg class="sherah-svg-icon" xmlns="http://www.w3.org/2000/svg" width="18.075" height="18.075" viewBox="0 0 18.075 18.075">
@@ -42,7 +47,6 @@ export const menuItems: MenuItem[] = [
     to: "/dashboard",
     iconHtml: DashboardIconHTML,
   },
-
   {
     id: "menu-item_vendors",
     label: "Vendors",
@@ -54,6 +58,25 @@ export const menuItems: MenuItem[] = [
         id: "vendors_profile",
         label: "Vendor Profile",
         href: "vendor-profile.html",
+      },
+    ],
+  },
+  {
+    id: "menu-item__users",
+    label: "Kullanıcılar",
+    iconHtml: "<svg class='sherah-svg-icon' ...>...</svg>",
+    children: [
+      {
+        id: "users_list",
+        label: "Kullanıcı Listesi",
+        to: "/users",
+        required: "USER_READ",
+      },
+      {
+        id: "users_create",
+        label: "Kullanıcı Ekle",
+        to: "/users/register",
+        required: "USER_MANAGE",
       },
     ],
   },

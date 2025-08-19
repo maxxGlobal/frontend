@@ -1,7 +1,13 @@
-// src/components/sidebar/Sidebar.tsx
 import { NavLink } from "react-router-dom";
 import logo from "../../assets/img/logo-max.png";
-import { menuItems } from "../config/menuConfig";
+import { menuItems, type MenuItem } from "../config/menuConfig";
+import { hasPermission, type PermissionFlags } from "../../utils/permissions";
+const canShow = (node: PermissionFlags) =>
+  hasPermission({
+    required: node.required,
+    anyOf: node.anyOf,
+    allOf: node.allOf,
+  });
 
 export default function Sidebar() {
   return (
@@ -20,90 +26,92 @@ export default function Sidebar() {
               {menuItems.map((item) => {
                 const isDropdown = !!item.children?.length;
 
-                if (isDropdown) {
+                if (!isDropdown) {
+                  if (!canShow(item)) return null;
                   return (
                     <li key={item.id}>
-                      <a
-                        href="#!"
-                        className="collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target={`#${item.id}`}
-                      >
-                        <span className="menu-bar__text">
-                          <span
-                            className="sherah-menu-icon sherah-svg-icon__v1"
-                            dangerouslySetInnerHTML={{
-                              __html: item.iconHtml ?? "",
-                            }}
-                          />
-                          <span className="menu-bar__name">{item.label}</span>
-                        </span>
-                        <span className="sherah__toggle"></span>
-                      </a>
-
-                      <div
-                        className="collapse sherah__dropdown"
-                        id={item.id}
-                        data-bs-parent="#sherahMenu"
-                      >
-                        <ul className="menu-bar__one-dropdown">
-                          {item.children!.map((child) => (
-                            <li key={child.id}>
-                              {child.to ? (
-                                <NavLink
-                                  to={child.to}
-                                  className="dropdown-menu"
-                                >
-                                  <span className="menu-bar__text">
-                                    <span className="menu-bar__name">
-                                      {child.label}
-                                    </span>
-                                  </span>
-                                </NavLink>
-                              ) : (
-                                <a href={child.href}>
-                                  <span className="menu-bar__text">
-                                    <span className="menu-bar__name">
-                                      {child.label}
-                                    </span>
-                                  </span>
-                                </a>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      {item.to ? (
+                        <NavLink to={item.to} className="collapsed">
+                          <span className="menu-bar__text">
+                            <span
+                              className="sherah-menu-icon sherah-svg-icon__v1"
+                              dangerouslySetInnerHTML={{
+                                __html: item.iconHtml ?? "",
+                              }}
+                            />
+                            <span className="menu-bar__name">{item.label}</span>
+                          </span>
+                        </NavLink>
+                      ) : (
+                        <a href={item.href} className="collapsed">
+                          <span className="menu-bar__text">
+                            <span
+                              className="sherah-menu-icon sherah-svg-icon__v1"
+                              dangerouslySetInnerHTML={{
+                                __html: item.iconHtml ?? "",
+                              }}
+                            />
+                            <span className="menu-bar__name">{item.label}</span>
+                          </span>
+                        </a>
+                      )}
                     </li>
                   );
                 }
+                const visibleChildren = (item.children ?? []).filter((c) =>
+                  canShow(c)
+                );
+                if (visibleChildren.length === 0) return null;
 
                 return (
                   <li key={item.id}>
-                    {item.to ? (
-                      <NavLink to={item.to} className="collapsed">
-                        <span className="menu-bar__text">
-                          <span
-                            className="sherah-menu-icon sherah-svg-icon__v1"
-                            dangerouslySetInnerHTML={{
-                              __html: item.iconHtml ?? "",
-                            }}
-                          />
-                          <span className="menu-bar__name">{item.label}</span>
-                        </span>
-                      </NavLink>
-                    ) : (
-                      <a href={item.href} className="collapsed">
-                        <span className="menu-bar__text">
-                          <span
-                            className="sherah-menu-icon sherah-svg-icon__v1"
-                            dangerouslySetInnerHTML={{
-                              __html: item.iconHtml ?? "",
-                            }}
-                          />
-                          <span className="menu-bar__name">{item.label}</span>
-                        </span>
-                      </a>
-                    )}
+                    <a
+                      href="#!"
+                      className="collapsed"
+                      data-bs-toggle="collapse"
+                      data-bs-target={`#${item.id}`}
+                    >
+                      <span className="menu-bar__text">
+                        <span
+                          className="sherah-menu-icon sherah-svg-icon__v1"
+                          dangerouslySetInnerHTML={{
+                            __html: item.iconHtml ?? "",
+                          }}
+                        />
+                        <span className="menu-bar__name">{item.label}</span>
+                      </span>
+                      <span className="sherah__toggle"></span>
+                    </a>
+
+                    <div
+                      className="collapse sherah__dropdown"
+                      id={item.id}
+                      data-bs-parent="#sherahMenu"
+                    >
+                      <ul className="menu-bar__one-dropdown">
+                        {visibleChildren.map((child) => (
+                          <li key={child.id}>
+                            {child.to ? (
+                              <NavLink to={child.to}>
+                                <span className="menu-bar__text">
+                                  <span className="menu-bar__name">
+                                    {child.label}
+                                  </span>
+                                </span>
+                              </NavLink>
+                            ) : (
+                              <a href={child.href}>
+                                <span className="menu-bar__text">
+                                  <span className="menu-bar__name">
+                                    {child.label}
+                                  </span>
+                                </span>
+                              </a>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </li>
                 );
               })}

@@ -6,6 +6,8 @@ import PublicRoute from "./routes/PublicRoute";
 import LoginForm from "./components/login/LoginForm";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
+import RegisterUser from "./pages/users/RegisterUser";
+import RegisterAdd from "./components/layout/RegisterAdd";
 
 export default function App() {
   return (
@@ -21,6 +23,10 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           {/* <Route path="/vendors" element={<Vendors />} /> ... */}
         </Route>
+      </Route>
+      {/* ✅ Register route korumalı */}
+      <Route element={<ProtectedRoute required="USER_MANAGE" />}>
+        <Route path="/users/register" element={<RegisterAdd />} />
       </Route>
 
       {/* default yönlendirme */}

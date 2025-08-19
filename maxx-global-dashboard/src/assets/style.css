@@ -135,7 +135,7 @@ Version:	1.0.0
 	padding-left: 20px;
 }
 .menu-bar li a.active{
-	background: #EBF0FF !important;
+	
 }
 .menu-bar li a.collapsed{
 	color:#2F3032;
@@ -8064,3 +8064,14 @@ blockquote {
 /*======================================
 	End Utilities CSS
 ========================================*/
+
+/*CUSTOM STYLE*/
+
+.sherah-adashboard.register-add-form .sherah-wc__form{
+  height: auto;
+}
+.sherah-adashboard.register-add-form .sherah-wc__form-inner{
+  min-width: 500px;
+  max-width: 800px;
+  padding: 30px;
+}
