@@ -135,7 +135,7 @@ Version:	1.0.0
 	padding-left: 20px;
 }
 .menu-bar li a.active{
-	background: #EBF0FF;
+	background: #EBF0FF !important;
 }
 .menu-bar li a.collapsed{
 	color:#2F3032;
@@ -213,9 +213,9 @@ Version:	1.0.0
 	color:#6176FE;
 }
 .sherah__dropdown ul li a {
-	display: ;
 	padding: 10px 0;
 }
+
 .menu-bar__text .sherah-menu-icon.sherah-svg-icon__v3 .sherah-svg-icon {
 	width: 13px;
 	height: 14px;
