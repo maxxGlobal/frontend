@@ -48,28 +48,14 @@ export const menuItems: MenuItem[] = [
     iconHtml: DashboardIconHTML,
   },
   {
-    id: "menu-item_vendors",
-    label: "Vendors",
-    iconHtml: VendorsIconHTML,
-    children: [
-      { id: "vendors_grid", label: "Vendor Grid", href: "vendor.html" },
-      { id: "vendors_list", label: "Vendor List", href: "vendor-list.html" },
-      {
-        id: "vendors_profile",
-        label: "Vendor Profile",
-        href: "vendor-profile.html",
-      },
-    ],
-  },
-  {
     id: "menu-item__users",
     label: "Kullanıcılar",
-    iconHtml: "<svg class='sherah-svg-icon' ...>...</svg>",
+    iconHtml: VendorsIconHTML,
     children: [
       {
         id: "users_list",
         label: "Kullanıcı Listesi",
-        to: "/users",
+        to: "/users/list",
         required: "USER_READ",
       },
       {

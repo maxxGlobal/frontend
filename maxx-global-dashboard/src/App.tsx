@@ -6,8 +6,8 @@ import PublicRoute from "./routes/PublicRoute";
 import LoginForm from "./components/login/LoginForm";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
-import RegisterUser from "./pages/users/RegisterUser";
 import RegisterAdd from "./components/layout/RegisterAdd";
+import UsersList from "./components/layout/UsersList";
 
 export default function App() {
   return (
@@ -27,6 +27,9 @@ export default function App() {
       {/* ✅ Register route korumalı */}
       <Route element={<ProtectedRoute required="USER_MANAGE" />}>
         <Route path="/users/register" element={<RegisterAdd />} />
+      </Route>
+      <Route element={<ProtectedRoute required="USER_MANAGE" />}>
+        <Route path="/users/list" element={<UsersList />} />
       </Route>
 
       {/* default yönlendirme */}
