@@ -8175,7 +8175,7 @@ width: auto;
 }
 .filter-switch .label{ font-size:.875rem; color:#6c757d; }
 .filter-switch .form-check-input{ width:2.4rem; height:1.3rem; }
-.filter-switch .form-check-input:checked{ background-color:#f8f9fa; border-color:#6176fe; }
+.filter-switch .form-check-input:checked{ background-color:#6176fe; border-color:#6176fe; }
 
 .filter-select .dropdown{
 	width: 100%;
