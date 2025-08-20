@@ -2,10 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   listUsers,
   searchUsers,
+  listUsersByDealer,
+  listActiveUsers,
   type PageResponse,
   type UserRow,
   type SortDirection,
 } from "../../services/userService";
+import {
+  getDealerSummaries,
+  type DealerSummary,
+} from "../../services/dealerService";
 import { hasPermission } from "../../utils/permissions";
 import { useSearchParams } from "react-router-dom";
 
@@ -21,6 +27,23 @@ function useDebounced<T>(value: T, delay = 350): T {
     return () => clearTimeout(t);
   }, [value, delay]);
   return v;
+}
+
+// sayfalı olmayan aktif endpointi için küçük yardımcı
+function toPage<T>(rows: T[], page: number, size: number): PageResponse<T> {
+  const totalElements = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / size));
+  const from = page * size;
+  const content = rows.slice(from, from + size);
+  return {
+    content,
+    totalElements,
+    totalPages,
+    number: page,
+    size,
+    first: page === 0,
+    last: page >= totalPages - 1,
+  };
 }
 
 export default function UsersList() {
@@ -48,6 +71,15 @@ export default function UsersList() {
   );
   const [q, setQ] = useState<string>(searchParams.get("q") || "");
   const dq = useDebounced(q, 350); // debounce'lu değer
+  // 🔽 YENİ FİLTRE DURUMLARI
+  const [dealers, setDealers] = useState<DealerSummary[]>([]);
+  const [dealerId, setDealerId] = useState<number | "">(
+    Number(searchParams.get("dealerId")) || ""
+  );
+  const [activeOnly, setActiveOnly] = useState<boolean>(
+    searchParams.get("active") === "1"
+  );
+
   const [data, setData] = useState<PageResponse<UserRow> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,10 +92,32 @@ export default function UsersList() {
       sortBy,
       sortDirection,
     };
-    const t = dq.trim();
-    if (t) params.q = t;
+    if (dq.trim()) params.q = dq.trim();
+    if (dealerId) params.dealerId = String(dealerId);
+    if (activeOnly) params.active = "1";
     setSearchParams(params, { replace: true });
-  }, [page, size, sortBy, sortDirection, setSearchParams]);
+  }, [
+    page,
+    size,
+    sortBy,
+    sortDirection,
+    dq,
+    dealerId,
+    activeOnly,
+    setSearchParams,
+  ]);
+
+  // Bayileri çek (mevcut getDealerSummaries kullanılacak)
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await getDealerSummaries();
+        setDealers(list);
+      } catch (e) {
+        console.warn("Bayiler alınamadı", e);
+      }
+    })();
+  }, []);
 
   // Veri çek
   useEffect(() => {
@@ -73,6 +127,32 @@ export default function UsersList() {
       try {
         setLoading(true);
         setError(null);
+
+        if (activeOnly) {
+          const raw = await listActiveUsers(
+            { page: 0, size: 10000, sortBy, sortDirection },
+            { signal: controller.signal }
+          );
+          const rows: UserRow[] = Array.isArray(raw)
+            ? raw
+            : (raw as PageResponse<UserRow>).content;
+          const filtered = dealerId
+            ? rows.filter((u) => u.dealer?.id === Number(dealerId))
+            : rows;
+          const paged = toPage(filtered, page, size);
+          if (!cancelled) setData(paged);
+          return;
+        }
+
+        if (dealerId) {
+          const res = await listUsersByDealer(
+            { dealerId: Number(dealerId), page, size, sortBy, sortDirection },
+            { signal: controller.signal }
+          );
+          if (!cancelled) setData(res);
+          return;
+        }
+
         const t = dq.trim();
         const useSearch = t.length >= 3;
         const res = useSearch
@@ -98,7 +178,7 @@ export default function UsersList() {
       cancelled = true;
       controller.abort();
     };
-  }, [page, size, sortBy, sortDirection, dq]);
+  }, [page, size, sortBy, sortDirection, dq, dealerId, activeOnly]);
 
   const toggleSort = (col: string) => {
     if (sortBy === col) {
@@ -130,6 +210,10 @@ export default function UsersList() {
     const mi = String(d.getMinutes()).padStart(2, "0");
     return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
   };
+  const selectedDealerName =
+    dealerId === ""
+      ? "Tümü"
+      : dealers.find((d) => d.id === dealerId)?.name ?? "Tümü";
 
   return (
     <div className="sherah-table p-0">
@@ -139,39 +223,106 @@ export default function UsersList() {
             <h3 className="sherah-card__title py-3">Kullanıcı Listesi</h3>
           </div>
           <div className="col-sm-12 col-md-6">
-            <div
-              id="sherah-table__vendor_filter"
-              className="dataTables_filter d-flex justify-content-end align-items-center"
-            >
-              <div className="d-flex justify-content-end  align-items-center">
-                <span className="pe-2">Ara</span>
-                <label className="mb-0 d-flex align-items-center">
-                  <input
-                    type="search"
-                    className="form-control form-control-sm sherah-wc__form-input"
-                    placeholder="Min 3 karakter (ad, soyad, e-posta, telefon, adres)"
-                    value={q}
-                    onChange={(e) => {
-                      setQ(e.target.value);
-                      setPage(0); // yeni aramada ilk sayfaya dön
-                    }}
-                    aria-controls="sherah-table__vendor"
-                  />
-                </label>
+            <div id="sherah-table__vendor_filter" className="filter-panel">
+              {/* ÜST SATIR: Bayi + Aktif switch */}
+              <div className="filter-top">
+                {/* Bayi seçimi */}
+                <div className="input-group input-group-sm filter-select has-caret">
+                  <div className="dropdown">
+                    <button
+                      className="btn btn-sm btn-light d-flex align-items-center gap-2 dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <i className="fa-solid fa-store text-muted" />
+                      <span>{selectedDealerName}</span>
+                    </button>
+
+                    <ul className="dropdown-menu shadow-sm">
+                      <li>
+                        <button
+                          className={`dropdown-item ${
+                            dealerId === "" ? "active" : ""
+                          }`}
+                          onClick={() => {
+                            setDealerId("");
+                            setPage(0);
+                          }}
+                        >
+                          Tümü
+                        </button>
+                      </li>
+
+                      {dealers.map((d) => (
+                        <li key={d.id}>
+                          <button
+                            className={`dropdown-item ${
+                              dealerId === d.id ? "active" : ""
+                            }`}
+                            onClick={() => {
+                              setDealerId(d.id);
+                              setPage(0);
+                            }}
+                          >
+                            {d.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Aktif kullanıcılar */}
+                <div className="filter-switch">
+                  <span className="label">Aktif Kullanıcılar</span>
+                  <div className="form-check form-switch m-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="onlyActive"
+                      checked={activeOnly}
+                      onChange={() => {
+                        setActiveOnly((s) => !s);
+                        setPage(0);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
-              {q && (
-                <button
-                  type="button"
-                  className="btn btn-sm ms-2 p-2 py-2 rounded-3 clear-btn sherah-btn sherah-btn__primary"
-                  onClick={() => {
-                    setQ("");
+              {/* ALT SATIR: Arama */}
+              <div className="input-group input-group-sm filter-search flex-nowrap">
+                <span className="input-group-text">
+                  <i className="fa-solid fa-magnifying-glass" />
+                </span>
+
+                <input
+                  type="search"
+                  className="form-control sherah-wc__form-input"
+                  placeholder="Ad, soyad, e-posta, telefon, adres…"
+                  value={q}
+                  onChange={(e) => {
+                    setQ(e.target.value);
                     setPage(0);
                   }}
-                >
-                  Temizle
-                </button>
-              )}
+                  aria-controls="sherah-table__vendor"
+                />
+
+                {q && (
+                  <button
+                    type="button"
+                    className="btn btn-clear"
+                    onClick={() => {
+                      setQ("");
+                      setPage(0);
+                    }}
+                    title="Temizle"
+                  >
+                    <i className="fa-solid fa-xmark" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

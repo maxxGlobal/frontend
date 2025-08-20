@@ -8100,3 +8100,105 @@ width: auto;
   height: 36px !important;
   font-size: 16px;
 }
+
+.sherah__item-switch--slide::after{
+	content: "" !important;
+}
+
+/* Panel – sağa hizalı, 2 satır */
+.filter-panel{
+  --filter-width: 520px;              /* üst ve alt satır aynı genişlik */
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:.6rem;
+  padding:.6rem .8rem;
+  border:1px solid var(--bs-border-color, #e9ecef);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 2px 8px rgba(16,24,40,.04);
+}
+
+/* Üst satır: tek satır, arama ile aynı genişlik ve sağ hizalı */
+.filter-top{
+  width:min(var(--filter-width),100%);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1rem;
+  white-space:nowrap;                 
+}
+
+/* Alt satır (arama) aynı genişlik */
+.filter-search{
+  width:min(var(--filter-width),100%);
+}
+
+/* Select + ikon stilleri */
+.filter-select{ min-width: 220px; position:relative; }
+.filter-select .input-group-text,
+.filter-search .input-group-text{
+  background:#f8f9fa; border-color:transparent; height:44px; display:flex; align-items:center;
+}
+.filter-select .form-select,
+.filter-search .form-control{
+  background-color: #f8f9fa;         /* background kullanma -> ok’u silmesin */
+  border-color:transparent;
+  height:44px;
+  /* kendi caret’i kullanacağımız için native’i gizle */
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  padding-right:2rem;                 /* sağdaki caret alanı */
+}
+.filter-select .form-select:focus,
+.filter-search .form-control:focus{
+  box-shadow:none; border-color:transparent;
+  min-height: 44px;
+}
+
+/* Özel caret (sağa sabit) */
+.filter-select.has-caret .select-caret{
+  position:absolute;
+  right:.55rem; top:50%; transform:translateY(-50%);
+  color:#667085; font-size:.8rem; pointer-events:none;
+}
+
+/* Arama: tek satır zorlaması ve clear butonu */
+.filter-search.input-group{ flex-wrap:nowrap !important; }
+.filter-search .btn-clear{
+  height:44px; display:flex; align-items:center; border:0; background:transparent; padding:0 .5rem; color:#6c757d;
+}
+.filter-search .btn-clear:hover{ color:#111; }
+
+/* Switch blok tek satır, taşmadan */
+.filter-switch{
+  display:flex; align-items:center; gap:.5rem; white-space:nowrap;
+}
+.filter-switch .label{ font-size:.875rem; color:#6c757d; }
+.filter-switch .form-check-input{ width:2.4rem; height:1.3rem; }
+.filter-switch .form-check-input:checked{ background-color:#f8f9fa; border-color:#6176fe; }
+
+.filter-select .dropdown{
+	width: 100%;
+}
+.filter-select .dropdown button{
+	width: 100%;
+	height: 44px;
+}
+.filter-select .dropdown button:focus{
+box-shadow: none;
+}
+.filter-select .dropdown button span{
+width: 100%;
+text-align: left;
+font-size: 16px;
+    font-weight: 500;
+}
+.filter-select .dropdown .dropdown-menu{
+	width: 100%;
+	border-radius: 2px;
+}
+.filter-select .dropdown .dropdown-menu .dropdown-item.active ,.dropdown-item:active {
+	background-color:#6176FE ;
+}
+
+
