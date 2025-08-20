@@ -8080,3 +8080,23 @@ padding: 20px 28px;
 font-size: 18px;
 width: auto;
 }
+.dataTables_filter span{
+  color: #6176FE;
+  font-weight: 500;
+}
+.dataTables_filter input{
+  min-width: 320px;
+  border: 1px solid #E4F2FF ;
+  box-shadow: 0 0 0 .1rem #6176FE;
+  min-height: 36px !important;
+  height: 36px !important;
+}
+.dataTables_filter input:focus{
+  box-shadow: 0 0 0 .1rem #6176FE;
+}
+.dataTables_filter .clear-btn{
+  box-shadow: 0 0 0 .1rem #6176FE;
+  min-height: 36px !important;
+  height: 36px !important;
+  font-size: 16px;
+}

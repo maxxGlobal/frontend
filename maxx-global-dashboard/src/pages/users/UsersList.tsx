@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   listUsers,
+  searchUsers,
   type PageResponse,
   type UserRow,
   type SortDirection,
@@ -12,6 +13,15 @@ const DEFAULT_PAGE = 0;
 const DEFAULT_SIZE = 10;
 const DEFAULT_SORT_BY = "firstName";
 const DEFAULT_SORT_DIR: SortDirection = "asc";
+
+function useDebounced<T>(value: T, delay = 350): T {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return v;
+}
 
 export default function UsersList() {
   if (!hasPermission({ required: "USER_MANAGE" })) {
@@ -36,7 +46,8 @@ export default function UsersList() {
   const [sortDirection, setSortDirection] = useState<SortDirection>(
     (searchParams.get("sortDirection") as SortDirection) || DEFAULT_SORT_DIR
   );
-
+  const [q, setQ] = useState<string>(searchParams.get("q") || "");
+  const dq = useDebounced(q, 350); // debounce'lu değer
   const [data, setData] = useState<PageResponse<UserRow> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,25 +60,45 @@ export default function UsersList() {
       sortBy,
       sortDirection,
     };
+    const t = dq.trim();
+    if (t) params.q = t;
     setSearchParams(params, { replace: true });
   }, [page, size, sortBy, sortDirection, setSearchParams]);
 
   // Veri çek
   useEffect(() => {
+    const controller = new AbortController(); // <— iptal için
+    let cancelled = false;
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await listUsers({ page, size, sortBy, sortDirection });
-        setData(res);
+        const t = dq.trim();
+        const useSearch = t.length >= 3;
+        const res = useSearch
+          ? await searchUsers(
+              { q: t, page, size, sortBy, sortDirection },
+              { signal: controller.signal }
+            )
+          : await listUsers(
+              { page, size, sortBy, sortDirection },
+              { signal: controller.signal }
+            );
+
+        if (!cancelled) setData(res);
       } catch (e: any) {
+        if (e.name === "CanceledError" || e.name === "AbortError") return;
         console.error(e);
-        setError("Kullanıcılar yüklenirken bir hata oluştu.");
+        if (!cancelled) setError("Kullanıcılar yüklenirken bir hata oluştu.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [page, size, sortBy, sortDirection]);
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [page, size, sortBy, sortDirection, dq]);
 
   const toggleSort = (col: string) => {
     if (sortBy === col) {
@@ -101,21 +132,48 @@ export default function UsersList() {
   };
 
   return (
-    <div className="sherah-card">
-      <div className="sherah-card__header">
-        <h3 className="sherah-card__title py-3">Kullanıcı Listesi</h3>
-        <div className="sherah-card__actions">
-          {/* <select
-            className="sherah-wc__form-input"
-            value={size}
-            onChange={onChangeSize}
-          >
-            {[5, 10, 20, 50].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select> */}
+    <div className="sherah-table p-0">
+      <div className="dataTables_wrapper dt-bootstrap5 no-footer">
+        <div className="row align-items-center">
+          <div className="col-sm-12 col-md-6">
+            <h3 className="sherah-card__title py-3">Kullanıcı Listesi</h3>
+          </div>
+          <div className="col-sm-12 col-md-6">
+            <div
+              id="sherah-table__vendor_filter"
+              className="dataTables_filter d-flex justify-content-end align-items-center"
+            >
+              <div className="d-flex justify-content-end  align-items-center">
+                <span className="pe-2">Ara</span>
+                <label className="mb-0 d-flex align-items-center">
+                  <input
+                    type="search"
+                    className="form-control form-control-sm sherah-wc__form-input"
+                    placeholder="Min 3 karakter (ad, soyad, e-posta, telefon, adres)"
+                    value={q}
+                    onChange={(e) => {
+                      setQ(e.target.value);
+                      setPage(0); // yeni aramada ilk sayfaya dön
+                    }}
+                    aria-controls="sherah-table__vendor"
+                  />
+                </label>
+              </div>
+
+              {q && (
+                <button
+                  type="button"
+                  className="btn btn-sm ms-2 p-2 py-2 rounded-3 clear-btn sherah-btn sherah-btn__primary"
+                  onClick={() => {
+                    setQ("");
+                    setPage(0);
+                  }}
+                >
+                  Temizle
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

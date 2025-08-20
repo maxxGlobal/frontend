@@ -34,10 +34,13 @@ export interface PageResponse<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // current page (0-based)
+  number: number;
   size: number;
   first: boolean;
   last: boolean;
+}
+export interface SearchUsersRequest extends PageRequest {
+  q: string; // arama terimi (min 3 karakter)
 }
 
 /** API tüm cevapları { success, data, ... } şeklinde sardığı için generic tip */
@@ -67,7 +70,6 @@ export interface RegisteredUser {
   email: string;
 }
 
-// Basit ve temiz: axios error’u component yakalasın:
 export async function registerUser(
   payload: RegisterUserRequest
 ): Promise<RegisteredUser> {
@@ -78,7 +80,8 @@ export async function registerUser(
 }
 
 export async function listUsers(
-  req: PageRequest
+  req: PageRequest,
+  opts?: { signal?: AbortSignal }
 ): Promise<PageResponse<UserRow>> {
   const res = await api.get<ApiEnvelope<PageResponse<UserRow>>>(`/users`, {
     params: {
@@ -87,7 +90,30 @@ export async function listUsers(
       sortBy: req.sortBy,
       sortDirection: req.sortDirection,
     },
+    signal: opts?.signal,
   });
 
-  return res.data.data; // swagger örneğinde payload 'data' içinde
+  return res.data.data;
+}
+export async function searchUsers(
+  req: PageRequest & { q: string },
+  opts?: { signal?: AbortSignal }
+): Promise<PageResponse<UserRow>> {
+  const { q, page, size, sortBy, sortDirection } = req;
+
+  const res = await api.get<ApiEnvelope<PageResponse<UserRow>>>(
+    "/users/search",
+    {
+      params: {
+        q: q.trim(),
+        page,
+        size,
+        sortBy,
+        sortDirection,
+      },
+      signal: opts?.signal,
+    }
+  );
+
+  return res.data.data;
 }
