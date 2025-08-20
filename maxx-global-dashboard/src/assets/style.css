@@ -8142,12 +8142,11 @@ width: auto;
 }
 .filter-select .form-select,
 .filter-search .form-control{
-  background-color: #f8f9fa;         /* background kullanma -> ok’u silmesin */
+  background-color: #f8f9fa;        
   border-color:transparent;
   height:44px;
-  /* kendi caret’i kullanacağımız için native’i gizle */
   appearance:none; -webkit-appearance:none; -moz-appearance:none;
-  padding-right:2rem;                 /* sağdaki caret alanı */
+  padding-right:2rem;                
 }
 .filter-select .form-select:focus,
 .filter-search .form-control:focus{
@@ -8173,7 +8172,7 @@ width: auto;
 .filter-switch{
   display:flex; align-items:center; gap:.5rem; white-space:nowrap;
 }
-.filter-switch .label{ font-size:.875rem; color:#6c757d; }
+.filter-switch .label{ font-size:16px; color:#6c757d; }
 .filter-switch .form-check-input{ width:2.4rem; height:1.3rem; }
 .filter-switch .form-check-input:checked{ background-color:#6176fe; border-color:#6176fe; }
 
@@ -8191,7 +8190,8 @@ box-shadow: none;
 width: 100%;
 text-align: left;
 font-size: 16px;
-    font-weight: 500;
+font-weight: 500;
+color:#6c757d
 }
 .filter-select .dropdown .dropdown-menu{
 	width: 100%;
@@ -8201,4 +8201,12 @@ font-size: 16px;
 	background-color:#6176FE ;
 }
 
-
+.sherah-table{
+	overflow-x: scroll;
+}
+.sherah-table__body tr td{
+	padding: 20px 28px !important;
+}
+.sherah-table__head tr th{
+	padding: 28px 16px !important;
+}

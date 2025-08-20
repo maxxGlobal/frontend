@@ -223,3 +223,8 @@ export async function listActiveUsers(
   const payload = (res as any).data?.data ?? (res as any).data;
   return normalizeToPage<UserRow>(payload, req);
 }
+
+// user deleted
+export async function deleteUser(id: number): Promise<void> {
+  await api.delete(`/users/${id}`);
+}

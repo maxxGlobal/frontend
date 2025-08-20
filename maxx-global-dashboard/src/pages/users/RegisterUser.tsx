@@ -24,7 +24,6 @@ export default function RegisterUser() {
     lastName: "",
     email: "",
     password: "",
-    confirmPassword: "",
     address: "",
     phoneNumber: "",
     dealerId: "",
@@ -114,17 +113,6 @@ export default function RegisterUser() {
     setGlobalError(null);
     setFieldErrors({});
 
-    if (form.password !== form.confirmPassword) {
-      setGlobalError("Şifre ve şifre tekrarı aynı olmalıdır.");
-      setFieldErrors({
-        ...fieldErrors,
-        password: ["Şifre ve şifre tekrarı aynı olmalıdır."],
-        confirmPassword: ["Şifre ve şifre tekrarı aynı olmalıdır."],
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
       await registerUser({
         firstName: form.firstName,
@@ -143,7 +131,7 @@ export default function RegisterUser() {
         lastName: "",
         email: "",
         password: "",
-        confirmPassword: "",
+
         address: "",
         phoneNumber: "",
         dealerId: "",
