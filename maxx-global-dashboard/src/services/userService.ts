@@ -2,7 +2,6 @@
 import api from "../lib/api";
 
 export type SortDirection = "asc" | "desc";
-
 export interface DealerMini {
   id: number;
   name: string;
@@ -10,6 +9,11 @@ export interface DealerMini {
 export interface RoleMini {
   id: number;
   name: string;
+}
+export interface PermissionMini {
+  id: number;
+  name: string;
+  description?: string | null;
 }
 export interface UserRow {
   id: number;
@@ -70,6 +74,9 @@ export interface RegisteredUser {
   email: string;
 }
 
+export interface RoleWithPermissions extends RoleMini {
+  permissions?: PermissionMini[];
+}
 export async function registerUser(
   payload: RegisterUserRequest
 ): Promise<RegisteredUser> {
@@ -115,5 +122,27 @@ export async function searchUsers(
     }
   );
 
+  return res.data.data;
+}
+export interface UserProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string | null;
+  address?: string | null;
+  dealer?: DealerMini | null;
+  roles: RoleWithPermissions[];
+  status?: string;
+  createdAt?: string;
+  avatarUrl?: string | null;
+}
+
+export async function getMyProfile(opts?: {
+  signal?: AbortSignal;
+}): Promise<UserProfile> {
+  const res = await api.get<ApiEnvelope<UserProfile>>("/users/profile", {
+    signal: opts?.signal,
+  });
   return res.data.data;
 }

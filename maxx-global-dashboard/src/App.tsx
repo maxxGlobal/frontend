@@ -8,6 +8,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import RegisterAdd from "./components/layout/RegisterAdd";
 import UsersList from "./components/layout/UsersList";
+import ProfilePage from "./components/layout/ProfilePage";
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
       <Route element={<ProtectedRoute required="USER_MANAGE" />}>
         <Route path="/users/list" element={<UsersList />} />
       </Route>
+      <Route path="/profile" element={<ProfilePage />} />
 
       {/* default yönlendirme */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
