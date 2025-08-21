@@ -62,3 +62,15 @@ export interface UserProfile {
   createdAt?: string;
   avatarUrl?: string | null;
 }
+
+export type UpdateUserRequest = Partial<{
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  phoneNumber: string;
+  dealerId: number;
+  roleId: number; // tek rol veriyorsanız
+  status: string; // ör: "ACTIVE" | "PASSIVE" vs.
+}>;
+export type UpdatedUser = UserRow;

@@ -9,6 +9,7 @@ type Props = {
   toggleSort: (col: string) => void;
   fmtDate: (v: string | number | Date) => string;
   statusClass: (s?: string | null) => string;
+  onAskEdit: (u: UserRow) => void;
   onAskDelete: (u: UserRow) => void;
 };
 
@@ -20,6 +21,7 @@ export default function UsersTable({
   fmtDate,
   statusClass,
   onAskDelete,
+  onAskEdit,
 }: Props) {
   const canDelete = hasPermission({ required: "USER_MANAGE" });
 
@@ -136,6 +138,10 @@ export default function UsersTable({
                         href={`/users/${u.id}/edit`}
                         className="sherah-table__action sherah-color2 sherah-color3__bg--opactity"
                         title="Güncelle"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onAskEdit(u);
+                        }}
                       >
                         {/* edit icon */}
                         <i className="fa-regular fa-pen-to-square" />

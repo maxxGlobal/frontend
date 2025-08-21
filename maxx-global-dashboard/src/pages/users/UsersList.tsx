@@ -6,6 +6,7 @@ import DeleteUserModal from "./components/DeleteUserModal";
 import { deleteUser } from "../../services/users/delete";
 import { hasPermission } from "../../utils/permissions";
 import { type UserRow } from "../../types/user";
+import EditUserModal from "./components/EditUserModal";
 
 export default function UsersList() {
   if (!hasPermission({ required: "USER_MANAGE" })) {
@@ -44,9 +45,9 @@ export default function UsersList() {
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [deleting, setDeleting] = useState(false);
-
+  const [editTarget, setEditTarget] = useState<UserRow | null>(null);
   const askDelete = (u: UserRow) => setDeleteTarget(u);
-
+  const askEdit = (u: UserRow) => setEditTarget(u);
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -107,6 +108,7 @@ export default function UsersList() {
                 fmtDate={fmtDate}
                 statusClass={statusClass}
                 onAskDelete={askDelete}
+                onAskEdit={askEdit}
               />
             </div>
 
@@ -190,6 +192,16 @@ export default function UsersList() {
         onCancel={() => !deleting && setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />
+      {editTarget && (
+        <EditUserModal
+          target={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => {
+            setEditTarget(null);
+            refresh(); // listeyi tazele
+          }}
+        />
+      )}
     </div>
   );
 }
