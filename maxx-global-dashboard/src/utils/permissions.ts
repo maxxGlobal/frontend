@@ -1,6 +1,6 @@
 // src/utils/permission.ts
 import type { User } from "../lib/types";
-import { getCurrentUser } from "../services/authService";
+import { getCurrentUser } from "../services/auth/authService";
 
 export type PermissionFlags = {
   required?: string;

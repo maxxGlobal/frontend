@@ -1,11 +1,9 @@
 // src/pages/users/RegisterUser.tsx
 import { useEffect, useState } from "react";
-import { registerUser } from "../../services/userService";
+import { registerUser } from "../../services/--userService";
 import { hasPermission } from "../../utils/permissions";
-import {
-  getDealerSummaries,
-  type DealerSummary,
-} from "../../services/dealerService";
+import { getDealerSummaries } from "../../services/dealers";
+import type { DealerSummary } from "../../types/dealer";
 import { getActiveRoles, type RoleOption } from "../../services/roleService";
 
 type FieldErrors = Record<string, string[]>;
@@ -150,7 +148,7 @@ export default function RegisterUser() {
   const fe = (name: keyof typeof form) => fieldErrors[name] ?? [];
 
   return (
-    <div className="col-lg-12 col-md-12 col-12 sherah-wc-col-two">
+    <div className="col-lg-12 col-md-12 col-12 sherah-wc-col-two register-add-form">
       <div className="sherah-wc__form">
         <div className="sherah-wc__form-inner">
           <h3 className="sherah-wc__form-title sherah-wc__form-title__one">
@@ -438,17 +436,6 @@ export default function RegisterUser() {
                     >
                       {loading ? "Kaydediliyor..." : "Kaydet"}
                     </button>
-
-                    {/* İstersen sosyal butonları ekleyebilirsin
-                    <div className="sherah-wc__inside--group">
-                      <button className="ntfmax-wc__btn ntfmax-wc__btn-social" type="button">
-                        <div className="ntfmax-wc__btn-icon">
-                          <i className="fa-brands fa-google"></i>
-                        </div>
-                        Sign In with Google
-                      </button>
-                    </div>
-                    */}
                   </div>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 // src/services/authService.ts
-import api from "../lib/api";
-import type { LoginResponse, User } from "../lib/types";
+import api from "../../lib/api";
+import type { LoginResponse, User } from "../../types";
 
 export async function login(
   email: string,

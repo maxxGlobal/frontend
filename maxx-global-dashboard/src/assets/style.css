@@ -8066,16 +8066,16 @@ blockquote {
 ========================================*/
 
 /*CUSTOM STYLE*/
-
-.sherah-adashboard.register-add-form .sherah-wc__form{
+ /*Register Form*/
+.register-add-form .sherah-wc__form{
   height: auto;
-}
-.sherah-adashboard.register-add-form .sherah-wc__form-inner{
+}.register-add-form .sherah-wc__form-inner{
   min-width: 500px;
   max-width: 800px;
   padding: 30px;
 }
-.sherah-adashboard.user-list .sherah-table__main .sherah-table__head tr th{
+/*User List*/
+.user-list .sherah-table__main .sherah-table__head tr th{
 padding: 20px 28px;
 font-size: 18px;
 width: auto;
@@ -8105,21 +8105,19 @@ width: auto;
 	content: "" !important;
 }
 
-/* Panel – sağa hizalı, 2 satır */
 .filter-panel{
-  --filter-width: 520px;              /* üst ve alt satır aynı genişlik */
+  --filter-width: 520px;      
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   gap:.6rem;
-  padding:.6rem .8rem;
+  padding: 1.5rem 1.8rem;
   border:1px solid var(--bs-border-color, #e9ecef);
   border-radius:14px;
   background:#fff;
   box-shadow:0 2px 8px rgba(16,24,40,.04);
 }
 
-/* Üst satır: tek satır, arama ile aynı genişlik ve sağ hizalı */
 .filter-top{
   width:min(var(--filter-width),100%);
   display:flex;
@@ -8129,12 +8127,10 @@ width: auto;
   white-space:nowrap;                 
 }
 
-/* Alt satır (arama) aynı genişlik */
 .filter-search{
   width:min(var(--filter-width),100%);
 }
 
-/* Select + ikon stilleri */
 .filter-select{ min-width: 220px; position:relative; }
 .filter-select .input-group-text,
 .filter-search .input-group-text{
@@ -8154,21 +8150,18 @@ width: auto;
   min-height: 44px;
 }
 
-/* Özel caret (sağa sabit) */
 .filter-select.has-caret .select-caret{
   position:absolute;
   right:.55rem; top:50%; transform:translateY(-50%);
   color:#667085; font-size:.8rem; pointer-events:none;
 }
 
-/* Arama: tek satır zorlaması ve clear butonu */
 .filter-search.input-group{ flex-wrap:nowrap !important; }
 .filter-search .btn-clear{
   height:44px; display:flex; align-items:center; border:0; background:transparent; padding:0 .5rem; color:#6c757d;
 }
 .filter-search .btn-clear:hover{ color:#111; }
 
-/* Switch blok tek satır, taşmadan */
 .filter-switch{
   display:flex; align-items:center; gap:.5rem; white-space:nowrap;
 }
@@ -8201,12 +8194,16 @@ color:#6c757d
 	background-color:#6176FE ;
 }
 
-.sherah-table{
-	overflow-x: scroll;
-}
 .sherah-table__body tr td{
 	padding: 20px 28px !important;
 }
 .sherah-table__head tr th{
 	padding: 28px 16px !important;
+}
+
+/*modal*/
+
+.modal-content{
+	border-radius: 1.3rem;
+	padding: 24px;
 }

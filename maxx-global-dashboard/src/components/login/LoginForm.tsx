@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login, persistAuth } from "../../services/authService";
+import { login, persistAuth } from "../../services/auth/authService";
 import { useNavigate } from "react-router-dom";
 export default function LoginForm() {
   const navigate = useNavigate();

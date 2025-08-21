@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getMyProfile, type UserProfile } from "../../services/userService";
+import { getMyProfile, type UserProfile } from "../../services/--userService";
 
 export default function ProfilePage() {
   const [me, setMe] = useState<UserProfile | null>(null);
