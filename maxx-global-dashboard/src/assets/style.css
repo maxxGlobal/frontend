@@ -8207,3 +8207,70 @@ color:#6c757d
 	border-radius: 1.3rem;
 	padding: 24px;
 }
+
+/*role add*/
+
+/* Permission kartları için basit, düzgün grid görünümü */
+.perm-card {
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+.perm-card:hover {
+  border-color: #cfe7ff;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+.perm-card.selected {
+  background:  #EBF0FF;;
+}
+.perm-card .form-check {
+ display: flex;
+ align-items: center;
+}
+.perm-card .form-check-input {
+  transform: translateY(2px);
+  margin-top: 0;
+  width: auto;
+  height: 22px;
+  padding: 5px 0px 5px 20px;
+}
+.perm-card .form-check-input:checked {
+background-color:  #6176FE;
+border-color:#6176FE ;
+}
+.perm-card .form-check-input:checked,.form-check-input:focus {
+box-shadow: none;
+}
+.perm-card .form-check .perm-name{
+	font-weight: 400;
+	font-size: 16px;
+	line-height: 22px;
+}
+
+.perm-name-desc{
+	font-weight: 400;
+	font-size: 16px;
+	color:#6176FE
+}
+.perm-search{
+border-radius: 8px !important;
+}
+.perm-search:focus {
+width: auto !important;
+box-shadow: none !important;
+
+}
+.perm-search-section{
+	border:1px solid #6176FE;
+	border-radius: 8px;
+	
+}
+.perm-search-section .perm-search-icon {
+	background-color:#FAFAFA;
+	border-radius: 8px;
+}
+.role-create .sherah-btn{
+	padding: 14px 32px;
+}

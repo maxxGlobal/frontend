@@ -1,10 +1,11 @@
-// src/pages/users/RegisterUser.tsx
 import { useEffect, useState } from "react";
-import { registerUser } from "../../services/--userService";
+import { registerUser } from "../../services/users/register";
 import { hasPermission } from "../../utils/permissions";
 import { getDealerSummaries } from "../../services/dealers";
 import type { DealerSummary } from "../../types/dealer";
-import { getActiveRoles, type RoleOption } from "../../services/roleService";
+
+import { getActiveRolesSimple } from "../../services/roles";
+import type { RoleOption } from "../../types/role";
 
 type FieldErrors = Record<string, string[]>;
 
@@ -44,7 +45,7 @@ export default function RegisterUser() {
         setListsError(null);
         const [dealerList, roleList] = await Promise.all([
           getDealerSummaries(),
-          getActiveRoles(),
+          getActiveRolesSimple(),
         ]);
         setDealers(dealerList);
         setRoles(roleList);
@@ -111,6 +112,21 @@ export default function RegisterUser() {
     setGlobalError(null);
     setFieldErrors({});
 
+    // ✔ basit doğrulamalar
+    const dealerIdNum = Number(form.dealerId);
+    const roleIdNum = Number(form.roleId);
+
+    const localErrors: FieldErrors = {};
+    if (!dealerIdNum) localErrors.dealerId = ["Bayi seçimi zorunludur."];
+    if (!roleIdNum) localErrors.roleId = ["Rol seçimi zorunludur."];
+    if (!form.password) localErrors.password = ["Şifre zorunludur."];
+
+    if (Object.keys(localErrors).length) {
+      setFieldErrors(localErrors);
+      setLoading(false);
+      return;
+    }
+
     try {
       await registerUser({
         firstName: form.firstName,
@@ -119,8 +135,8 @@ export default function RegisterUser() {
         password: form.password,
         address: form.address || undefined,
         phoneNumber: form.phoneNumber || undefined,
-        dealerId: Number(form.dealerId),
-        roleId: Number(form.roleId),
+        dealerId: dealerIdNum,
+        roleId: roleIdNum,
       });
 
       alert("Kullanıcı oluşturuldu");
@@ -129,7 +145,6 @@ export default function RegisterUser() {
         lastName: "",
         email: "",
         password: "",
-
         address: "",
         phoneNumber: "",
         dealerId: "",
@@ -155,7 +170,6 @@ export default function RegisterUser() {
             Kullanıcı Oluştur <span>Lütfen aşağıdaki bilgileri doldurun</span>
           </h3>
 
-          {/* GLOBAL ERROR */}
           {globalError && (
             <div className="alert alert-danger mb-3">{globalError}</div>
           )}
@@ -163,14 +177,13 @@ export default function RegisterUser() {
             <div className="alert alert-warning mb-3">{listsError}</div>
           )}
 
-          {/* FORM */}
           <form
             className="sherah-wc__form-main p-0"
             onSubmit={onSubmit}
             noValidate
           >
             <div className="row">
-              {/* First Name */}
+              {/* Ad */}
               <div className="col-lg-6 col-md-6 col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Ad *</label>
@@ -195,7 +208,7 @@ export default function RegisterUser() {
                 </div>
               </div>
 
-              {/* Last Name */}
+              {/* Soyad */}
               <div className="col-lg-6 col-md-6 col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Soyad *</label>
@@ -247,7 +260,7 @@ export default function RegisterUser() {
                 </div>
               </div>
 
-              {/* Password */}
+              {/* Şifre */}
               <div className="col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Şifre *</label>
@@ -276,35 +289,7 @@ export default function RegisterUser() {
                 </div>
               </div>
 
-              {/* <div className="col-12">
-                <div className="form-group">
-                  <label className="sherah-wc__form-label">
-                    Confirm Password *
-                  </label>
-                  <div className="form-group__input">
-                    <input
-                      className={`sherah-wc__form-input ${
-                        fe("confirmPassword").length ? "is-invalid" : ""
-                      }`}
-                      id="confirm-password-field"
-                      type="password"
-                      name="confirmPassword"
-                      placeholder="••••••••"
-                      required
-                      maxLength={100}
-                      value={form.confirmPassword}
-                      onChange={onChange}
-                    />
-                  </div>
-                  {fe("confirmPassword").map((m, i) => (
-                    <div key={i} className="text-danger small mt-1">
-                      {m}
-                    </div>
-                  ))}
-                </div>
-              </div> */}
-
-              {/* Address */}
+              {/* Adres */}
               <div className="col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Adres</label>
@@ -328,7 +313,7 @@ export default function RegisterUser() {
                 </div>
               </div>
 
-              {/* Phone Number */}
+              {/* Telefon */}
               <div className="col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Telefon</label>
@@ -342,8 +327,7 @@ export default function RegisterUser() {
                       placeholder="5051234567"
                       value={form.phoneNumber}
                       onChange={onChange}
-                      // 10-20 arası rakam
-                      pattern="^\d{10,20}$"
+                      pattern="^\\d{10,20}$"
                       title="Telefon numarası sadece rakamlardan oluşmalı (10-20 karakter)."
                     />
                   </div>
@@ -355,7 +339,7 @@ export default function RegisterUser() {
                 </div>
               </div>
 
-              {/* Dealer */}
+              {/* Bayi */}
               <div className="col-lg-6 col-md-6 col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Bayi *</label>
@@ -390,7 +374,7 @@ export default function RegisterUser() {
                 </div>
               </div>
 
-              {/* Role */}
+              {/* Rol */}
               <div className="col-lg-6 col-md-6 col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Rol *</label>

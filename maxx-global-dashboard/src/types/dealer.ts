@@ -10,18 +10,15 @@ export interface Dealer {
   status?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  // gerekirse ilave alanlar...
 }
 
 export interface DealerCreateRequest {
   name: string;
   email?: string;
-  // diğer alanlar...
 }
 
 export interface DealerUpdateRequest {
   name?: string;
   email?: string;
   status?: string;
-  // diğer alanlar...
 }

@@ -8,6 +8,8 @@ import Dashboard from "../pages/Dashboard";
 import RegisterUser from "../pages/users/RegisterUser";
 import UsersList from "../pages/users/UsersList";
 import ProfilePage from "../pages/profile/ProfilePage";
+import RoleCreate from "../pages/roles/RoleCreate";
+import RolesList from "../pages/roles/RolesList";
 
 export default function AppRoutes() {
   return (
@@ -26,8 +28,13 @@ export default function AppRoutes() {
           {/* /users sadece USER_MANAGE */}
           <Route element={<ProtectedRoute required="USER_MANAGE" />}>
             <Route path="/users/register" element={<RegisterUser />} />
-
             <Route path="/users/list" element={<UsersList />} />
+          </Route>
+          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+            <Route path="/roles" element={<RolesList />} />
+          </Route>
+          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+            <Route path="/roles/new" element={<RoleCreate />} />
           </Route>
         </Route>
       </Route>

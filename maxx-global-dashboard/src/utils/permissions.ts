@@ -1,5 +1,4 @@
-// src/utils/permission.ts
-import type { User } from "../lib/types";
+import type { User } from "../types/auth";
 import { getCurrentUser } from "../services/auth/authService";
 
 export type PermissionFlags = {
