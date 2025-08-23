@@ -114,4 +114,23 @@ export const menuItems: MenuItem[] = [
       },
     ],
   },
+  {
+    id: "menu-item__category",
+    label: "Kategoriler",
+    iconHtml: RolesIconHTML,
+    children: [
+      {
+        id: "category_add",
+        label: "Kategori Ekle",
+        to: "/category-add",
+        required: "CATEGORY_MANAGE",
+      },
+      {
+        id: "category_list",
+        label: "Kategori Listesi",
+        to: "/category",
+        required: "CATEGORY_MANAGE",
+      },
+    ],
+  },
 ];

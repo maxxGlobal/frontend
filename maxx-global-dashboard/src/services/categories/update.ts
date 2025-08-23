@@ -1,0 +1,22 @@
+import api from "../../lib/api";
+import type { ApiEnvelope } from "../common";
+import type { CategoryUpdateRequest, CategoryRow } from "../../types/category";
+
+export async function updateCategory(
+  id: number,
+  payload: CategoryUpdateRequest
+): Promise<CategoryRow> {
+  const body: any = {
+    name: payload.name,
+    status: payload.status,
+  };
+  if (payload.parentId !== undefined) {
+    body.parentCategoryId = payload.parentId; // map
+  }
+
+  const res = await api.put<ApiEnvelope<CategoryRow> | CategoryRow>(
+    `/categories/${id}`,
+    body
+  );
+  return (res as any).data?.data ?? (res as any).data;
+}
