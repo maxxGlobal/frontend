@@ -1,25 +1,11 @@
+// src/services/dealers/active.ts
 import api from "../../lib/api";
-import { normalizeToPage, type ApiEnvelope } from "../common";
-import type { PageRequest, PageResponse } from "../../types/paging";
-import type { Dealer } from "../../types/dealer";
+import type { ApiEnvelope } from "../common";
+import type { DealerRow } from "../../types/dealer";
+import { normalizeDealers } from "./_normalize";
 
-/** Bazı backendlere göre dizi veya PageResponse dönebilir -> normalize ediyoruz */
-export async function listActiveDealers(
-  req: PageRequest,
-  opts?: { signal?: AbortSignal }
-): Promise<PageResponse<Dealer>> {
-  const res = await api.get<ApiEnvelope<PageResponse<Dealer> | Dealer[]>>(
-    `/dealers/active`,
-    {
-      params: {
-        page: req.page,
-        size: req.size,
-        sortBy: req.sortBy,
-        sortDirection: req.sortDirection,
-      },
-      signal: opts?.signal,
-    }
-  );
-  const payload = (res as any).data?.data ?? (res as any).data;
-  return normalizeToPage<Dealer>(payload, req);
+export async function listActiveDealers(): Promise<DealerRow[]> {
+  const res = await api.get<ApiEnvelope<any[]> | any[]>("/dealers/active");
+  const payload = (res as any).data?.data ?? (res as any).data ?? [];
+  return normalizeDealers(Array.isArray(payload) ? payload : []);
 }

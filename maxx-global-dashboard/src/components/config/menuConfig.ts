@@ -95,4 +95,23 @@ export const menuItems: MenuItem[] = [
       },
     ],
   },
+  {
+    id: "menu-item__dealers",
+    label: "Bayiler",
+    iconHtml: RolesIconHTML,
+    children: [
+      {
+        id: "dealers_add",
+        label: "Bayi Ekle",
+        to: "/dealers-add",
+        required: "SYSTEM_ADMIN",
+      },
+      {
+        id: "dealers_list",
+        label: "Bayi Listesi",
+        to: "/dealers",
+        required: "SYSTEM_ADMIN",
+      },
+    ],
+  },
 ];

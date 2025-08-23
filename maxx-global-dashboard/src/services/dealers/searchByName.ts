@@ -1,19 +1,14 @@
+// src/services/dealers/searchByName.ts
 import api from "../../lib/api";
-import type { Dealer } from "../../types/dealer";
 import type { ApiEnvelope } from "../common";
+import type { DealerRow } from "../../types/dealer";
+import { normalizeDealers } from "./_normalize";
 
-/** backend'e göre Page veya dizi olabilir; çoğu kurulumda page yoksa dizi döner */
-export async function searchDealersByName(
-  name: string,
-  opts?: { signal?: AbortSignal }
-): Promise<Dealer[]> {
-  const res = await api.get<ApiEnvelope<Dealer[] | { content: Dealer[] }>>(
-    `/dealers/search-by-name`,
-    {
-      params: { name },
-      signal: opts?.signal,
-    }
+export async function searchDealersByName(name: string): Promise<DealerRow[]> {
+  const res = await api.get<ApiEnvelope<any[]> | any[]>(
+    "/dealers/search-by-name",
+    { params: { name } }
   );
-  const payload = (res as any).data?.data ?? (res as any).data;
-  return Array.isArray(payload) ? payload : payload?.content ?? [];
+  const payload = (res as any).data?.data ?? (res as any).data ?? [];
+  return normalizeDealers(Array.isArray(payload) ? payload : []);
 }

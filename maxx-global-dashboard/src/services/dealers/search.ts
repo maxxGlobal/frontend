@@ -1,19 +1,21 @@
+// src/services/dealers/search.ts
 import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
-import type { PageRequest, PageResponse } from "../../types/paging";
-import type { Dealer } from "../../types/dealer";
+import type { DealerRow } from "../../types/dealer";
+import { normalizeDealers } from "./_normalize";
 
-export async function searchDealers(
-  req: PageRequest & { q: string },
-  opts?: { signal?: AbortSignal }
-): Promise<PageResponse<Dealer>> {
-  const { q, page, size, sortBy, sortDirection } = req;
-  const res = await api.get<ApiEnvelope<PageResponse<Dealer>>>(
-    `/dealers/search`,
-    {
-      params: { q: q.trim(), page, size, sortBy, sortDirection },
-      signal: opts?.signal,
-    }
-  );
-  return (res as any).data?.data ?? (res as any).data;
+export async function searchDealers(q: string): Promise<DealerRow[]> {
+  const res = await api.get<ApiEnvelope<any> | any>("/dealers/search", {
+    params: { q },
+  });
+
+  // data ya dizi gelir ya da { content: [...] } şeklinde sayfalı yapı
+  const raw = (res as any).data?.data ?? (res as any).data ?? [];
+  const list = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw.content)
+    ? raw.content
+    : [];
+
+  return normalizeDealers(list);
 }

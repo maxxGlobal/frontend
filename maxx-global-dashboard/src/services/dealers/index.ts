@@ -1,3 +1,4 @@
+// src/services/dealers/index.ts
 export * from "./list";
 export * from "./getById";
 export * from "./create";

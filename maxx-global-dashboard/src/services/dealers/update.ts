@@ -1,10 +1,24 @@
+// src/services/dealers/update.ts
 import api from "../../lib/api";
+import type { ApiEnvelope } from "../common";
 import type { Dealer, DealerUpdateRequest } from "../../types/dealer";
+import { getDealerById } from "./getById";
+import { normalizeDealer } from "./_normalize";
 
 export async function updateDealer(
   id: number,
-  payload: DealerUpdateRequest
+  patch: DealerUpdateRequest
 ): Promise<Dealer> {
-  const { data } = await api.put<Dealer>(`/dealers/${id}`, payload);
-  return data;
+  const current = await getDealerById(id);
+  const body = {
+    name: patch.name ?? current.name ?? "",
+    email: patch.email ?? current.email ?? null,
+    fixedPhone: patch.fixedPhone ?? current.fixedPhone ?? null,
+    mobilePhone: patch.mobilePhone ?? current.mobilePhone ?? null,
+    address: patch.address ?? current.address ?? null,
+  };
+
+  const res = await api.put<ApiEnvelope<any> | any>(`/dealers/${id}`, body);
+  const data = (res as any).data?.data ?? (res as any).data ?? null;
+  return normalizeDealer(data || {});
 }

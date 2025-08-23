@@ -178,7 +178,6 @@ export default function RoleCreate() {
                             htmlFor={cid}
                             className="form-check-label w-100 mb-0"
                           >
-                            <div className="perm-name">{p.name}</div>
                             {p.description ? (
                               <div className="perm-name-desc">
                                 {p.description}

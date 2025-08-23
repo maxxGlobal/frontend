@@ -8066,6 +8066,41 @@ blockquote {
 ========================================*/
 
 /*CUSTOM STYLE*/
+
+.sherah-wc__form-main input, .sherah-wc__form-main textarea, .sherah-wc__form-main select{
+	color: rgba(57, 62, 70, 0.9);
+}
+
+/*Button style*/
+.bg-success{
+	background-color:#DCF4F0 !important;
+	color: #09AD95 !important;
+	font-size: 14px;
+    text-align: center;
+    padding: 6px 24px;
+    border-radius: 4px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+}
+.bg-danger{
+	background-color:#FFEBEB !important;
+	color: #FF6767  !important;
+	font-size: 14px;
+    text-align: center;
+    padding: 6px 24px;
+    border-radius: 4px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+/*text style*/
+
+.text-primary{
+   color:#6176FE !important
+}
+
  /*Register Form*/
 .register-add-form .sherah-wc__form{
   height: auto;

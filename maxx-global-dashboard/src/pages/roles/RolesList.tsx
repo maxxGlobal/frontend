@@ -1,12 +1,13 @@
 // src/pages/roles/RolesList.tsx
 import { useEffect, useMemo, useState } from "react";
 import { hasPermission } from "../../utils/permissions";
-import { listRoles, deleteRole } from "../../services/roles";
+import { listRoles, deleteRole, restoreRole } from "../../services/roles";
 import type { RoleRow } from "../../types/role";
 import FilterPanel from "./components/FilterPanel";
 import RolesTable from "./components/Table";
 import DeleteRoleModal from "./components/DeleteRoleModal";
 import EditRoleModal from "./components/EditRoleModal";
+import { useRef } from "react";
 
 type Page<T> = {
   content: T[];
@@ -58,6 +59,16 @@ export default function RolesList() {
   const [deleteTarget, setDeleteTarget] = useState<RoleRow | null>(null);
   const [editTarget, setEditTarget] = useState<RoleRow | null>(null);
 
+  const [forceDelete, setForceDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const [lastDeleted, setLastDeleted] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [showUndo, setShowUndo] = useState(false);
+  const undoTimerRef = useRef<number | null>(null);
+
   useEffect(() => {
     (async () => {
       try {
@@ -97,18 +108,52 @@ export default function RolesList() {
   async function handleDeleteConfirm() {
     if (!deleteTarget) return;
     try {
-      await deleteRole(deleteTarget.id);
-      // sayfa ayarı
+      setDeleting(true);
+      await deleteRole(deleteTarget.id, { force: forceDelete });
+
+      // sayfalama / refresh
       if (data.content.length === 1 && page > 0) {
         setPage((p) => Math.max(0, p - 1));
       } else {
         refresh();
       }
-    } catch (e) {
-      console.error(e);
-      alert("Rol silinirken bir hata oluştu.");
-    } finally {
+
+      // ↓↓↓ UNDO verisini hazırla
+      setLastDeleted({ id: deleteTarget.id, name: deleteTarget.name });
+      setShowUndo(true);
+      if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = window.setTimeout(() => setShowUndo(false), 8000); // 8 sn
+
+      setForceDelete(false);
       setDeleteTarget(null);
+    } catch (e: any) {
+      const res = e?.response;
+      const msg =
+        res?.data?.message ||
+        res?.data?.title ||
+        res?.data?.error ||
+        e?.message ||
+        "Rol silinemedi.";
+      alert(msg);
+    } finally {
+      setDeleting(false);
+    }
+  }
+  async function handleUndoRestore() {
+    if (!lastDeleted) return;
+    try {
+      await restoreRole(lastDeleted.id);
+      setShowUndo(false);
+      refresh();
+    } catch (e: any) {
+      const res = e?.response;
+      const msg =
+        res?.data?.message ||
+        res?.data?.title ||
+        res?.data?.error ||
+        e?.message ||
+        "Rol geri yüklenemedi.";
+      alert(msg);
     }
   }
 
@@ -234,6 +279,32 @@ export default function RolesList() {
             refresh();
           }}
         />
+      )}
+      {showUndo && lastDeleted && (
+        <div
+          className="alert alert-success shadow-sm"
+          style={{
+            position: "fixed",
+            right: 16,
+            bottom: 16,
+            zIndex: 9999,
+            maxWidth: 360,
+          }}
+        >
+          <div className="d-flex align-items-start justify-content-between">
+            <div className="me-3">
+              <strong>Silindi:</strong> {lastDeleted.name}
+              <div className="small text-muted">Geri almak için tıklayın.</div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-success"
+              onClick={handleUndoRestore}
+            >
+              Geri Al
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

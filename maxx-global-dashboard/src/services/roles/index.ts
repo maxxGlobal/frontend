@@ -42,8 +42,15 @@ export async function updateRole(
 }
 
 /** Rol sil */
-export async function deleteRole(roleId: number): Promise<void> {
-  await api.delete(`/roles/${roleId}`);
+export async function deleteRole(id: number, opts?: { force?: boolean }) {
+  const cfg: any = {};
+  if (opts?.force) {
+    // hem query hem body gönder
+    cfg.params = { force: true };
+    cfg.data = { force: true };
+  }
+  const res = await api.delete<ApiEnvelope<null> | null>(`/roles/${id}`, cfg);
+  return (res as any).data?.data ?? (res as any).data ?? null;
 }
 
 /** Silinen rolü geri yükle */

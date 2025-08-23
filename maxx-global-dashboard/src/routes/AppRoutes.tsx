@@ -10,6 +10,8 @@ import UsersList from "../pages/users/UsersList";
 import ProfilePage from "../pages/profile/ProfilePage";
 import RoleCreate from "../pages/roles/RoleCreate";
 import RolesList from "../pages/roles/RolesList";
+import DealersList from "../pages/dealers/DealersList";
+import DealerCreate from "../pages/dealers/DealerCreate";
 
 export default function AppRoutes() {
   return (
@@ -35,6 +37,12 @@ export default function AppRoutes() {
           </Route>
           <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
             <Route path="/roles/new" element={<RoleCreate />} />
+          </Route>
+          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+            <Route path="/dealers" element={<DealersList />} />
+          </Route>
+          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+            <Route path="/dealers-add" element={<DealerCreate />} />
           </Route>
         </Route>
       </Route>

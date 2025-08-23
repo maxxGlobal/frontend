@@ -1,15 +1,13 @@
+// src/services/dealers/getByEmail.ts
 import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
 import type { Dealer } from "../../types/dealer";
+import { normalizeDealer } from "./_normalize";
 
-export async function getDealerByEmail(
-  email: string,
-  opts?: { signal?: AbortSignal }
-): Promise<Dealer | null> {
-  const res = await api.get<ApiEnvelope<Dealer | null>>(`/dealers/by-email`, {
+export async function getDealerByEmail(email: string): Promise<Dealer | null> {
+  const res = await api.get<ApiEnvelope<any> | any>("/dealers/by-email", {
     params: { email },
-    signal: opts?.signal,
   });
-  const payload = (res as any).data?.data ?? (res as any).data;
-  return payload ?? null;
+  const payload = (res as any).data?.data ?? (res as any).data ?? null;
+  return payload ? normalizeDealer(payload) : null;
 }
