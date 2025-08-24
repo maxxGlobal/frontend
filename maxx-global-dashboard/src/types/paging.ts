@@ -15,4 +15,6 @@ export interface PageResponse<T> {
   size: number;
   first: boolean;
   last: boolean;
+  empty?: boolean;
+  numberOfElements?: number; // ✅ Bunu ekle
 }

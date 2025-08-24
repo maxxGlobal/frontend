@@ -8109,6 +8109,13 @@ blockquote {
   max-width: 800px;
   padding: 30px;
 }
+@media (max-width: 992px) {
+  .register-add-form .sherah-wc__form-inner {
+    min-width: 0;      
+    max-width: none;   
+    padding: 30px;
+  }
+}
 /*User List*/
 .user-list .sherah-table__main .sherah-table__head tr th{
 padding: 20px 28px;

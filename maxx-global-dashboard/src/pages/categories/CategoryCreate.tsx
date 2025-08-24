@@ -80,7 +80,7 @@ export default function CategoryCreate() {
         name: form.name.trim(),
         parentId: form.parentId ?? undefined,
       });
-      // yeni ekleneni hemen görebilmek için ağacı tekrar dolduralım
+
       await loadAll();
       setForm({ name: "", parentId: null });
       alert("Kategori oluşturuldu.");
@@ -97,53 +97,82 @@ export default function CategoryCreate() {
   }
 
   return (
-    <div className="col-lg-8">
-      <h3 className="sherah-card__title py-3">Yeni Kategori</h3>
+    <div className="col-lg-12 col-md-12 col-12 sherah-wc-col-two register-add-form">
+      <div className="sherah-wc__form">
+        <div className="sherah-wc__form-inner">
+          <h3 className="sherah-wc__form-title sherah-wc__form-title__one">
+            Yeni Kategori
+          </h3>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+          {error && <div className="alert alert-danger">{error}</div>}
 
-      <form onSubmit={submit}>
-        <div className="mb-3">
-          <label className="form-label">Ad *</label>
-          <input
-            className="form-control"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            required
-          />
+          <form onSubmit={submit} className="sherah-wc__form-main p-0">
+            <div className="row">
+              <div className="col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">Ad *</label>
+                  <div className="form-group__input">
+                    <input
+                      className="sherah-wc__form-input"
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, name: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">Üst Kategori</label>
+                  {loadingTree ? (
+                    <div className="form-text">Kategoriler yükleniyor…</div>
+                  ) : treeErr ? (
+                    <div className="text-danger small">{treeErr}</div>
+                  ) : (
+                    <select
+                      className="sherah-wc__form-input ps-2"
+                      value={form.parentId ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          parentId:
+                            e.target.value === ""
+                              ? null
+                              : Number(e.target.value),
+                        }))
+                      }
+                    >
+                      {options.map((o) => (
+                        <option
+                          key={String(o.value ?? "root")}
+                          value={o.value ?? ""}
+                        >
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+              <div className="col-3">
+                <div className="form-group form-mg-top25">
+                  <div className="sherah-wc__button sherah-wc__button--bottom">
+                    <button
+                      className="ntfmax-wc__btn"
+                      type="submit"
+                      disabled={saving}
+                    >
+                      {saving ? "Kaydediliyor..." : "Kaydet"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
-
-        <div className="mb-3">
-          <label className="form-label">Üst Kategori</label>
-          {loadingTree ? (
-            <div className="form-text">Kategoriler yükleniyor…</div>
-          ) : treeErr ? (
-            <div className="text-danger small">{treeErr}</div>
-          ) : (
-            <select
-              className="form-select"
-              value={form.parentId ?? ""}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  parentId:
-                    e.target.value === "" ? null : Number(e.target.value),
-                }))
-              }
-            >
-              {options.map((o) => (
-                <option key={String(o.value ?? "root")} value={o.value ?? ""}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        <button className="btn btn-primary" disabled={saving}>
-          {saving ? "Kaydediliyor…" : "Kaydet"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }
