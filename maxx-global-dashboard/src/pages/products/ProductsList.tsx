@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect, useState } from "react";
 import CategorySidebar from "../products/components/CategorySidebar";
 import ProductsGrid from "../products/components/Grid";
 import type { PageResponse } from "../../types/paging";
@@ -6,6 +7,10 @@ import type { ProductRow } from "../../types/product";
 import { listProducts } from "../../services/products/list";
 import { getCategorySummaries } from "../../services/categories/summaries";
 import { listAllCategories } from "../../services/categories/listAll";
+import {
+  buildCategoryTree,
+  type CatNode,
+} from "../../services/categories/buildTree";
 
 type CategoryItem = { id: number | string; name: string; count?: number };
 
@@ -25,10 +30,10 @@ function makeDefaultPage<T>(size: number): PageResponse<T> {
 }
 
 export default function ProductList() {
-  const [cats, setCats] = React.useState<CategoryItem[]>([]);
-  const [selectedCat, setSelectedCat] = React.useState<number | string | null>(
-    null
-  );
+  const [cats, setCats] = useState<CatNode[]>([]);
+  const [tree, setTree] = useState<CatNode[]>([]);
+  const [selectedCat, setSelectedCat] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [q, setQ] = React.useState("");
   const [sort, setSort] = React.useState<"top" | "popular" | "newest">("top");
   const [page, setPage] = React.useState(0);
@@ -39,32 +44,25 @@ export default function ProductList() {
   const [loading, setLoading] = React.useState<boolean>(true);
 
   // Kategorileri yükle
-  React.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const r: any = await getCategorySummaries();
-        const arr = Array.isArray(r) ? r : r?.content ?? r?.items ?? [];
-        const items: CategoryItem[] = arr.map((x: any) => ({
-          id: x.id ?? x.categoryId,
-          name: x.name ?? x.categoryName,
-          count: x.count ?? x.total ?? x.productCount ?? 0,
-        }));
-        if (mounted) setCats(items);
-      } catch {
-        try {
-          const flat: any[] = await listAllCategories();
-          if (mounted)
-            setCats(flat.map((c: any) => ({ id: c.id, name: c.name })));
-        } catch (e2) {
-          console.error("Kategori yüklenemedi:", e2);
-          if (mounted) setCats([]);
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  async function loadCategories(signal?: AbortSignal) {
+    try {
+      setLoading(true);
+      setError(null);
+      const flat = await listAllCategories({ signal });
+      const tree = buildCategoryTree(flat); // 🔹 Hiyerarşik kategori ağacı
+      setCats(tree);
+    } catch (err: any) {
+      console.error(err);
+      setError("Kategoriler yüklenemedi.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadCategories(controller.signal);
+    return () => controller.abort();
   }, []);
 
   // Ürünleri yükle
@@ -102,16 +100,18 @@ export default function ProductList() {
       : 0;
 
   return (
-    <div className="row">
+    <div className="row product-list">
       {/* Sol Menü - Kategoriler */}
-      <CategorySidebar
-        items={cats}
-        selectedId={selectedCat}
-        onSelect={(c) => {
-          setSelectedCat(c ? c.id : null);
-          setPage(0);
-        }}
-      />
+      <div className="col-xxl-3 col-lg-4 col-12">
+        <CategorySidebar
+          items={cats}
+          selectedId={selectedCat}
+          onSelect={(c) => {
+            setSelectedCat(c ? c.id : null);
+            setPage(0);
+          }}
+        />
+      </div>
 
       {/* Sağ taraf - Ürün listesi */}
       <div className="col-xxl-9 col-lg-8 col-12">
@@ -142,51 +142,12 @@ export default function ProductList() {
                 />
               </form>
             </div>
-            {data && (
-              <p>
-                Showing {showingFrom}–{showingTo} of {data.totalElements}{" "}
-                results
-              </p>
-            )}
           </div>
 
           {/* Sıralama */}
           <div className="sherah-breadcrumb__right--second">
-            <div className="sherah-product__nav list-group" role="tablist">
-              <button
-                className={`list-group-item ${sort === "top" ? "active" : ""}`}
-                onClick={() => {
-                  setSort("top");
-                  setPage(0);
-                }}
-              >
-                Top Rated
-              </button>
-              <button
-                className={`list-group-item ${
-                  sort === "popular" ? "active" : ""
-                }`}
-                onClick={() => {
-                  setSort("popular");
-                  setPage(0);
-                }}
-              >
-                Popular
-              </button>
-              <button
-                className={`list-group-item ${
-                  sort === "newest" ? "active" : ""
-                }`}
-                onClick={() => {
-                  setSort("newest");
-                  setPage(0);
-                }}
-              >
-                Newest
-              </button>
-            </div>
-            <a href="/products/new" className="sherah-btn sherah-gbcolor">
-              Upload Product
+            <a href="/product-add" className="sherah-btn sherah-gbcolor">
+              Ürün Ekle
             </a>
           </div>
         </div>
@@ -197,7 +158,7 @@ export default function ProductList() {
         ) : data && data.content.length > 0 ? (
           <ProductsGrid data={data} />
         ) : (
-          <div className="text-danger">Hiç ürün bulunamadı.</div>
+          <div className="text-danger">Yükleniyor…</div>
         )}
 
         {/* Sayfalama */}

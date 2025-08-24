@@ -65,31 +65,31 @@ export default function ProductsGrid({
               {/* İçerik */}
               <div className="sherah-product-card__content sherah-dflex-column sherah-flex-gap-5">
                 <h4 className="sherah-product-card__title" title={p.name}>
-                  {p.name}
+                  <a className="sherah-pcolor">{p.name}</a>
                 </h4>
 
-                <div className="sherah-product__bottom">
-                  <div className="small text-muted mb-2">
-                    Kod: <strong>{p.code}</strong> • Kategori:{" "}
-                    <strong>{p.categoryName ?? "-"}</strong>
+                <div className="sherah-product__bottom d-block">
+                  <div className="small text-muted">
+                    Kod: <strong>{p.code}</strong>
+                  </div>
+                  <div className="small text-muted">
+                    Kategori: <strong>{p.categoryName ?? "-"}</strong>
                   </div>
 
-                  <p className="product-detail-body__stock sherah-color3 mb-2">
-                    Stok: <strong>{p.stockQuantity ?? 0}</strong> {p.unit ?? ""}
-                  </p>
+                  <div className="small text-muted mb-3">
+                    Stok: <strong>{p.stockQuantity ?? 0}</strong> adet
+                  </div>
 
                   <div className="d-flex flex-wrap gap-2 mb-3">
                     {p.isActive ? (
                       <span className="badge bg-success">Aktif</span>
                     ) : (
-                      <span className="badge bg-secondary">Pasif</span>
+                      <span className="badge bg-danger">Pasif</span>
                     )}
                     {p.isInStock ? (
-                      <span className="badge bg-info text-dark">Stokta</span>
+                      <span className="badge bg-success">Stokta</span>
                     ) : (
-                      <span className="badge bg-warning text-dark">
-                        Stok Yok
-                      </span>
+                      <span className="badge bg-danger">Stok Yok</span>
                     )}
                   </div>
 
