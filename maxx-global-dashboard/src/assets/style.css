@@ -8376,11 +8376,22 @@ box-shadow: none !important;
 .product-list .sherah-product-card__img img{
 	max-height: 200px;
 	background-size: cover;
-	object-fit: cover;
+	object-fit: contain;
 }
 .product-list .sherah-product-card__price {
     gap: 2px;
     font-size: 16px;
     font-weight: 400;
 	margin-bottom: 10px;
+}
+.product-list .sherah-button-group{
+	gap:0
+}
+.product-list .sherah-button-group .sherah-btn{
+	height: 30px;
+	min-height: 30px;
+	padding: 8px 4px;
+	font-size: 16px;
+	min-width: 40px;
+	justify-content: center;
 }

@@ -96,7 +96,7 @@ export default function ProductsGrid({
                   <div className="sherah-button-group d-flex flex-wrap gap-2">
                     {onView && (
                       <button
-                        className="sherah-btn default"
+                        className="sherah-btn sherah-btn__secondary"
                         onClick={() => onView(p)}
                         type="button"
                       >
@@ -114,7 +114,7 @@ export default function ProductsGrid({
                     )}
                     {canManage && onEdit && (
                       <button
-                        className="sherah-btn"
+                        className="sherah-btn bg-success"
                         onClick={() => onEdit(p)}
                         type="button"
                       >
@@ -123,7 +123,7 @@ export default function ProductsGrid({
                     )}
                     {canManage && onAskDelete && (
                       <button
-                        className="sherah-btn default"
+                        className="sherah-btn bg-danger"
                         onClick={() => onAskDelete(p)}
                         type="button"
                       >

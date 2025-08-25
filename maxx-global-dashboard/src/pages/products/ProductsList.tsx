@@ -11,6 +11,7 @@ import {
   buildCategoryTree,
   type CatNode,
 } from "../../services/categories/buildTree";
+import { useNavigate } from "react-router-dom";
 
 type CategoryItem = { id: number | string; name: string; count?: number };
 
@@ -42,6 +43,7 @@ export default function ProductList() {
     makeDefaultPage<ProductRow>(size)
   );
   const [loading, setLoading] = React.useState<boolean>(true);
+  const navigate = useNavigate();
 
   // Kategorileri yükle
   async function loadCategories(signal?: AbortSignal) {
@@ -156,7 +158,36 @@ export default function ProductList() {
         {loading && !data ? (
           <div className="text-muted">Yükleniyor…</div>
         ) : data && data.content.length > 0 ? (
-          <ProductsGrid data={data} />
+          <ProductsGrid
+            data={data}
+            canManage={true}
+            onView={(product) => {
+              navigate(`/products/${product.id}`);
+            }}
+            onImages={(product) => {
+              navigate(`/products/${product.id}/images`);
+            }}
+            onEdit={(product) => {
+              navigate(`/products/${product.id}/edit`);
+            }}
+            onAskDelete={(product) => {
+              if (
+                window.confirm(
+                  `${product.name} adlı ürünü silmek istiyor musun?`
+                )
+              ) {
+                fetch(`http://localhost:8080/api/products/${product.id}`, {
+                  method: "DELETE",
+                }).then(() => {
+                  alert("Ürün başarıyla silindi!");
+                  setData((prev) => ({
+                    ...prev,
+                    content: prev.content.filter((p) => p.id !== product.id),
+                  }));
+                });
+              }
+            }}
+          />
         ) : (
           <div className="text-danger">Yükleniyor…</div>
         )}
