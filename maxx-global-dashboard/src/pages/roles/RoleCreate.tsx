@@ -157,7 +157,11 @@ export default function RoleCreate() {
             </h3>
             {/* Grid (checkbox + label) */}
             {loading ? (
-              <div>Yükleniyor…</div>
+              <div className="text-center">
+                <div className="spinner-border" role="status">
+                  <span className="visually-hidden">Yükleniyor</span>
+                </div>
+              </div>
             ) : visiblePerms.length ? (
               <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-2 ">
                 {visiblePerms.map((p) => {

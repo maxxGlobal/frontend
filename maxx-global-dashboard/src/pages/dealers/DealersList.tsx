@@ -262,7 +262,11 @@ export default function DealersList() {
 
       <div className="sherah-card__body">
         {loading || !data ? (
-          <div>Yükleniyor…</div>
+          <div className="text-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Yükleniyor</span>
+            </div>
+          </div>
         ) : (
           <>
             <div className="sherah-page-inner sherah-default-bg sherah-border">

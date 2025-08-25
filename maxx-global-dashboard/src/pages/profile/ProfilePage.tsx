@@ -38,7 +38,17 @@ export default function ProfilePage() {
     [me]
   );
 
-  if (loading) return <div className="m-3">Yükleniyor…</div>;
+  if (loading)
+    return (
+      <div className="m-3">
+        {" "}
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Yükleniyor</span>
+          </div>
+        </div>
+      </div>
+    );
   if (error) return <div className="alert alert-danger m-3">{error}</div>;
   if (!me) return null;
 

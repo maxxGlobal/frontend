@@ -96,7 +96,11 @@ export default function UsersList() {
 
       <div className="sherah-card__body">
         {loading ? (
-          <div>Yükleniyor…</div>
+          <div className="text-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Yükleniyor</span>
+            </div>
+          </div>
         ) : (
           <>
             <div className="sherah-page-inner sherah-default-bg sherah-border">
