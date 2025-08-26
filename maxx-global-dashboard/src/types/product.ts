@@ -1,3 +1,5 @@
+// types/product.ts
+
 export interface ProductImage {
   id: number;
   imageUrl: string;
@@ -8,17 +10,19 @@ export interface ProductRow {
   id: number;
   name: string;
   code: string;
+  description?: string;
+  categoryId?: number;
   categoryName?: string | null;
   primaryImageUrl?: string | null;
   stockQuantity?: number | null;
   unit?: string | null;
   isActive?: boolean | null;
   isInStock?: boolean | null;
+  price?: number;
+  stock?: number;
 }
 
 export interface Product extends ProductRow {
-  description?: string | null;
-  categoryId?: number | null;
   material?: string | null;
   size?: string | null;
   diameter?: string | null;
@@ -36,9 +40,10 @@ export interface Product extends ProductRow {
   surfaceTreatment?: string | null;
   serialNumber?: string | null;
   manufacturerCode?: string | null;
-  manufacturingDate?: string | null;
-  expiryDate?: string | null;
+  manufacturingDate?: string | null; // "YYYY-MM-DD"
+  expiryDate?: string | null; // "YYYY-MM-DD"
   shelfLifeMonths?: number | null;
+  unit?: string | null;
   barcode?: string | null;
   lotNumber?: string | null;
   minimumOrderQuantity?: number | null;
@@ -54,7 +59,7 @@ export interface ProductCreateRequest {
   name: string;
   code: string;
   description?: string;
-  categoryId: number; // zorunlu
+  categoryId: number;
   material?: string;
   size?: string;
   diameter?: string;
@@ -72,8 +77,8 @@ export interface ProductCreateRequest {
   surfaceTreatment?: string;
   serialNumber?: string;
   manufacturerCode?: string;
-  manufacturingDate?: string;
-  expiryDate?: string;
+  manufacturingDate?: string; // YYYY-MM-DD
+  expiryDate?: string; // YYYY-MM-DD
   shelfLifeMonths?: number;
   unit?: string;
   barcode?: string;
@@ -84,5 +89,14 @@ export interface ProductCreateRequest {
 }
 
 export interface ProductUpdateRequest extends Partial<ProductCreateRequest> {
+  // PUT’te backend "name, code, categoryId" bekliyorsa required tutalım
+  name: string;
+  code: string;
+  description: string;
+  categoryId: number;
+
+  // front’a özgü opsiyoneller
+  price?: number;
+  stock?: number;
   isActive?: boolean;
 }

@@ -34,3 +34,28 @@ export interface CategoryUpdateRequest {
   parentId?: number | null;
   status?: CategoryStatus;
 }
+
+// Endpoint-özel tipler
+
+// Backend "data" alanı (curl çıktısına birebir uyumlu)
+export interface CategoryDTO {
+  id: number;
+  name: string;
+  parentCategoryName?: string | null;
+  createdAt?: string | null;
+  status?: string | null;
+}
+
+// Tam HTTP cevabı (success/message/code/timestamp + data: CategoryDTO)
+export interface CategoryByIdResponse {
+  success?: boolean;
+  message?: string | null;
+  data: CategoryDTO;
+  code?: number;
+  timestamp?: string;
+}
+
+// (İstersen) istek param tipin
+export interface GetCategoryByIdParams {
+  id: number;
+}

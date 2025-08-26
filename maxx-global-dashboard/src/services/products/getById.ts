@@ -36,6 +36,16 @@ export interface ProductDetail {
   isActive?: boolean;
   isInStock?: boolean;
   images?: ProductImage[];
+
+  // Eksik alanları ekliyoruz 👇
+  sterile?: boolean | null;
+  singleUse?: boolean | null;
+  implantable?: boolean | null;
+  ceMarking?: boolean | null;
+  fdaApproved?: boolean | null;
+  color?: string | null;
+  minimumOrderQuantity?: number | null;
+  maximumOrderQuantity?: number | null;
 }
 
 const norm = (raw: any): ProductDetail => ({

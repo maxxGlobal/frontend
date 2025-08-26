@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CategorySidebar from "../products/components/CategorySidebar";
+import EditProductModal from "../products/components/EditProductModal";
+import DeleteProductModal from "../products/components/DeleteProductModal";
 import ProductsGrid from "../products/components/Grid";
 
 import type { PageResponse } from "../../types/paging";
-import type { ProductRow } from "../../types/product";
+import type { ProductRow, Product } from "../../types/product";
 
 import { listProducts } from "../../services/products/list";
 import { listProductsByCategory } from "../../services/products/listByCategory";
@@ -17,7 +19,6 @@ import {
   type CatNode,
 } from "../../services/categories/buildTree";
 
-// Sayfalama için varsayılan boş model
 function makeDefaultPage<T>(size: number): PageResponse<T> {
   return {
     content: [],
@@ -43,48 +44,42 @@ export default function ProductList() {
   const [data, setData] = useState<PageResponse<ProductRow>>(
     makeDefaultPage<ProductRow>(size)
   );
-
   const [loading, setLoading] = useState<boolean>(true);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [editing, setEditing] = useState<ProductRow | null>(null);
+  const [deleting, setDeleting] = useState<ProductRow | null>(null);
+
+  const [categories, setCategories] = useState<
+    { id: number; name?: string; label?: string }[]
+  >([]);
   const navigate = useNavigate();
 
-  // Kategorileri yükle
+  const categoriesMap = useMemo(() => {
+    const m: Record<number, string> = {};
+    for (const c of categories) {
+      const name = String(c.name ?? c.label ?? "");
+      if (c.id != null && name) m[c.id] = name;
+    }
+    return m;
+  }, [categories]);
+
   async function loadCategories(signal?: AbortSignal) {
     try {
-      setLoading(true);
-      setError(null);
-
       const flat = await listAllCategories({ signal });
       const tree = buildCategoryTree(flat);
-
       setCats(tree);
+      setCategories(flat);
     } catch (err) {
       console.error(err);
       setError("Kategoriler yüklenemedi.");
-    } finally {
-      setLoading(false);
     }
   }
 
-  useEffect(() => {
-    const controller = new AbortController();
-    loadCategories(controller.signal);
-    return () => controller.abort();
-  }, []);
-
-  // Ürünleri yükle
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-
-    const controller = new AbortController();
-
-    const fetchProducts = async () => {
+  const fetchProducts = useCallback(
+    async (signal?: AbortSignal) => {
       setLoading(true);
       try {
         let res;
-
-        // Eğer arama sorgusu varsa, aramaya öncelik ver
         if (q && q.trim() !== "") {
           res = await listProductsBySearch(
             q.trim(),
@@ -94,17 +89,11 @@ export default function ProductList() {
               sortBy: sort === "newest" ? "createdAt" : "name",
               sortDirection: sort === "newest" ? "desc" : "asc",
             },
-            { signal: controller.signal }
+            { signal }
           );
-        }
-        // Eğer kategori seçiliyse kategoriye göre getir
-        else if (selectedCat) {
-          res = await listProductsByCategory(selectedCat, {
-            signal: controller.signal,
-          });
-        }
-        // Aksi halde tüm ürünleri getir
-        else {
+        } else if (selectedCat) {
+          res = await listProductsByCategory(selectedCat, { signal });
+        } else {
           res = await listProducts(
             {
               page,
@@ -112,33 +101,69 @@ export default function ProductList() {
               sortBy: sort === "newest" ? "createdAt" : "name",
               sortDirection: sort === "newest" ? "desc" : "asc",
             },
-            { signal: controller.signal }
+            { signal }
           );
         }
-
-        if (mounted) setData(res);
+        setData(res);
       } catch (e) {
         console.error("Ürünler yüklenemedi:", e);
-        if (mounted) setData(makeDefaultPage<ProductRow>(size));
+        setData(makeDefaultPage<ProductRow>(size));
       } finally {
-        if (mounted) {
-          setLoading(false);
-          setInitialLoad(false);
-        }
+        setLoading(false);
+        setInitialLoad(false);
       }
-    };
+    },
+    [q, page, size, sort, selectedCat]
+  );
 
-    fetchProducts();
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchProducts(controller.signal);
+    loadCategories(controller.signal);
+    return () => controller.abort();
+  }, [fetchProducts]);
 
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
-  }, [page, size, sort, selectedCat, q]);
+  // Güncel ürünü listeye uygula (FETCH YOK! — optimistic keep)
+  const patchRowWithUpdated = (updated: Product) => {
+    const movedOut =
+      selectedCat && updated.categoryId && selectedCat !== updated.categoryId;
+
+    const catName =
+      updated.categoryName ??
+      (updated.categoryId != null
+        ? categoriesMap[updated.categoryId]
+        : undefined) ??
+      null;
+
+    setData((prev) => {
+      let content = prev.content.map((row) => {
+        if (row.id !== updated.id) return row;
+        const patched: ProductRow = {
+          ...row,
+          id: updated.id,
+          name: updated.name,
+          code: updated.code,
+          description: updated.description,
+          categoryId: updated.categoryId,
+          categoryName: catName,
+          stockQuantity: updated.stockQuantity,
+          unit: updated.unit,
+          isActive: updated.isActive,
+          isInStock: updated.isInStock,
+          primaryImageUrl: updated.primaryImageUrl ?? row.primaryImageUrl,
+        };
+        return patched;
+      });
+
+      if (movedOut) {
+        content = content.filter((r) => r.id !== updated.id);
+      }
+      return { ...prev, content };
+    });
+  };
 
   return (
     <div className="row product-list">
-      {/* Sol Menü - Kategoriler */}
       <div className="col-xxl-3 col-lg-4 col-12">
         <CategorySidebar
           items={cats}
@@ -150,11 +175,9 @@ export default function ProductList() {
         />
       </div>
 
-      {/* Sağ taraf - Ürün listesi */}
       <div className="col-xxl-9 col-lg-8 col-12">
         <div className="sherah-breadcrumb__right mg-top-30">
           <div className="sherah-breadcrumb__right--first">
-            {/* Arama Alanı */}
             <div className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border">
               <span className="input-group-text">
                 <i className="fa-solid fa-magnifying-glass" />
@@ -174,7 +197,6 @@ export default function ProductList() {
             </div>
           </div>
 
-          {/* Ürün Ekle Butonu */}
           <div className="sherah-breadcrumb__right--second">
             <a href="/product-add" className="sherah-btn sherah-gbcolor">
               Ürün Ekle
@@ -182,7 +204,6 @@ export default function ProductList() {
           </div>
         </div>
 
-        {/* Ürünler Grid */}
         {loading ? (
           <div className="text-center vh-100 d-flex justify-content-center align-items-center">
             <div className="spinner-border" role="status">
@@ -195,24 +216,9 @@ export default function ProductList() {
             canManage={true}
             onView={(product) => navigate(`/products/${product.id}`)}
             onImages={(product) => navigate(`/products/${product.id}/images`)}
-            onEdit={(product) => navigate(`/products/${product.id}/edit`)}
-            onAskDelete={(product) => {
-              if (
-                window.confirm(
-                  `${product.name} adlı ürünü silmek istiyor musun?`
-                )
-              ) {
-                fetch(`http://localhost:8080/api/products/${product.id}`, {
-                  method: "DELETE",
-                }).then(() => {
-                  alert("Ürün başarıyla silindi!");
-                  setData((prev) => ({
-                    ...prev,
-                    content: prev.content.filter((p) => p.id !== product.id),
-                  }));
-                });
-              }
-            }}
+            onEdit={(product) => setEditing(product)}
+            onAskDelete={(product) => setDeleting(product)}
+            categoriesMap={categoriesMap}
           />
         ) : (
           !initialLoad && (
@@ -222,7 +228,7 @@ export default function ProductList() {
           )
         )}
 
-        {/* Sayfalama */}
+        {/* Sayfalama (aynı) */}
         <div className="row align-items-center mt-3">
           <div className="col-sm-12 col-md-5">
             Toplam <strong>{data.totalElements}</strong> kayıt • Sayfa{" "}
@@ -287,6 +293,48 @@ export default function ProductList() {
             </div>
           </div>
         </div>
+
+        {editing && (
+          <EditProductModal
+            productId={editing.id}
+            categories={categories}
+            onClose={() => setEditing(null)}
+            onSaved={(updated) => {
+              if (updated) patchRowWithUpdated(updated);
+              setEditing(null);
+            }}
+          />
+        )}
+
+        {deleting && (
+          <DeleteProductModal
+            target={deleting}
+            onCancel={() => setDeleting(null)}
+            onConfirm={async () => {
+              try {
+                const response = await fetch(
+                  `http://localhost:8080/api/products/${deleting.id}`,
+                  {
+                    method: "DELETE",
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  }
+                );
+                if (!response.ok) {
+                  const data = await response.json();
+                  throw new Error(data.message || "Silme başarısız");
+                }
+                alert("Ürün başarıyla silindi!");
+                fetchProducts(); // silmede tam refresh mantıklı
+              } catch (e: any) {
+                alert(e.message);
+              } finally {
+                setDeleting(null);
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );

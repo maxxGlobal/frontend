@@ -38,28 +38,28 @@ export default function AppRoutes() {
             <Route path="/users/register" element={<RegisterUser />} />
             <Route path="/users/list" element={<UsersList />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/roles" element={<RolesList />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/roles/new" element={<RoleCreate />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/dealers" element={<DealersList />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/dealers-add" element={<DealerCreate />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/category-add" element={<CategoryCreate />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/category" element={<CategoriesList />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/product-add" element={<ProductCreate />} />
           </Route>
-          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
+          <Route element={<ProtectedRoute />}>
             <Route path="/product" element={<ProductsList />} />
           </Route>
 
