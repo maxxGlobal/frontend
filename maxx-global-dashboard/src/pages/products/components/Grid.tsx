@@ -8,8 +8,8 @@ type Props = {
   onImages?: (p: ProductRow) => void;
   onView?: (p: ProductRow) => void;
   onAskDelete?: (p: ProductRow) => void;
-  // id -> kategori adı fallback map'i
   categoriesMap?: Record<number, string>;
+  onRestore?: (p: ProductRow) => void;
 };
 
 const API = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
@@ -29,6 +29,7 @@ export default function ProductsGrid({
   onView,
   onAskDelete,
   categoriesMap,
+  onRestore,
 }: Props) {
   if (!data?.content?.length) {
     return <div className="text-muted">Kayıt bulunamadı.</div>;
@@ -42,7 +43,8 @@ export default function ProductsGrid({
           p.categoryName ??
           (p.categoryId != null ? categoriesMap?.[p.categoryId] : undefined) ??
           "-";
-        console.log(p.categoryId);
+        const status = p.status ?? (p.isActive ? "AKTİF" : "SİLİNDİ");
+        const isDeleted = status === "SİLİNDİ";
 
         return (
           <div className="col-xxl-4 col-lg-6 col-md-6 col-12" key={p.id}>
@@ -124,6 +126,15 @@ export default function ProductsGrid({
                         type="button"
                       >
                         Sil
+                      </button>
+                    )}
+                    {canManage && onRestore && isDeleted && (
+                      <button
+                        className="sherah-btn bg-warning"
+                        onClick={() => onRestore(p)}
+                        type="button"
+                      >
+                        <i className="fa-solid fa-rotate-left" />
                       </button>
                     )}
                   </div>

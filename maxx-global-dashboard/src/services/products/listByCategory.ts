@@ -1,4 +1,3 @@
-// src/services/products/listByCategory.ts
 import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
 import type { PageResponse } from "../../types/paging";
@@ -7,17 +6,37 @@ import { normalizeProductList } from "./_normalize";
 
 export async function listProductsByCategory(
   categoryId: number,
-  opts?: { signal?: AbortSignal }
+  opts?: { signal?: AbortSignal; isActive?: boolean }
 ): Promise<PageResponse<ProductRow>> {
   const res = await api.get<ApiEnvelope<any> | any>(
     `/products/category/${categoryId}`,
     {
+      params: {
+        isActive:
+          typeof opts?.isActive === "boolean" ? opts.isActive : undefined,
+      },
       signal: opts?.signal,
     }
   );
 
-  // API’den dönen payload’ı normalize ediyoruz
-  const payload = (res as any).data?.data ?? (res as any).data;
-  const content = normalizeProductList(payload?.content ?? []);
-  return { ...payload, content } as PageResponse<ProductRow>;
+  const raw = (res as any).data?.data ?? (res as any).data;
+
+  if (raw && typeof raw === "object" && Array.isArray(raw.content)) {
+    const content = normalizeProductList(raw.content);
+    return { ...raw, content } as PageResponse<ProductRow>;
+  }
+
+  const arr: any[] = Array.isArray(raw) ? raw : [];
+  const content = normalizeProductList(arr);
+  return {
+    content,
+    number: 0,
+    size: content.length,
+    totalElements: content.length,
+    totalPages: 1,
+    first: true,
+    last: true,
+    empty: content.length === 0,
+    numberOfElements: content.length,
+  };
 }

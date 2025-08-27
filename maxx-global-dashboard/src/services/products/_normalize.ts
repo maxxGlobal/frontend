@@ -1,4 +1,9 @@
-import type { ProductRow, Product, ProductImage } from "../../types/product";
+import type {
+  ProductRow,
+  Product,
+  ProductImage,
+  ProductStatus,
+} from "../../types/product";
 
 export type ApiProductListItem = {
   id: number;
@@ -12,20 +17,24 @@ export type ApiProductListItem = {
   isInStock?: boolean | null;
 };
 
-export function normalizeProductList(
-  items: ApiProductListItem[]
-): ProductRow[] {
-  return (items ?? []).map((x) => ({
-    id: x.id,
-    name: String(x?.name ?? ""),
-    code: String(x?.code ?? ""),
-    categoryName: x?.categoryName ?? null,
-    primaryImageUrl: x?.primaryImageUrl ?? null,
-    stockQuantity: x?.stockQuantity ?? null,
-    unit: x?.unit ?? null,
-    isActive: x?.isActive ?? null,
-    isInStock: x?.isInStock ?? null,
-  }));
+export function normalizeProductList(rows: any[]): ProductRow[] {
+  return (rows ?? []).map((r) => {
+    const status: ProductStatus = r?.status === "SİLİNDİ" ? "SİLİNDİ" : "AKTİF"; // default: "AKTİF"
+
+    return {
+      id: Number(r?.id),
+      name: String(r?.name ?? ""),
+      code: String(r?.code ?? ""),
+      categoryId: r?.categoryId != null ? Number(r.categoryId) : undefined,
+      categoryName: r?.categoryName ?? null,
+      primaryImageUrl: r?.primaryImageUrl ?? null,
+      stockQuantity: r?.stockQuantity ?? null,
+      unit: r?.unit ?? null,
+      status,
+      isActive: status === "AKTİF", // <- türetilmiş
+      isInStock: !!r?.isInStock,
+    } as ProductRow;
+  });
 }
 
 export function normalizeImages(arr: any[] | null | undefined): ProductImage[] {

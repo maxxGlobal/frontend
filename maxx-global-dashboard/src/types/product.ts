@@ -5,6 +5,7 @@ export interface ProductImage {
   imageUrl: string;
   isPrimary: boolean;
 }
+export type ProductStatus = "AKTİF" | "SİLİNDİ";
 
 export interface ProductRow {
   id: number;
@@ -20,6 +21,7 @@ export interface ProductRow {
   isInStock?: boolean | null;
   price?: number;
   stock?: number;
+  status?: ProductStatus;
 }
 
 export interface Product extends ProductRow {
@@ -52,7 +54,6 @@ export interface Product extends ProductRow {
   isExpired?: boolean | null;
   createdDate?: string | null;
   updatedDate?: string | null;
-  status?: "ACTIVE" | "PASSIVE" | "DELETED" | string | null;
 }
 
 export interface ProductCreateRequest {

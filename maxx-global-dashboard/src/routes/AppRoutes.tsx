@@ -18,6 +18,7 @@ import CategoriesList from "../pages/categories/CategoriesList";
 import ProductCreate from "../pages/products/ProductCreate";
 import ProductsList from "../pages/products/ProductsList";
 import ProductImagesPage from "../pages/products/ProductImagesPage";
+import ProductDetails from "../pages/products/ProductDetails";
 
 export default function AppRoutes() {
   return (
@@ -61,6 +62,8 @@ export default function AppRoutes() {
           </Route>
           <Route element={<ProtectedRoute />}>
             <Route path="/product" element={<ProductsList />} />
+            <Route path="/products/:id" element={<ProductDetails />} />{" "}
+            {/* 👈 yeni */}
           </Route>
 
           <Route
