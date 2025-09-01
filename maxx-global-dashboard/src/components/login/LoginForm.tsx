@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { login } from "./authService";
+import { login, persistAuth } from "../../services/auth/authService";
 import { useNavigate } from "react-router-dom";
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -7,7 +7,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,18 +14,12 @@ export default function LoginForm() {
     setError(null);
 
     try {
-      const result = await login(email, password);
-
-      // ✅ Token & user kaydet
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("user", JSON.stringify(result.user));
-
-      setToken(result.token);
-      console.log("User info:", result.user);
+      const res = await login(email, password);
+      persistAuth(res);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
-      console.log(Response);
+      setError(err?.response?.data?.message || "Login failed");
+      console.error("LOGIN ERROR:", err);
     } finally {
       setLoading(false);
     }
@@ -80,11 +73,6 @@ export default function LoginForm() {
                   {error && (
                     <div className="alert alert-danger" role="alert">
                       <p className="text-alert">{error}</p>
-                    </div>
-                  )}
-                  {token && (
-                    <div className="alert alert-success" role="alert">
-                      <p className="text-green-600">Login success!</p>
                     </div>
                   )}
 

@@ -1,0 +1,978 @@
+import { useEffect, useState } from "react";
+import { hasPermission } from "../../utils/permissions";
+import { createProduct } from "../../services/products/create";
+import type { ProductCreateRequest } from "../../types/product";
+import { getAllCategoryOptions } from "../../services/categories/options";
+import type { CategoryOption } from "../../services/categories/_normalize";
+import { exportProductsToExcel } from "../../services/products/exportExcel";
+import { useNavigate } from "react-router-dom";
+
+function numOrUndef(v: any): number | undefined {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+import {
+  downloadProductsExcelTemplate,
+  importProductsExcel,
+  type ExcelImportResult,
+} from "../../services/products/excel";
+
+export default function ProductCreate() {
+  if (!hasPermission({ required: "PRODUCT_MANAGE" })) {
+    return (
+      <div className="alert alert-danger m-3">
+        Bu sayfaya erişim yetkiniz yok (PRODUCT_MANAGE gerekli).
+      </div>
+    );
+  }
+
+  const nav = useNavigate();
+
+  // Tüm create alanları + bool’lar
+  const [form, setForm] = useState<
+    ProductCreateRequest & {
+      sterile: boolean;
+      singleUse: boolean;
+      implantable: boolean;
+      ceMarking: boolean;
+      fdaApproved: boolean;
+    }
+  >({
+    name: "",
+    code: "",
+    description: "",
+    categoryId: 0,
+
+    material: "",
+    size: "",
+    diameter: "",
+    angle: "",
+    weightGrams: undefined as unknown as number,
+    dimensions: "",
+    color: "",
+    surfaceTreatment: "",
+    serialNumber: "",
+    manufacturerCode: "",
+    manufacturingDate: "",
+    expiryDate: "",
+    shelfLifeMonths: undefined as unknown as number,
+    unit: "",
+    barcode: "",
+    lotNumber: "",
+    stockQuantity: undefined as unknown as number,
+    minimumOrderQuantity: undefined as unknown as number,
+    maximumOrderQuantity: undefined as unknown as number,
+    medicalDeviceClass: "",
+    regulatoryNumber: "",
+
+    sterile: false,
+    singleUse: false,
+    implantable: false,
+    ceMarking: false,
+    fdaApproved: false,
+  });
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [catOpts, setCatOpts] = useState<CategoryOption[]>([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+
+  const [excelMode, setExcelMode] = useState<"TEMPLATE" | "UPLOAD">("TEMPLATE");
+  const [excelBusy, setExcelBusy] = useState(false);
+  const [excelErr, setExcelErr] = useState<string | null>(null);
+  const [excelResult, setExcelResult] = useState<ExcelImportResult | null>(
+    null
+  );
+  const [pickedFile, setPickedFile] = useState<File | null>(null);
+  const [userConfirmedDownloaded, setUserConfirmedDownloaded] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingCats(true);
+        const opts = await getAllCategoryOptions();
+        setCatOpts(opts);
+      } finally {
+        setLoadingCats(false);
+      }
+    })();
+  }, []);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      setError(null);
+
+      // Basit FE validasyonları
+      if (!form.name.trim()) throw new Error("Ad zorunludur.");
+      if (!form.code.trim()) throw new Error("Kod zorunludur.");
+      if (!form.categoryId || form.categoryId <= 0)
+        throw new Error("Lütfen bir kategori seçiniz.");
+      if (!form.unit || !form.unit.trim())
+        throw new Error("Birim zorunludur (örn. 'adet').");
+      if (!form.lotNumber || !form.lotNumber.trim())
+        throw new Error("Lot numarası zorunludur.");
+      if (
+        form.stockQuantity === undefined ||
+        form.stockQuantity === null ||
+        Number.isNaN(Number(form.stockQuantity))
+      ) {
+        throw new Error("Stok adedi zorunludur.");
+      }
+
+      // Temiz payload (trim + cast)
+      const payload: ProductCreateRequest = {
+        name: form.name.trim(),
+        code: form.code.trim(),
+        description: form.description?.trim() || "",
+        categoryId: Number(form.categoryId),
+
+        material: form.material?.trim() || "",
+        size: form.size?.trim() || "",
+        diameter: form.diameter?.trim() || "",
+        angle: form.angle?.trim() || "",
+        dimensions: form.dimensions?.trim() || "",
+        color: form.color?.trim() || "",
+        surfaceTreatment: form.surfaceTreatment?.trim() || "",
+        serialNumber: form.serialNumber?.trim() || "",
+        manufacturerCode: form.manufacturerCode?.trim() || "",
+        medicalDeviceClass: form.medicalDeviceClass?.trim() || "",
+        regulatoryNumber: form.regulatoryNumber?.trim() || "",
+        unit: form.unit?.trim() || "",
+        barcode: form.barcode?.trim() || "",
+        lotNumber: form.lotNumber?.trim(), // zorunlu
+
+        // sayısallar
+        weightGrams: numOrUndef(form.weightGrams),
+        shelfLifeMonths: numOrUndef(form.shelfLifeMonths),
+        stockQuantity: Number(form.stockQuantity), // zorunlu
+        minimumOrderQuantity: numOrUndef(form.minimumOrderQuantity),
+        maximumOrderQuantity: numOrUndef(form.maximumOrderQuantity),
+
+        // tarihler (YYYY-MM-DD)
+        manufacturingDate: form.manufacturingDate || "",
+        expiryDate: form.expiryDate || "",
+
+        // bool’lar
+        sterile: !!form.sterile,
+        singleUse: !!form.singleUse,
+        implantable: !!form.implantable,
+        ceMarking: !!form.ceMarking,
+        fdaApproved: !!form.fdaApproved,
+      };
+
+      const created = await createProduct(payload);
+      nav(`/products/${created.id}/images`);
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.title ||
+        e?.message ||
+        "Ürün oluşturulamadı.";
+      setError(`Ürün oluşturulurken bir hata oluştu: ${msg}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDownloadTemplate() {
+    try {
+      setExcelErr(null);
+      setExcelBusy(true);
+      await downloadProductsExcelTemplate();
+      // tarayıcı indirmeyi başlattı; akışı yükleme moduna al
+      setExcelMode("UPLOAD");
+    } catch (e: any) {
+      setExcelErr(e?.message || "Şablon indirilemedi.");
+    } finally {
+      setExcelBusy(false);
+    }
+  }
+  function onPickExcel(e: React.ChangeEvent<HTMLInputElement>) {
+    setExcelErr(null);
+    setExcelResult(null);
+    setPickedFile(e.target.files?.[0] ?? null);
+  }
+  async function handleExcelImport() {
+    if (!pickedFile) {
+      setExcelErr("Lütfen Excel dosyası seçin.");
+      return;
+    }
+    if (!userConfirmedDownloaded) {
+      setExcelErr("Lütfen önce şablonu indirdiğinizi onaylayın.");
+      return;
+    }
+    try {
+      setExcelErr(null);
+      setExcelBusy(true);
+      const res = await importProductsExcel(pickedFile);
+      setExcelResult(res);
+      // İstersen burada liste sayfasını yenilemeye yönlendirebilirsin:
+      // navigate("/products");  // veya sayfada kalıp özeti göster
+    } catch (e: any) {
+      setExcelErr(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Excel içe aktarma başarısız."
+      );
+    } finally {
+      setExcelBusy(false);
+    }
+  }
+  const handleExportExcel = async () => {
+    try {
+      const blob = await exportProductsToExcel();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "urunler.xlsx"; // indirilecek dosya adı
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Excel export hatası:", err);
+      alert("Ürünler Excel'e aktarılamadı!");
+    }
+  };
+  return (
+    <div className="col-lg-12 col-md-12 col-12 register-add-form">
+      <div className="sherah-wc__form">
+        <div className="w-100 p-4 bg-white rounded-4">
+          <h3 className="sherah-wc__form-title sherah-wc__form-title__one">
+            Ürün Oluştur <span>Lütfen aşağıdaki bilgileri doldurun</span>
+          </h3>
+          {error && <div className="alert alert-danger">{error}</div>}
+          <div className="row">
+            <div className="col-lg-8 col-md-12 col-12">
+              <form onSubmit={submit} className="sherah-wc__form-main p-0">
+                <div className="row g-3">
+                  {/* Temel */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Ad *{" "}
+                        <small className="text-muted">
+                          (örn. Titanyum İmplant)
+                        </small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.name}
+                          onChange={(e) =>
+                            setForm({ ...form, name: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Kod *{" "}
+                        <small className="text-muted">(örn. TI-001)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.code}
+                          onChange={(e) =>
+                            setForm({ ...form, code: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kategori */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Kategori *{" "}
+                        <small className="text-muted">(seçiniz)</small>
+                      </label>
+                      <select
+                        className="sherah-wc__form-input"
+                        value={form.categoryId || ""}
+                        style={{ display: "block" }}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            categoryId: e.target.value
+                              ? Number(e.target.value)
+                              : 0,
+                          })
+                        }
+                        disabled={loadingCats}
+                        required
+                      >
+                        <option value="" style={{ display: "block" }}>
+                          Seçiniz
+                        </option>
+                        {catOpts.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Birim & Stok & Lot */}
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Birim *{" "}
+                        <small className="text-muted">(örn. adet, kutu)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.unit}
+                          onChange={(e) =>
+                            setForm({ ...form, unit: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Stok Adedi *{" "}
+                        <small className="text-muted">(örn. 100)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          type="number"
+                          className="sherah-wc__form-input"
+                          value={form.stockQuantity ?? ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              stockQuantity:
+                                e.target.value === ""
+                                  ? (undefined as any)
+                                  : Number(e.target.value),
+                            })
+                          }
+                          min={0}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Lot Numarası *{" "}
+                        <small className="text-muted">
+                          (örn. LOT-2024-001)
+                        </small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.lotNumber || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, lotNumber: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Malzeme / Ölçüler */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Malzeme{" "}
+                        <small className="text-muted">(örn. Titanyum)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.material || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, material: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Boyut <small className="text-muted">(örn. 4.5mm)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.size || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, size: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Çap <small className="text-muted">(örn. 6.0mm)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.diameter || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, diameter: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Açı <small className="text-muted">(örn. 30°)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.angle || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, angle: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Görünüm */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Renk <small className="text-muted">(örn. Gümüş)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.color || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, color: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Yüzey İşlemi{" "}
+                        <small className="text-muted">(örn. Anodize)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.surfaceTreatment || ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              surfaceTreatment: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seri / Üretici */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Seri No{" "}
+                        <small className="text-muted">(örn. SN-2024-001)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.serialNumber || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, serialNumber: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Üretici Kodu{" "}
+                        <small className="text-muted">(örn. MFG-001)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.manufacturerCode || ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              manufacturerCode: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tarihler */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Medikal Cihaz Sınıfı{" "}
+                        <small className="text-muted">(örn. Class II)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.medicalDeviceClass || ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              medicalDeviceClass: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Son Kullanma Tarihi{" "}
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          type="date"
+                          value={form.expiryDate || ""}
+                          onChange={(e) =>
+                            setForm({ ...form, expiryDate: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {/* Medikal */}
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Üretim Tarihi{" "}
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          type="date"
+                          value={form.manufacturingDate || ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              manufacturingDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-12 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Regülasyon No{" "}
+                        <small className="text-muted">
+                          (örn. REG-2024-001)
+                        </small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="herah-wc__form-input"
+                          value={form.regulatoryNumber || ""}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              regulatoryNumber: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sayısal diğ. */}
+
+                  <div className="col-lg-4 col-md-12 col-12">
+                    <label className="sherah-wc__form-label">
+                      Ağırlık (gram){" "}
+                      <small className="text-muted">(örn. 15.5)</small>
+                    </label>
+                    <input
+                      step="any"
+                      className="herah-wc__form-input"
+                      value={form.weightGrams ?? ""}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          weightGrams:
+                            e.target.value === ""
+                              ? (undefined as any)
+                              : Number(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="col-lg-4 col-md-12 col-12">
+                    <label className="sherah-wc__form-label">
+                      Raf Ömrü (ay){" "}
+                      <small className="text-muted">(örn. 36)</small>
+                    </label>
+                    <input
+                      type="number"
+                      className="herah-wc__form-input"
+                      value={form.shelfLifeMonths ?? ""}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          shelfLifeMonths:
+                            e.target.value === ""
+                              ? (undefined as any)
+                              : Number(e.target.value),
+                        })
+                      }
+                      min={0}
+                    />
+                  </div>
+
+                  <div className="col-lg-4 col-md-12 col-12">
+                    <label className="sherah-wc__form-label">
+                      Boyutlar{" "}
+                      <small className="text-muted">(örn. 10x15x20mm)</small>
+                    </label>
+                    <input
+                      className="herah-wc__form-input"
+                      value={form.dimensions || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, dimensions: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  {/* Sipariş limitleri */}
+                  <div className="col-lg-4 col-md-12 col-12">
+                    <label className="sherah-wc__form-label">
+                      Minimum Sipariş{" "}
+                      <small className="text-muted">(örn. 1)</small>
+                    </label>
+                    <input
+                      className="herah-wc__form-input"
+                      value={form.minimumOrderQuantity ?? ""}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          minimumOrderQuantity:
+                            e.target.value === ""
+                              ? (undefined as any)
+                              : Number(e.target.value),
+                        })
+                      }
+                      min={0}
+                    />
+                  </div>
+
+                  <div className="col-lg-4 col-md-12 col-12">
+                    <label className="sherah-wc__form-label">
+                      Maksimum Sipariş{" "}
+                      <small className="text-muted">(örn. 1000)</small>
+                    </label>
+                    <input
+                      className="herah-wc__form-input"
+                      type="number"
+                      value={form.maximumOrderQuantity ?? ""}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          maximumOrderQuantity:
+                            e.target.value === ""
+                              ? (undefined as any)
+                              : Number(e.target.value),
+                        })
+                      }
+                      min={0}
+                    />
+                  </div>
+
+                  {/* Barkod */}
+                  <div className="col-lg-4 col-md-12 col-12">
+                    <label className="sherah-wc__form-label">
+                      Barkod{" "}
+                      <small className="text-muted">(örn. 1234567890123)</small>
+                    </label>
+                    <input
+                      className="herah-wc__form-input"
+                      value={form.barcode || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, barcode: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  {/* Bool Switch’ler */}
+                  <div className="col-12 d-flex flex-wrap align-items-center gap-4 pt-2">
+                    {[
+                      { id: "sterile", label: "Steril" },
+                      { id: "singleUse", label: "Tek Kullanımlık" },
+                      { id: "implantable", label: "İmplante Edilebilir" },
+                      { id: "ceMarking", label: "CE İşareti" },
+                      { id: "fdaApproved", label: "FDA Onaylı" },
+                    ].map((sw) => (
+                      <div key={sw.id} className="form-check form-switch mb-0">
+                        <input
+                          className="form-check-input mb-0 border"
+                          type="checkbox"
+                          id={sw.id}
+                          checked={!!(form as any)[sw.id]}
+                          onChange={() =>
+                            setForm({
+                              ...form,
+                              [sw.id]: !(form as any)[sw.id],
+                            } as any)
+                          }
+                        />
+                        <label
+                          className="form-check-label mb-0 mt-1 lh-sm"
+                          htmlFor={sw.id}
+                        >
+                          {sw.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Açıklama */}
+                  <div className="col-12">
+                    <label className="sherah-wc__form-label">
+                      Açıklama{" "}
+                      <small className="text-muted">
+                        (örn. Yüksek kaliteli titanyum implant)
+                      </small>
+                    </label>
+                    <textarea
+                      className="herah-wc__form-inpu"
+                      rows={3}
+                      value={form.description ?? ""}
+                      onChange={(e) =>
+                        setForm({ ...form, description: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group mt-1">
+                      <div className="sherah-wc__button sherah-wc__button--bottom">
+                        <button className="ntfmax-wc__btn" disabled={saving}>
+                          {saving ? "Kaydediliyor…" : "Kaydet ve Resim Ekle"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="col-lg-4 col-md-12 col-12">
+              <div className="sherah-default-bg p-3 mb-4 border border-primary rounded-3">
+                <h5 className="mb-2">Ürünleri Excel'e Aktar</h5>
+                <p className="text-muted mb-2">
+                  Sistemdeki Ürünleri Excel Tablosuna Aktarıp İndirmek İçin
+                  Tıklayınız
+                </p>
+                <button
+                  type="button"
+                  className="sherah-btn sherah-btn__primary"
+                  onClick={handleExportExcel}
+                >
+                  Ürünleri Excel'e Aktar
+                </button>
+              </div>
+              <div className="sherah-default-bg p-3 mb-4 border border-primary rounded-3">
+                <h5 className="mb-2">Excel ile Ürün Ekle</h5>
+
+                {excelMode === "TEMPLATE" ? (
+                  <>
+                    <p className="text-muted mb-2">
+                      Önce Excel şablonunu indirip ürünleri tabloya ekleyin.
+                    </p>
+                    <button
+                      type="button"
+                      className="sherah-btn sherah-btn__primary"
+                      onClick={handleDownloadTemplate}
+                      disabled={excelBusy}
+                    >
+                      {excelBusy
+                        ? "İndiriliyor…"
+                        : "Excel ile Ürün Ekle (Şablonu İndir)"}
+                    </button>
+                    {excelErr && (
+                      <div className="alert alert-danger mt-3" role="alert">
+                        {excelErr}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted">
+                      Şablonu doldurduysanız Excel’i yükleyerek ürünleri
+                      oluşturun/güncelleyin.
+                    </p>
+
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <input
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="form-control"
+                        onChange={onPickExcel}
+                        disabled={excelBusy}
+                      />
+                    </div>
+
+                    <div className="form-check mb-2">
+                      <input
+                        id="confirmDownloaded"
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={userConfirmedDownloaded}
+                        onChange={(e) =>
+                          setUserConfirmedDownloaded(e.target.checked)
+                        }
+                        disabled={excelBusy}
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor="confirmDownloaded"
+                      >
+                        Şablonu indirdim ve doldurdum
+                      </label>
+                    </div>
+
+                    <div className="d-flex gap-2">
+                      <button
+                        type="button"
+                        className="sherah-btn sherah-btn__primary bg-primary"
+                        onClick={handleExcelImport}
+                        disabled={
+                          excelBusy || !pickedFile || !userConfirmedDownloaded
+                        }
+                      >
+                        {excelBusy ? "Yükleniyor…" : "Excel ile Ürün Yükle"}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="sherah-btn sherah-btn__primary"
+                        onClick={() => {
+                          // akışı başa almak istersen:
+                          setExcelMode("TEMPLATE");
+                          setExcelErr(null);
+                          setExcelResult(null);
+                          setPickedFile(null);
+                          setUserConfirmedDownloaded(false);
+                        }}
+                        disabled={excelBusy}
+                      >
+                        Başa Dön
+                      </button>
+                    </div>
+
+                    {excelErr && (
+                      <div className="alert alert-danger mt-3" role="alert">
+                        {excelErr}
+                      </div>
+                    )}
+
+                    {excelResult && (
+                      <div className="mt-3">
+                        <h6>İçe Aktarma Özeti</h6>
+                        <ul className="list-group list-group-flush">
+                          <li className="list-group-item">
+                            Toplam Satır:{" "}
+                            <strong>{excelResult.totalRows}</strong>
+                          </li>
+                          <li className="list-group-item">
+                            Başarılı:{" "}
+                            <strong>{excelResult.successCount}</strong>
+                          </li>
+                          <li className="list-group-item">
+                            Başarısız:{" "}
+                            <strong>{excelResult.failedCount}</strong>
+                          </li>
+                          <li className="list-group-item">
+                            Güncellenen:{" "}
+                            <strong>{excelResult.updatedCount}</strong>
+                          </li>
+                          <li className="list-group-item">
+                            Oluşturulan:{" "}
+                            <strong>{excelResult.createdCount}</strong>
+                          </li>
+                        </ul>
+
+                        {excelResult.errors?.length > 0 && (
+                          <>
+                            <h6 className="mt-3">
+                              Hatalar ({excelResult.errors.length})
+                            </h6>
+                            <div className="table-responsive">
+                              <table className="table table-sm table-striped align-middle">
+                                <thead>
+                                  <tr>
+                                    <th># Satır</th>
+                                    <th>Ürün Kodu</th>
+                                    <th>Hata</th>
+                                    <th>Ham Satır</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {excelResult.errors.map((e, i) => (
+                                    <tr key={i}>
+                                      <td>{e.rowNumber}</td>
+                                      <td>{e.productCode || "-"}</td>
+                                      <td>{e.errorMessage || "-"}</td>
+                                      <td
+                                        className="text-truncate"
+                                        style={{ maxWidth: 420 }}
+                                      >
+                                        {e.rowData || "-"}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

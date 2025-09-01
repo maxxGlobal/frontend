@@ -1,0 +1,12 @@
+// src/services/dealers/index.ts
+export * from "./list";
+export * from "./getById";
+export * from "./create";
+export * from "./update";
+export * from "./delete";
+export * from "./restore";
+export * from "./summaries";
+export * from "./search";
+export * from "./searchByName";
+export * from "./getByEmail";
+export * from "./active";

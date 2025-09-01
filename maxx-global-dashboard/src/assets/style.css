@@ -135,7 +135,7 @@ Version:	1.0.0
 	padding-left: 20px;
 }
 .menu-bar li a.active{
-	background: #EBF0FF;
+	
 }
 .menu-bar li a.collapsed{
 	color:#2F3032;
@@ -213,9 +213,9 @@ Version:	1.0.0
 	color:#6176FE;
 }
 .sherah__dropdown ul li a {
-	display: ;
 	padding: 10px 0;
 }
+
 .menu-bar__text .sherah-menu-icon.sherah-svg-icon__v3 .sherah-svg-icon {
 	width: 13px;
 	height: 14px;
@@ -8064,3 +8064,362 @@ blockquote {
 /*======================================
 	End Utilities CSS
 ========================================*/
+
+/*CUSTOM STYLE*/
+
+.sherah-wc__form-main input, .sherah-wc__form-main textarea, .sherah-wc__form-main select{
+	color: rgba(57, 62, 70, 0.9);
+}
+
+/*Button style*/
+.bg-success{
+	background-color:#DCF4F0 !important;
+	color: #09AD95 !important;
+	font-size: 14px;
+    text-align: center;
+    padding: 6px 24px;
+    border-radius: 4px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+}
+.bg-danger{
+	background-color:#FFEBEB !important;
+	color: #FF6767  !important;
+	font-size: 14px;
+    text-align: center;
+    padding: 6px 24px;
+    border-radius: 4px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+/*text style*/
+
+.text-primary{
+   color:#6176FE !important
+}
+
+ /*Register Form*/
+.register-add-form .sherah-wc__form{
+  height: auto;
+}.register-add-form .sherah-wc__form-inner{
+  min-width: 500px;
+  max-width: 800px;
+  padding: 30px;
+}
+@media (max-width: 992px) {
+  .register-add-form .sherah-wc__form-inner {
+    min-width: 0;      
+    max-width: none;   
+    padding: 30px;
+  }
+}
+/*User List*/
+.user-list .sherah-table__main .sherah-table__head tr th{
+padding: 20px 28px;
+font-size: 18px;
+width: auto;
+}
+.dataTables_filter span{
+  color: #6176FE;
+  font-weight: 500;
+}
+.dataTables_filter input{
+  min-width: 320px;
+  border: 1px solid #E4F2FF ;
+  box-shadow: 0 0 0 .1rem #6176FE;
+  min-height: 36px !important;
+  height: 36px !important;
+}
+.dataTables_filter input:focus{
+  box-shadow: 0 0 0 .1rem #6176FE;
+}
+.dataTables_filter .clear-btn{
+  box-shadow: 0 0 0 .1rem #6176FE;
+  min-height: 36px !important;
+  height: 36px !important;
+  font-size: 16px;
+}
+
+.sherah__item-switch--slide::after{
+	content: "" !important;
+}
+
+.filter-panel{
+  --filter-width: 520px;      
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:.6rem;
+  padding: 1.5rem 1.8rem;
+  border:1px solid var(--bs-border-color, #e9ecef);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 2px 8px rgba(16,24,40,.04);
+}
+
+.filter-top{
+  width:min(var(--filter-width),100%);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1rem;
+  white-space:nowrap;                 
+}
+
+.filter-search{
+  width:min(var(--filter-width),100%);
+}
+
+.filter-select{ min-width: 220px; position:relative; }
+.filter-select .input-group-text,
+.filter-search .input-group-text{
+  background:#f8f9fa; border-color:transparent; height:44px; display:flex; align-items:center;
+}
+.filter-select .form-select,
+.filter-search .form-control{
+  background-color: #f8f9fa;        
+  border-color:transparent;
+  height:44px;
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  padding-right:2rem;                
+}
+.filter-select .form-select:focus,
+.filter-search .form-control:focus{
+  box-shadow:none; border-color:transparent;
+  min-height: 44px;
+}
+
+.filter-select.has-caret .select-caret{
+  position:absolute;
+  right:.55rem; top:50%; transform:translateY(-50%);
+  color:#667085; font-size:.8rem; pointer-events:none;
+}
+
+.filter-search.input-group{ flex-wrap:nowrap !important; }
+.filter-search .btn-clear{
+  height:44px; display:flex; align-items:center; border:0; background:transparent; padding:0 .5rem; color:#6c757d;
+}
+.filter-search .btn-clear:hover{ color:#111; }
+
+.filter-switch{
+  display:flex; align-items:center; gap:.5rem; white-space:nowrap;
+}
+.filter-switch .label{ font-size:16px; color:#6c757d; }
+.filter-switch .form-check-input{ width:2.4rem; height:1.3rem; }
+.filter-switch .form-check-input:checked{ background-color:#6176fe; border-color:#6176fe; }
+
+.filter-select .dropdown{
+	width: 100%;
+}
+.filter-select .dropdown button{
+	width: 100%;
+	height: 44px;
+}
+.filter-select .dropdown button:focus{
+box-shadow: none;
+}
+.filter-select .dropdown button span{
+width: 100%;
+text-align: left;
+font-size: 16px;
+font-weight: 500;
+color:#6c757d
+}
+.filter-select .dropdown .dropdown-menu{
+	width: 100%;
+	border-radius: 2px;
+}
+.filter-select .dropdown .dropdown-menu .dropdown-item.active ,.dropdown-item:active {
+	background-color:#6176FE ;
+}
+
+.sherah-table__body tr td{
+	padding: 20px 28px !important;
+}
+.sherah-table__head tr th{
+	padding: 28px 16px !important;
+}
+
+/*modal*/
+
+.modal-content{
+	border-radius: 1.3rem;
+	padding: 24px;
+}
+
+/*role add*/
+
+/* Permission kartları için basit, düzgün grid görünümü */
+.perm-card {
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+.perm-card:hover {
+  border-color: #cfe7ff;
+  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+.perm-card.selected {
+  background:  #EBF0FF;;
+}
+.perm-card .form-check {
+ display: flex;
+ align-items: center;
+}
+.perm-card .form-check-input {
+  transform: translateY(2px);
+  margin-top: 0;
+  width: auto;
+  height: 22px;
+  padding: 5px 0px 5px 20px;
+}
+.perm-card .form-check-input:checked {
+background-color:  #6176FE;
+border-color:#6176FE ;
+}
+.perm-card .form-check-input:checked,.form-check-input:focus {
+box-shadow: none;
+}
+.perm-card .form-check .perm-name{
+	font-weight: 400;
+	font-size: 16px;
+	line-height: 22px;
+}
+
+.perm-name-desc{
+	font-weight: 400;
+	font-size: 16px;
+	color:#6176FE
+}
+.perm-search{
+border-radius: 8px !important;
+}
+.perm-search:focus {
+width: auto !important;
+box-shadow: none !important;
+
+}
+.perm-search-section{
+	border:1px solid #6176FE;
+	border-radius: 8px;
+	
+}
+.perm-search-section .perm-search-icon {
+	background-color:#FAFAFA;
+	border-radius: 8px;
+}
+.role-create .sherah-btn{
+	padding: 14px 32px;
+}
+/*Categories*/
+.sherah-product-sidebar__list.category-sidebar{
+	gap:2px
+}
+.category-sidebar {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-right: 1px solid #e5e5e5;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.category-title {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+
+.category-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.category-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+  color: #5a5a5a;
+}
+
+.category-item:hover {
+ background: #EBF0FF;
+}
+
+.category-item.active {
+  background: #EBF0FF;
+  color: #6176FE;
+  font-weight: 400;
+}
+
+.category-list.nested {
+  margin-left: 20px;
+  border-left: 1px dashed #ccc;
+}
+
+.toggle-icon {
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+}
+
+/*Product List*/
+
+.product-list .sherah-product-card__img img{
+	max-height: 200px;
+	min-height: 200px;
+	background-size: cover;
+	object-fit: contain;
+}
+.product-list .sherah-product-card__price {
+    gap: 2px;
+    font-size: 16px;
+    font-weight: 400;
+	margin-bottom: 10px;
+}
+.product-list .sherah-button-group{
+	gap:0
+}
+.product-list .sherah-button-group .sherah-btn{
+	height: 30px;
+	min-height: 30px;
+	padding: 8px 4px;
+	font-size: 16px;
+	min-width: 40px;
+	justify-content: center;
+}
+
+/*Form switch*/
+
+.form-switch .form-check-input{
+	height: 20px !important;
+	padding: 0 !important;
+	background-repeat: no-repeat;
+	
+}
+
+/*Product İmage Card*/
+
+.card-img-top{
+	min-height: 260px;
+	max-height: 260px;
+	object-fit: scale-down;
+	max-width: 300px;
+    min-width: 300px;
+}
+
+.swal2-container {
+	position: fixed;
+  display: flex !important;
+  align-items: center !important; /* dikey ortalama */
+  justify-content: center !important; /* yatay ortalama */
+  z-index: 999999999
+}
