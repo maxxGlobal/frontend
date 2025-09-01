@@ -90,13 +90,10 @@ export interface ProductCreateRequest {
 }
 
 export interface ProductUpdateRequest extends Partial<ProductCreateRequest> {
-  // PUT’te backend "name, code, categoryId" bekliyorsa required tutalım
   name: string;
   code: string;
   description: string;
   categoryId: number;
-
-  // front’a özgü opsiyoneller
   price?: number;
   stock?: number;
   isActive?: boolean;

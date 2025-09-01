@@ -57,7 +57,7 @@ const normalizeStatus = (raw: any): "AKTİF" | "SİLİNDİ" => {
   if (s) {
     const up = s.toUpperCase();
     if (up === "ACTIVE" || up === "AKTIF" || up === "AKTİF") return "AKTİF";
-    if (up === "SİLİNDİ" || up === "DELETED") return "SİLİNDİ";
+    if (up === "DELETED" || up === "SİLİNDİ") return "SİLİNDİ";
   }
   // status yoksa isActive'ten türet
   return raw?.isActive ? "AKTİF" : "SİLİNDİ";

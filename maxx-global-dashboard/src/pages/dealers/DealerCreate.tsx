@@ -1,11 +1,13 @@
 // src/pages/dealers/DealerCreate.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createDealer } from "../../services/dealers/create";
 import type { DealerCreateRequest } from "../../types/dealer";
 import { hasPermission } from "../../utils/permissions";
 
 export default function DealerCreate() {
   const canManage = hasPermission({ required: "DEALER_MANAGE" });
+  const navigate = useNavigate();
   if (!canManage) {
     return (
       <div className="alert alert-danger m-3">
@@ -35,14 +37,19 @@ export default function DealerCreate() {
       setSaving(true);
       setError(null);
 
-      await createDealer({
+      const created = await createDealer({
         name: form.name.trim(),
         fixedPhone: norm(form.fixedPhone),
         mobilePhone: norm(form.mobilePhone),
         email: norm(form.email),
         address: norm(form.address),
       });
-
+      const dealerId = created.id;
+      if (dealerId) {
+        navigate(`/dealers/${dealerId}/prices`); // ProductPriceExcelPanel sayfasına yönlendir
+      } else {
+        alert("Bayi oluşturuldu, fakat ID bilgisi alınamadı.");
+      }
       alert("Bayi oluşturuldu.");
       setForm({
         name: "",

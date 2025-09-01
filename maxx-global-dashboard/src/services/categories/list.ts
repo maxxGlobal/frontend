@@ -13,7 +13,7 @@ export async function listCategories(
       page: req.page,
       size: req.size,
       sortBy: req.sortBy,
-      sortDirection: req.sortDirection, // "asc" | "desc"
+      sortDirection: req.sortDirection,
     },
     signal: opts?.signal,
   });

@@ -23,7 +23,7 @@ export default function CategoriesTable({
   onRestore,
 }: Props) {
   const statusBadge = (s?: string | null) =>
-    (s ?? "").toUpperCase() === "ACTIVE" ? (
+    (s ?? "").toUpperCase() === "AKTİF" ? (
       <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
         AKTİF
       </div>
@@ -107,7 +107,7 @@ export default function CategoriesTable({
                           <i className="fa-regular fa-pen-to-square" />
                         </a>
 
-                        {(c.status ?? "").toUpperCase() === "ACTIVE" ? (
+                        {(c.status ?? "").toUpperCase() === "AKTİF" ? (
                           <a
                             href="#"
                             className="sherah-table__action sherah-color2 sherah-color2__bg--offset"

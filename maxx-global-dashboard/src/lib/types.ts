@@ -25,3 +25,35 @@ export type RegisterPayload = {
   dealerId: number;
   roleId: number;
 };
+// Generic API response tipleri
+export type ApiResponse<T> = {
+  success: boolean;
+  message?: string | null;
+  data: T;
+  code?: number;
+  timestamp?: string;
+};
+
+export type PageResponse<T> = {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
+  };
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements: number;
+  empty: boolean;
+};

@@ -7,7 +7,7 @@ export type DealerListRequest = PageRequest & {
   /** UI’daki arama kutusu */
   q?: string;
   /** Backend status filtresi (ACTIVE | PASSIVE | DELETED) */
-  status?: "ACTIVE" | "PASSIVE" | "DELETED";
+  status?: "AKTİF" | "SİLİNMİŞ" | "DELETED";
   /** UI kolaylığı: true ise status=ACTIVE olarak gönderilir */
   activeOnly?: boolean;
 };
@@ -32,7 +32,7 @@ export async function listDealers(
   }
 
   // Durum: activeOnly true ise status=ACTIVE gönder
-  const statusParam = req.status ?? (req.activeOnly ? "ACTIVE" : undefined);
+  const statusParam = req.status ?? (req.activeOnly ? "AKTİF" : undefined);
   if (statusParam) params.status = statusParam;
 
   const res = await api.get<

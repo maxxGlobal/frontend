@@ -22,7 +22,7 @@ export default function EditDealerModal({ dealer, onClose, onSaved }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const statusBadge = (s?: string | null) =>
-    s === "ACTIVE" ? (
+    s === "AKTİF" ? (
       <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
         AKTİF
       </div>

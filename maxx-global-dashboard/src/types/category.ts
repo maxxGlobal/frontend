@@ -1,5 +1,5 @@
 // src/types/category.ts
-export type CategoryStatus = "ACTIVE" | "PASSIVE" | "DELETED" | string;
+export type CategoryStatus = "AKTİF" | "SİLİNDİ" | "DELETED" | string;
 
 export interface CategorySummary {
   id: number;
@@ -14,6 +14,7 @@ export interface Category {
   status?: CategoryStatus | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  depth?: number;
 }
 
 export interface CategoryRow {
@@ -22,6 +23,7 @@ export interface CategoryRow {
   parentName?: string | null;
   status?: CategoryStatus | null;
   createdAt?: string | null;
+  depth?: number;
 }
 
 export interface CategoryCreateRequest {

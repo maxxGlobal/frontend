@@ -16,6 +16,7 @@ import { listProductsBySearch } from "../../services/products/search";
 import { listAllCategories } from "../../services/categories/listAll";
 import { deleteProduct } from "../../services/products/delete";
 import { restoreProduct } from "../../services/products/restore";
+import { listActiveCategories } from "../../services/categories/listActive";
 
 import {
   buildCategoryTree,
@@ -79,20 +80,54 @@ export default function ProductList() {
 
   const navigate = useNavigate();
 
+  function flattenTreeToOptions(
+    nodes: CatNode[],
+    depth = 0
+  ): { id: number; label: string; name?: string }[] {
+    const out: { id: number; label: string; name?: string }[] = [];
+
+    nodes.forEach((n) => {
+      const indent = "\u00A0\u00A0".repeat(depth); // boşluk
+
+      let emoji = "";
+      if (depth === 0) emoji = "🗂️";
+      else if (depth === 1) emoji = "📁";
+      else if (depth === 2) emoji = "📂";
+      else if (depth === 3) emoji = "📂";
+      else if (depth === 4) emoji = "📂";
+      else emoji = "↪";
+
+      out.push({
+        id: n.id,
+        label: `${indent}${emoji} ${n.name}`,
+        name: n.name,
+      });
+
+      if (n.children?.length) {
+        out.push(...flattenTreeToOptions(n.children, depth + 1));
+      }
+    });
+
+    return out;
+  }
+
   // Kategorileri yükle
   async function loadCategories(signal?: AbortSignal) {
     try {
       const flat = await listAllCategories({ signal });
       const tree = buildCategoryTree(flat);
       setCats(tree);
-      setCategories(flat);
+
+      // Seviyeli listeyi oluştur
+      const leveled = flattenTreeToOptions(tree);
+      console.log("Leveled categories:", leveled); // Burada artık ↳ ile göreceksin
+      setCategories(leveled);
     } catch (err) {
       if (isAbortError(err)) return;
       console.error("Kategoriler yüklenemedi:", err);
     }
   }
 
-  // Ürünleri yükle — SUNUCUYA isActive GÖNDERMİYORUZ; client-side filtre uyguluyoruz
   const fetchProducts = useCallback(
     async (signal?: AbortSignal) => {
       setLoading(true);
@@ -117,14 +152,38 @@ export default function ProductList() {
         // Status filtresi (ALL/Aktif/Silindi)
         let finalRes = res;
         if (statusFilter !== "ALL") {
-          const filtered = res.content.filter((r) => {
+          // bütün sayfalardaki ürünleri toplamak için
+          const allContent: ProductRow[] = [];
+          let allPage = 0;
+
+          do {
+            const resPage = await listProducts(
+              {
+                ...baseReq,
+                page: allPage,
+                size,
+              },
+              { signal }
+            );
+
+            allContent.push(...resPage.content);
+            allPage++;
+            if (allPage >= resPage.totalPages) break;
+          } while (true);
+
+          const filtered = allContent.filter((r) => {
             const st = r.status ?? (r.isActive ? "AKTİF" : "SİLİNDİ");
             return st === statusFilter;
           });
+
           finalRes = {
             ...res,
-            content: filtered,
+            content: filtered.slice(page * size, (page + 1) * size), // sayfalama uygula
             numberOfElements: filtered.length,
+            totalElements: filtered.length,
+            totalPages: Math.ceil(filtered.length / size),
+            first: page === 0,
+            last: page >= Math.ceil(filtered.length / size) - 1,
           };
         }
 
@@ -246,7 +305,10 @@ export default function ProductList() {
         <div className="sherah-breadcrumb__right mg-top-30 d-flex flex-wrap gap-2 align-items-center justify-content-between">
           <div className="sherah-breadcrumb__right--first d-flex align-items-center gap-2">
             {/* Arama Alanı */}
-            <div className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border">
+            <div
+              className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border"
+              style={{ minWidth: 240 }}
+            >
               <span className="input-group-text">
                 <i className="fa-solid fa-magnifying-glass" />
               </span>
@@ -275,8 +337,8 @@ export default function ProductList() {
 
             {/* Durum Filtresi */}
             <select
-              className="form-select form-select-sm mt-2"
-              style={{ minWidth: 140 }}
+              className="form-select form-select-sm mt-2 p-2"
+              style={{ minWidth: 180, height: 46 }}
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value as StatusFilter);

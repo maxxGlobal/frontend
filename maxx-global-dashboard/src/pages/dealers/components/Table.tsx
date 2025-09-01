@@ -2,6 +2,7 @@
 import type { PageResponse } from "../../../types/paging";
 import type { DealerRow } from "../../../types/dealer";
 import type { JSX } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   data: PageResponse<DealerRow>;
@@ -22,6 +23,7 @@ export default function DealersTable({
   onAskDelete,
   onRestore,
 }: Props) {
+  const navigate = useNavigate();
   const fmtDate = (iso?: string) => {
     if (!iso) return "-";
     const d = new Date(iso);
@@ -34,7 +36,7 @@ export default function DealersTable({
   };
 
   const statusBadge = (s?: string | null) =>
-    s === "ACTIVE" ? (
+    s === "AKTİF" ? (
       <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
         AKTİF
       </div>
@@ -130,7 +132,7 @@ export default function DealersTable({
                               </svg>
                             </a>
 
-                            {d.status === "ACTIVE" ? (
+                            {d.status === "AKTİF" ? (
                               <a
                                 href="#"
                                 className="sherah-table__action sherah-color2 sherah-color2__bg--offset"
@@ -178,6 +180,17 @@ export default function DealersTable({
                                 <i className="fa-solid fa-rotate-left"></i>
                               </a>
                             )}
+                            <a
+                              href="#"
+                              className="sherah-table__action sherah-color1 sherah-color1__bg--opactity"
+                              title="Excel İşlemleri"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                navigate(`/dealers/${d.id}/prices`);
+                              }}
+                            >
+                              <i className="fa-solid fa-file-excel"></i>
+                            </a>
                           </div>
                         </div>
                       </td>

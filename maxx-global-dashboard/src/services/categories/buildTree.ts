@@ -53,7 +53,7 @@ export function flattenNodesToOptions(
   depth = 0
 ): { value: number; label: string }[] {
   const out: { value: number; label: string }[] = [];
-  const pad = depth > 0 ? "— ".repeat(depth) : "";
+  const pad = depth > 0 ? "-".repeat(depth) : "";
   for (const n of nodes) {
     out.push({ value: n.id, label: `${pad}${n.name}` });
     if (n.children?.length)

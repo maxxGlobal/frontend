@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
-
 import LoginForm from "../components/login/LoginForm";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import Dashboard from "../pages/Dashboard";
@@ -12,13 +11,14 @@ import RoleCreate from "../pages/roles/RoleCreate";
 import RolesList from "../pages/roles/RolesList";
 import DealersList from "../pages/dealers/DealersList";
 import DealerCreate from "../pages/dealers/DealerCreate";
-
 import CategoryCreate from "../pages/categories/CategoryCreate";
 import CategoriesList from "../pages/categories/CategoriesList";
 import ProductCreate from "../pages/products/ProductCreate";
 import ProductsList from "../pages/products/ProductsList";
 import ProductImagesPage from "../pages/products/ProductImagesPage";
 import ProductDetails from "../pages/products/ProductDetails";
+import DealerPricesPage from "../pages/dealers/DealerPricesPage";
+import ProductPriceManagement from "../pages/products/ProductPriceManagement";
 
 export default function AppRoutes() {
   return (
@@ -63,13 +63,17 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute />}>
             <Route path="/product" element={<ProductsList />} />
             <Route path="/products/:id" element={<ProductDetails />} />{" "}
-            {/* 👈 yeni */}
           </Route>
+          <Route
+            path="/dealers/:dealerId/prices"
+            element={<DealerPricesPage />}
+          />
 
           <Route
             path="/products/:productId/images"
             element={<ProductImagesPage />}
           />
+          <Route path="/product-prices" element={<ProductPriceManagement />} />
         </Route>
       </Route>
 

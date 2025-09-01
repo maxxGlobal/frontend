@@ -11,7 +11,7 @@ export async function updateCategory(
     status: payload.status,
   };
   if (payload.parentId !== undefined) {
-    body.parentCategoryId = payload.parentId; // map
+    body.parentCategoryId = payload.parentId;
   }
 
   const res = await api.put<ApiEnvelope<CategoryRow> | CategoryRow>(

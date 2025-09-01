@@ -175,6 +175,12 @@ export const menuItems: MenuItem[] = [
         to: "/product",
         required: "SYSTEM_ADMIN",
       },
+      {
+        id: "Product_price",
+        label: "Ürün Fiyatları",
+        to: "/product-prices",
+        required: "SYSTEM_ADMIN",
+      },
     ],
   },
 ];

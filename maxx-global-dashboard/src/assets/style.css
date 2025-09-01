@@ -8375,6 +8375,7 @@ box-shadow: none !important;
 
 .product-list .sherah-product-card__img img{
 	max-height: 200px;
+	min-height: 200px;
 	background-size: cover;
 	object-fit: contain;
 }
@@ -8394,4 +8395,31 @@ box-shadow: none !important;
 	font-size: 16px;
 	min-width: 40px;
 	justify-content: center;
+}
+
+/*Form switch*/
+
+.form-switch .form-check-input{
+	height: 20px !important;
+	padding: 0 !important;
+	background-repeat: no-repeat;
+	
+}
+
+/*Product İmage Card*/
+
+.card-img-top{
+	min-height: 260px;
+	max-height: 260px;
+	object-fit: scale-down;
+	max-width: 300px;
+    min-width: 300px;
+}
+
+.swal2-container {
+	position: fixed;
+  display: flex !important;
+  align-items: center !important; /* dikey ortalama */
+  justify-content: center !important; /* yatay ortalama */
+  z-index: 999999999
 }

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import {
   listProductImages,
   uploadProductImages,
@@ -7,6 +9,8 @@ import {
   setPrimaryProductImage,
   type ProductImage,
 } from "../../services/products/images";
+
+const MySwal = withReactContent(Swal);
 
 export default function ProductImagesPage() {
   const params = useParams<{ productId?: string; id?: string }>();
@@ -31,7 +35,11 @@ export default function ProductImagesPage() {
 
   async function handleUpload() {
     if (productId == null) {
-      alert("Geçersiz ürün ID.");
+      MySwal.fire({
+        icon: "error",
+        title: "Geçersiz ürün ID",
+        confirmButtonText: "Tamam",
+      });
       return;
     }
     if (!files.length) return;
@@ -40,39 +48,47 @@ export default function ProductImagesPage() {
       await uploadProductImages(productId, files);
       setFiles([]);
       await refresh();
-      alert("Yüklendi.");
+      MySwal.fire({
+        icon: "success",
+        title: "Yükleme Başarılı!",
+        text: "Dosyalar başarıyla yüklendi.",
+        confirmButtonText: "Tamam",
+      });
     } catch (e: any) {
-      alert(
-        "Bir hata oluştu: " +
-          (e?.response?.data?.message || e?.message || "Yüklenemedi.")
-      );
+      MySwal.fire({
+        icon: "error",
+        title: "Hata",
+        text: e?.response?.data?.message || e?.message || "Yüklenemedi.",
+        confirmButtonText: "Tamam",
+      });
     } finally {
       setBusy(false);
     }
   }
+
   if (productId == null) {
     return <div className="alert alert-danger m-3">Geçersiz ürün ID.</div>;
   }
   const pid = productId as number;
 
   return (
-    <div className="col-lg-8">
+    <div className="product-form-box sherah-border">
       <h3 className="sherah-card__title py-3">Ürün Resimleri</h3>
 
       <div className="mb-3">
-        <label className="form-label">Yeni Resim Yükle</label>
+        <label className="form-label ">Yeni Resim Yükle</label>
         <input
           type="file"
           accept="image/*"
           multiple
-          className="form-control"
+          className="form-control w-50 h-auto"
           onChange={(e) => {
             const list = Array.from(e.target.files ?? []);
             setFiles(list);
           }}
         />
         <button
-          className="btn btn-primary mt-2"
+          className="sherah-btn sherah-btn__primary bg-primary mt-3"
           disabled={busy || files.length === 0}
           onClick={handleUpload}
         >
@@ -83,41 +99,61 @@ export default function ProductImagesPage() {
       {images.length === 0 ? (
         <div className="text-muted">Henüz resim yok.</div>
       ) : (
-        <div className="row g-3">
-          {images.map((img) => (
-            <div className="col-md-3" key={img.id}>
-              <div className="card h-100">
-                <img src={img.imageUrl} className="card-img-top" />
-                <div className="card-body d-flex flex-column gap-2">
-                  {img.isPrimary && (
-                    <span className="badge bg-success align-self-start">
-                      Ana
-                    </span>
-                  )}
-                  {!img.isPrimary && (
+        <div className="form-group">
+          <div className="image-upload-group flex-wrap">
+            {images.map((img) => (
+              <div
+                className="image-upload-group__single border p-3 rounded-3 col-lg-4 col-md-12 col-12"
+                key={img.id}
+              >
+                <div className="d-grid">
+                  <img src={img.imageUrl} className="card-img-top" />
+                  <div className="card-body d-flex flex-column gap-2">
+                    {img.isPrimary === true ? (
+                      <button
+                        className="btn btn-sm btn-outline-success"
+                        disabled
+                      >
+                        Kapak Resmi
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-sm btn-outline-success"
+                        onClick={async () => {
+                          await setPrimaryProductImage(pid, img.id);
+                          await refresh();
+                          MySwal.fire({
+                            icon: "success",
+                            title: "Başarılı",
+                            text: "Kapak resmi güncellendi.",
+                            confirmButtonText: "Tamam",
+                          });
+                        }}
+                      >
+                        Kapak Resmi Yap
+                      </button>
+                    )}
+
                     <button
-                      className="btn btn-sm btn-outline-success"
+                      className="btn btn-sm btn-outline-danger"
                       onClick={async () => {
-                        await setPrimaryProductImage(pid, img.id);
+                        await deleteProductImage(pid, img.id);
                         refresh();
+                        MySwal.fire({
+                          icon: "success",
+                          title: "Silindi",
+                          text: "Resim başarıyla silindi.",
+                          confirmButtonText: "Tamam",
+                        });
                       }}
                     >
-                      Ana Yap
+                      Sil
                     </button>
-                  )}
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={async () => {
-                      await deleteProductImage(pid, img.id);
-                      refresh();
-                    }}
-                  >
-                    Sil
-                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

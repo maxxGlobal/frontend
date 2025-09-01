@@ -23,7 +23,6 @@ export function normalizeCategoryList(
   }));
 }
 
-/** Detay (GET /categories/{id}) backend şekli örnek */
 export type ApiCategoryDetail = {
   id: number;
   name: string;
@@ -85,13 +84,26 @@ export function flattenTreeToOptions(
 ): CategoryOption[] {
   const out: CategoryOption[] = [];
   for (const n of nodes ?? []) {
-    out.push({ id: n.id, label: `${"— ".repeat(depth)}${n.name}` });
+    const indent = "\u00A0\u00A0".repeat(depth);
+    let emoji = "";
+    if (depth === 0) emoji = "🗂️";
+    else if (depth === 1) emoji = "📁";
+    else if (depth === 2) emoji = "📂";
+    else if (depth === 3) emoji = "📂";
+    else if (depth === 4) emoji = "📂";
+    else emoji = "↪";
+    out.push({
+      id: n.id,
+      label: `${indent}${emoji} ${n.name}`,
+    });
+
     if (n.children?.length) {
       out.push(...flattenTreeToOptions(n.children, depth + 1));
     }
   }
   return out;
 }
+
 export function normalizeCategorySummaries(
   items: any[]
 ): { id: number; name: string }[] {

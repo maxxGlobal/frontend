@@ -5,7 +5,6 @@ import type { ProductUpdateRequest, Product } from "../../../types/product";
 
 interface EditProductModalProps {
   productId: number;
-  // {id,name} veya {id,label} şekilleri desteklenir
   categories: { id: number; name?: string; label?: string }[];
   onClose: () => void;
   onSaved: (updated?: Product) => void; // güncellenmiş ürünü geri gönder
@@ -85,7 +84,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         setForm(f);
       } catch (e) {
         console.error(e);
-        setError("Ürün detayları yüklenemedi.");
       } finally {
         setBootLoading(false);
       }
@@ -160,8 +158,6 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       };
 
       const updated = await updateProduct(productId, payload);
-
-      // BE bazen eski categoryId/Name döndürebilir → seçilen kategoriyi zorunlu uygula
       const chosenId = Number(payload.categoryId) || 0;
       const chosenName =
         categories.find((c) => c.id === chosenId)?.name ??
@@ -175,7 +171,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         categoryName: chosenName,
       };
 
-      onSaved(fixed); // ✅ güncellenen ürünü, doğru kategori adıyla geri ver
+      onSaved(fixed);
     } catch (err) {
       console.error(err);
       setError("Ürün güncellenirken bir hata oluştu.");
@@ -193,389 +189,443 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded shadow-lg p-6 w-[900px] max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4">Ürünü Düzenle</h2>
+    <>
+      {" "}
+      <div
+        className="modal fade show"
+        style={{ display: "block" }}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="modal-dialog modal-lg modal-dialog-centered">
+          <div className="modal-content">
+            {error && (
+              <div className="bg-red-200 p-2 mb-3 rounded">{error}</div>
+            )}
 
-        {error && <div className="bg-red-200 p-2 mb-3 rounded">{error}</div>}
-
-        <form onSubmit={submit} className="space-y-4">
-          {/* Temel Bilgiler */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Ürün Adı{" "}
-                <span className="text-xs text-gray-500">
-                  (Örn: Titanyum İmplant)
-                </span>
-              </label>
-              <input
-                name="name"
-                className="border rounded p-2 w-full"
-                value={form.name}
-                onChange={onChange}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Kod <span className="text-xs text-gray-500">(Örn: TI-001)</span>
-              </label>
-              <input
-                name="code"
-                className="border rounded p-2 w-full"
-                value={form.code}
-                onChange={onChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Açıklama{" "}
-              <span className="text-xs text-gray-500">
-                (Örn: Yüksek kaliteli titanyum implant)
-              </span>
-            </label>
-            <textarea
-              name="description"
-              className="border rounded p-2 w-full"
-              rows={3}
-              value={form.description ?? ""}
-              onChange={onChange}
-            />
-          </div>
-
-          {/* Kategori */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Kategori *</label>
-            <select
-              name="categoryId"
-              className="border rounded p-2 w-full"
-              value={String(form.categoryId ?? "")}
-              onChange={onChange}
-              required
-            >
-              <option value="">Kategori Seçin</option>
-              {categories.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.name ?? (c as any).label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Stok & Birim & Lot */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Birim <span className="text-xs text-gray-500">(Örn: adet)</span>
-              </label>
-              <input
-                name="unit"
-                className="border rounded p-2 w-full"
-                value={form.unit ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Stok Adedi
-              </label>
-              <input
-                name="stockQuantity"
-                type="number"
-                className="border rounded p-2 w-full"
-                value={form.stockQuantity ?? ""}
-                onChange={onChange}
-                min={0}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Lot Numarası{" "}
-                <span className="text-xs text-gray-500">
-                  (Örn: LOT-2024-001)
-                </span>
-              </label>
-              <input
-                name="lotNumber"
-                className="border rounded p-2 w-full"
-                value={form.lotNumber ?? ""}
-                onChange={onChange}
-              />
-            </div>
-          </div>
-
-          {/* Fiziksel Özellikler */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">Malzeme</label>
-              <input
-                name="material"
-                className="border rounded p-2 w-full"
-                value={form.material ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Boyut</label>
-              <input
-                name="size"
-                className="border rounded p-2 w-full"
-                value={form.size ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Çap</label>
-              <input
-                name="diameter"
-                className="border rounded p-2 w-full"
-                value={form.diameter ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Açı</label>
-              <input
-                name="angle"
-                className="border rounded p-2 w-full"
-                value={form.angle ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Renk</label>
-              <input
-                name="color"
-                className="border rounded p-2 w-full"
-                value={form.color ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Yüzey İşlemi
-              </label>
-              <input
-                name="surfaceTreatment"
-                className="border rounded p-2 w-full"
-                value={form.surfaceTreatment ?? ""}
-                onChange={onChange}
-              />
-            </div>
-          </div>
-
-          {/* Kimlik & Üretici */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">Seri No</label>
-              <input
-                name="serialNumber"
-                className="border rounded p-2 w-full"
-                value={form.serialNumber ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Üretici Kodu
-              </label>
-              <input
-                name="manufacturerCode"
-                className="border rounded p-2 w-full"
-                value={form.manufacturerCode ?? ""}
-                onChange={onChange}
-              />
-            </div>
-          </div>
-
-          {/* Tarihler */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Üretim Tarihi
-              </label>
-              <input
-                type="date"
-                className="border rounded p-2 w-full"
-                value={form.manufacturingDate ?? ""}
-                onChange={onDate("manufacturingDate")}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Son Kullanma Tarihi
-              </label>
-              <input
-                type="date"
-                className="border rounded p-2 w-full"
-                value={form.expiryDate ?? ""}
-                onChange={onDate("expiryDate")}
-              />
-            </div>
-          </div>
-
-          {/* Medikal & Regülasyon */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Medikal Cihaz Sınıfı
-              </label>
-              <input
-                name="medicalDeviceClass"
-                className="border rounded p-2 w-full"
-                value={form.medicalDeviceClass ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Regülasyon No
-              </label>
-              <input
-                name="regulatoryNumber"
-                className="border rounded p-2 w-full"
-                value={form.regulatoryNumber ?? ""}
-                onChange={onChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Barkod</label>
-              <input
-                name="barcode"
-                className="border rounded p-2 w-full"
-                value={form.barcode ?? ""}
-                onChange={onChange}
-              />
-            </div>
-          </div>
-
-          {/* Sayısal Ek Alanlar */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Ağırlık (gram)
-              </label>
-              <input
-                name="weightGrams"
-                type="number"
-                className="border rounded p-2 w-full"
-                value={form.weightGrams ?? ""}
-                onChange={onChange}
-                min={0}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Raf Ömrü (ay)
-              </label>
-              <input
-                name="shelfLifeMonths"
-                type="number"
-                className="border rounded p-2 w-full"
-                value={form.shelfLifeMonths ?? ""}
-                onChange={onChange}
-                min={0}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Boyutlar</label>
-              <input
-                name="dimensions"
-                className="border rounded p-2 w-full"
-                value={form.dimensions ?? ""}
-                onChange={onChange}
-              />
-            </div>
-          </div>
-
-          {/* Sipariş Limitleri */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Minimum Sipariş
-              </label>
-              <input
-                name="minimumOrderQuantity"
-                type="number"
-                className="border rounded p-2 w-full"
-                value={form.minimumOrderQuantity ?? ""}
-                onChange={onChange}
-                min={0}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Maksimum Sipariş
-              </label>
-              <input
-                name="maximumOrderQuantity"
-                type="number"
-                className="border rounded p-2 w-full"
-                value={form.maximumOrderQuantity ?? ""}
-                onChange={onChange}
-                min={0}
-              />
-            </div>
-          </div>
-
-          {/* Boolean’lar */}
-          <div className="grid grid-cols-5 gap-3">
-            {[
-              { id: "sterile", label: "Steril" },
-              { id: "singleUse", label: "Tek Kullanımlık" },
-              { id: "implantable", label: "İmplante Edilebilir" },
-              { id: "ceMarking", label: "CE İşareti" },
-              { id: "fdaApproved", label: "FDA Onaylı" },
-            ].map((b) => (
-              <label key={b.id} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  name={b.id}
-                  checked={!!(form as any)[b.id]}
-                  onChange={onChange}
+            <form onSubmit={submit} className="sherah-wc__form-main p-0">
+              <div className="modal-header">
+                <h5 className="modal-title">Ürünü Güncelle</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={onClose}
+                  disabled={loading}
                 />
-                {b.label}
-              </label>
-            ))}
-          </div>
+              </div>
+              <div className="modal-body">
+                {/* Temel Bilgiler */}
+                <div className="row g-3">
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Ad *{" "}
+                        <small className="text-muted">
+                          (örn. Titanyum İmplant)
+                        </small>
+                      </label>
+                      <input
+                        name="name"
+                        className="sherah-wc__form-input"
+                        value={form.name}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  {/*Kod */}
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Kod <small className="text-muted">(Örn: TI-001)</small>
+                      </label>
+                      <input
+                        name="code"
+                        className="sherah-wc__form-input"
+                        value={form.code}
+                        onChange={onChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  {/* Kategori */}
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Kategori *{" "}
+                      </label>
+                      <select
+                        name="categoryId"
+                        className="sherah-wc__form-input"
+                        value={form.categoryId ?? ""}
+                        onChange={onChange}
+                        required
+                      >
+                        <option value="">Kategori Seçin</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={String(c.id)}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-          {/* Aktiflik */}
-          <div>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name="isActive"
-                checked={!!form.isActive}
-                onChange={onChange}
-              />
-              Aktif
-            </label>
-          </div>
+                  {/* Stok & Birim & Lot */}
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Birim <small className="text-muted">(Örn: adet)</small>
+                      </label>
+                      <input
+                        name="unit"
+                        className="sherah-wc__form-input"
+                        value={form.unit ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Stok Adedi{" "}
+                        <small className="text-muted">(Örn: 3)</small>
+                      </label>
+                      <input
+                        name="stockQuantity"
+                        type="number"
+                        className="sherah-wc__form-input"
+                        value={form.stockQuantity ?? ""}
+                        onChange={onChange}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Lot Numarası{" "}
+                        <small className="text-muted">
+                          (Örn: LOT-2024-001)
+                        </small>
+                      </label>
+                      <input
+                        name="lotNumber"
+                        className="sherah-wc__form-input"
+                        value={form.lotNumber ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
 
-          {/* Aksiyonlar */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              İptal
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              {loading ? "Kaydediliyor..." : "Kaydet"}
-            </button>
+                  {/* Fiziksel Özellikler */}
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Malzeme</label>
+                      <input
+                        name="material"
+                        className="sherah-wc__form-input"
+                        value={form.material ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Boyut</label>
+                      <input
+                        name="size"
+                        className="sherah-wc__form-input"
+                        value={form.size ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Çap</label>
+                      <input
+                        name="diameter"
+                        className="sherah-wc__form-input"
+                        value={form.diameter ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Açı</label>
+                      <input
+                        name="angle"
+                        className="sherah-wc__form-input"
+                        value={form.angle ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Renk</label>
+                      <input
+                        name="color"
+                        className="sherah-wc__form-input"
+                        value={form.color ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Yüzey İşlemi
+                      </label>
+                      <input
+                        name="surfaceTreatment"
+                        className="sherah-wc__form-input"
+                        value={form.surfaceTreatment ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Kimlik & Üretici */}
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Seri No</label>
+                      <input
+                        name="serialNumber"
+                        className="sherah-wc__form-input"
+                        value={form.serialNumber ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Üretici Kodu
+                      </label>
+                      <input
+                        name="manufacturerCode"
+                        className="sherah-wc__form-input"
+                        value={form.manufacturerCode ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tarihler */}
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Üretim Tarihi
+                      </label>
+                      <input
+                        type="date"
+                        className="sherah-wc__form-input"
+                        value={form.manufacturingDate ?? ""}
+                        onChange={onDate("manufacturingDate")}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Son Kullanma Tarihi
+                      </label>
+                      <input
+                        type="date"
+                        className="sherah-wc__form-input"
+                        value={form.expiryDate ?? ""}
+                        onChange={onDate("expiryDate")}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Medikal & Regülasyon */}
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Medikal Cihaz Sınıfı
+                      </label>
+                      <input
+                        name="medicalDeviceClass"
+                        className="sherah-wc__form-input"
+                        value={form.medicalDeviceClass ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Regülasyon No
+                      </label>
+                      <input
+                        name="regulatoryNumber"
+                        className="sherah-wc__form-input"
+                        value={form.regulatoryNumber ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Barkod</label>
+                      <input
+                        name="barcode"
+                        className="sherah-wc__form-input"
+                        value={form.barcode ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sayısal Ek Alanlar */}
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Ağırlık (gram)
+                      </label>
+                      <input
+                        name="weightGrams"
+                        type="number"
+                        className="sherah-wc__form-input"
+                        value={form.weightGrams ?? ""}
+                        onChange={onChange}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Raf Ömrü (ay)
+                      </label>
+                      <input
+                        name="shelfLifeMonths"
+                        type="number"
+                        className="sherah-wc__form-input"
+                        value={form.shelfLifeMonths ?? ""}
+                        onChange={onChange}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">Boyutlar</label>
+                      <input
+                        name="dimensions"
+                        className="sherah-wc__form-input"
+                        value={form.dimensions ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sipariş Limitleri */}
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Minimum Sipariş
+                      </label>
+                      <input
+                        name="minimumOrderQuantity"
+                        type="number"
+                        className="sherah-wc__form-input"
+                        value={form.minimumOrderQuantity ?? ""}
+                        onChange={onChange}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-3 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Maksimum Sipariş
+                      </label>
+                      <input
+                        name="maximumOrderQuantity"
+                        type="number"
+                        className="sherah-wc__form-input"
+                        value={form.maximumOrderQuantity ?? ""}
+                        onChange={onChange}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Boolean’lar */}
+                  <div className="col-12 d-flex flex-wrap align-items-center gap-3 pt-2">
+                    {[
+                      { id: "sterile", label: "Steril" },
+                      { id: "singleUse", label: "Tek Kullanımlık" },
+                      { id: "implantable", label: "İmplante Edilebilir" },
+                      { id: "ceMarking", label: "CE İşareti" },
+                      { id: "fdaApproved", label: "FDA Onaylı" },
+                    ].map((b) => (
+                      <div className="form-check form-switch mb-0">
+                        <input
+                          className="form-check-input mb-0 border"
+                          type="checkbox"
+                          name={b.id}
+                          checked={!!(form as any)[b.id]}
+                          onChange={onChange}
+                        />
+
+                        <label
+                          key={b.id}
+                          className="form-check-label mb-0 mt-1 lh-sm"
+                        >
+                          {b.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="col-lg-12 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Açıklama{" "}
+                        <small className="text-muted">
+                          (Örn: Yüksek kaliteli titanyum implant)
+                        </small>
+                      </label>
+                      <textarea
+                        name="description"
+                        className="sherah-wc__form-input"
+                        rows={3}
+                        value={form.description ?? ""}
+                        onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  {/* Aksiyonlar */}
+                  <div className="d-flex justify-content-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="sherah-btn sherah-gbcolor"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="sherah-btn sherah-btn__secondary"
+                    >
+                      {loading ? "Kaydediliyor..." : "Kaydet"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+      <div className="modal-backdrop fade show" />
+    </>
   );
 };
 

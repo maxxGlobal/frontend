@@ -19,7 +19,7 @@ export type ApiProductListItem = {
 
 export function normalizeProductList(rows: any[]): ProductRow[] {
   return (rows ?? []).map((r) => {
-    const status: ProductStatus = r?.status === "SİLİNDİ" ? "SİLİNDİ" : "AKTİF"; // default: "AKTİF"
+    const status: ProductStatus = r?.status === "SİLİNDİ" ? "SİLİNDİ" : "AKTİF";
 
     return {
       id: Number(r?.id),
@@ -31,7 +31,7 @@ export function normalizeProductList(rows: any[]): ProductRow[] {
       stockQuantity: r?.stockQuantity ?? null,
       unit: r?.unit ?? null,
       status,
-      isActive: status === "AKTİF", // <- türetilmiş
+      isActive: status === "AKTİF",
       isInStock: !!r?.isInStock,
     } as ProductRow;
   });

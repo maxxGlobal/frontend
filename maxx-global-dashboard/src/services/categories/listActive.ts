@@ -1,32 +1,25 @@
-import { listCategories } from "./list";
+// src/services/categories/listActive.ts
+import api from "../../lib/api";
 import type { CategoryRow } from "../../types/category";
-import type { PageRequest } from "../../types/paging";
 
-export async function listAllCategories(opts?: {
+export async function listActiveCategories(opts?: {
   signal?: AbortSignal;
 }): Promise<(CategoryRow & { label: string })[]> {
   const out: CategoryRow[] = [];
-  const base: Omit<PageRequest, "page" | "size"> = {
-    sortBy: "name" as any,
-    sortDirection: "asc",
-  };
 
   let page = 0;
   const size = 200;
   let totalPages = 1;
 
   do {
-    const res = await listCategories({ page, size, ...base } as any, {
+    const res = await api.get("/categories/active", {
+      params: { page, size, sortBy: "name", sortDirection: "asc" },
       signal: opts?.signal,
     });
 
-    // 🔹 sadece aktif olanları topla
-    const activeOnly = res.content.filter(
-      (c) => (c as any).status === "AKTİF" || (c as any).isActive === true
-    );
-    out.push(...activeOnly);
-
-    totalPages = res.totalPages;
+    // Backend PageResponse döndürüyor: { content, totalPages, ... }
+    out.push(...res.data.content);
+    totalPages = res.data.totalPages;
     page += 1;
   } while (page < totalPages);
 
