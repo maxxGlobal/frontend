@@ -138,7 +138,7 @@ export default function OrderManagementPanel() {
                 <th>Ürünler</th>
                 <th>Tutar</th>
                 <th>Durum</th>
-                <th className="text-end">İşlemler</th>
+                <th>İşlemler</th>
               </tr>
             </thead>
             <tbody className="sherah-table__body h-auto overflow-hidden">

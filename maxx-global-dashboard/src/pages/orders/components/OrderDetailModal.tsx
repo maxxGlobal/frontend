@@ -203,13 +203,13 @@ export default function OrderDetailModal({
               {orderStatus === "BEKLEMEDE" && (
                 <>
                   <button
-                    className="btn btn-success"
+                    className="btn btn-success p-2 px-3"
                     onClick={handleApproveClick}
                   >
                     Onayla
                   </button>
                   <button
-                    className="btn btn-danger"
+                    className="btn btn-danger p-2 px-3"
                     onClick={handleRejectClick}
                   >
                     Reddet
@@ -218,18 +218,21 @@ export default function OrderDetailModal({
               )}
 
               {/* APPROVED → Kargola */}
-              {orderStatus === "APPROVED" && (
-                <button className="btn btn-info" onClick={handleShipClick}>
+              {orderStatus === "ONAYLANDI" && (
+                <button
+                  className="btn btn-success text-white p-2 px-3"
+                  onClick={handleShipClick}
+                >
                   Kargola
                 </button>
               )}
 
-              {/* Her durumda Düzenle butonu */}
+              {/* Her durumda Düzenle butonu
               <button className="btn btn-warning" onClick={handleEditClick}>
                 Düzenle
-              </button>
+              </button> */}
 
-              <button className="btn btn-secondary" onClick={onClose}>
+              <button className="btn btn-danger p-2 px-3" onClick={onClose}>
                 Kapat
               </button>
             </div>

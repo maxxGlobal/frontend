@@ -186,11 +186,11 @@ export default function EditOrderModal({
             </div>
 
             <div className="modal-footer">
-              <button className="btn btn-primary" onClick={handleSave}>
+              <button className="btn btn-success p-2 px-3" onClick={handleSave}>
                 Kaydet
               </button>
 
-              <button className="btn btn-secondary" onClick={onClose}>
+              <button className="btn btn-danger p-2 px-3" onClick={onClose}>
                 Kapat
               </button>
             </div>
