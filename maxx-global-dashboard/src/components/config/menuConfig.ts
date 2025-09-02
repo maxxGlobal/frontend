@@ -183,4 +183,17 @@ export const menuItems: MenuItem[] = [
       },
     ],
   },
+  {
+    id: "menu-item__orders",
+    label: "Siparişler",
+    iconHtml: ProductsIconHTML,
+    children: [
+      {
+        id: "orders_list",
+        label: "Sipariş Listesi",
+        to: "/orders-list",
+        required: "SYSTEM_ADMIN",
+      },
+    ],
+  },
 ];

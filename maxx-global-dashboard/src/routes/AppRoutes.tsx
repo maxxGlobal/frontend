@@ -19,6 +19,7 @@ import ProductImagesPage from "../pages/products/ProductImagesPage";
 import ProductDetails from "../pages/products/ProductDetails";
 import DealerPricesPage from "../pages/dealers/DealerPricesPage";
 import ProductPriceManagement from "../pages/products/ProductPriceManagement";
+import OrderManagementPanel from "../pages/orders/OrderManagementPanel";
 
 export default function AppRoutes() {
   return (
@@ -64,6 +65,7 @@ export default function AppRoutes() {
             <Route path="/product" element={<ProductsList />} />
             <Route path="/products/:id" element={<ProductDetails />} />{" "}
           </Route>
+
           <Route
             path="/dealers/:dealerId/prices"
             element={<DealerPricesPage />}
@@ -74,6 +76,9 @@ export default function AppRoutes() {
             element={<ProductImagesPage />}
           />
           <Route path="/product-prices" element={<ProductPriceManagement />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/orders-list" element={<OrderManagementPanel />} />
+          </Route>
         </Route>
       </Route>
 

@@ -8423,3 +8423,12 @@ box-shadow: none !important;
   justify-content: center !important; /* yatay ortalama */
   z-index: 999999999
 }
+.order-list .sherah-table__main--front thead{
+	display: table-header-group;
+}
+.order-list .sherah-table__main--front tbody{
+	display: table-header-group;
+}
+.order-list .sherah-table__head tr th{
+	padding: 26px 26px !important;
+}
