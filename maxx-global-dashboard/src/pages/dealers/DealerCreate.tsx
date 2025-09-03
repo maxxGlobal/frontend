@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { createDealer } from "../../services/dealers/create";
 import type { DealerCreateRequest } from "../../types/dealer";
 import { hasPermission } from "../../utils/permissions";
+import Swal from "sweetalert2";
 
 export default function DealerCreate() {
   const canManage = hasPermission({ required: "DEALER_MANAGE" });
@@ -22,9 +23,9 @@ export default function DealerCreate() {
     mobilePhone: "",
     email: "",
     address: "",
+    preferredCurrency: "TRY", // ✅ default
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const set = (patch: Partial<DealerCreateRequest>) =>
     setForm((f) => ({ ...f, ...patch }));
@@ -35,7 +36,6 @@ export default function DealerCreate() {
     e.preventDefault();
     try {
       setSaving(true);
-      setError(null);
 
       const created = await createDealer({
         name: form.name.trim(),
@@ -43,20 +43,34 @@ export default function DealerCreate() {
         mobilePhone: norm(form.mobilePhone),
         email: norm(form.email),
         address: norm(form.address),
+        preferredCurrency: form.preferredCurrency,
       });
+
       const dealerId = created.id;
       if (dealerId) {
-        navigate(`/dealers/${dealerId}/prices`); // ProductPriceExcelPanel sayfasına yönlendir
+        await Swal.fire({
+          title: "Başarılı",
+          text: "Bayi oluşturuldu.",
+          icon: "success",
+          confirmButtonText: "Tamam", // ✅ buton adı değişti
+        });
+        navigate(`/dealers/${dealerId}/prices`);
       } else {
-        alert("Bayi oluşturuldu, fakat ID bilgisi alınamadı.");
+        await Swal.fire({
+          title: "Uyarı",
+          text: "Bayi oluşturuldu, fakat ID bilgisi alınamadı.",
+          icon: "warning",
+          confirmButtonText: "Tamam",
+        });
       }
-      alert("Bayi oluşturuldu.");
+
       setForm({
         name: "",
         fixedPhone: "",
         mobilePhone: "",
         email: "",
         address: "",
+        preferredCurrency: "TRY",
       });
     } catch (e: any) {
       const msg =
@@ -64,7 +78,7 @@ export default function DealerCreate() {
         e?.response?.data?.title ||
         e?.message ||
         "Bayi oluşturulamadı.";
-      setError(msg);
+      await Swal.fire("Hata", msg, "error");
     } finally {
       setSaving(false);
     }
@@ -75,14 +89,12 @@ export default function DealerCreate() {
       <div className="sherah-wc__form">
         <div className="sherah-wc__form-inner">
           <h3 className="sherah-wc__form-title sherah-wc__form-title__one">
-            {" "}
             Bayi Oluştur <span>Lütfen aşağıdaki bilgileri doldurun</span>
           </h3>
 
-          {error && <div className="alert alert-danger">{error}</div>}
-
           <form onSubmit={submit} className="sherah-wc__form-main p-0">
             <div className="row">
+              {/* Ad */}
               <div className="col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Ad *</label>
@@ -108,7 +120,7 @@ export default function DealerCreate() {
                       value={form.fixedPhone || ""}
                       onChange={(e) => set({ fixedPhone: e.target.value })}
                       placeholder="+90 212 555 1234"
-                      pattern="^[0-9+\-\s()]{8,20}$"
+                      pattern="^[0-9+\\-\\s()]{8,20}$"
                       title="Lütfen geçerli bir telefon formatı girin."
                     />
                   </div>
@@ -125,7 +137,7 @@ export default function DealerCreate() {
                       value={form.mobilePhone || ""}
                       onChange={(e) => set({ mobilePhone: e.target.value })}
                       placeholder="+90 535 555 1234"
-                      pattern="^[0-9+\-\s()]{8,20}$"
+                      pattern="^[0-9+\\-\\s()]{8,20}$"
                       title="Lütfen geçerli bir telefon formatı girin."
                     />
                   </div>
@@ -160,6 +172,29 @@ export default function DealerCreate() {
                       onChange={(e) => set({ address: e.target.value })}
                       placeholder="Adres"
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Para Birimi */}
+              <div className="col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">
+                    Tercih Edilen Para Birimi *
+                  </label>
+                  <div className="form-group__input">
+                    <select
+                      className="sherah-wc__form-input"
+                      value={form.preferredCurrency}
+                      onChange={(e) =>
+                        set({ preferredCurrency: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="TRY">TRY (₺)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                    </select>
                   </div>
                 </div>
               </div>

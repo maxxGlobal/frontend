@@ -16,6 +16,7 @@ export default function EditDealerModal({ dealer, onClose, onSaved }: Props) {
     fixedPhone: dealer.fixedPhone ?? "",
     mobilePhone: dealer.mobilePhone ?? "",
     address: dealer.address ?? "",
+    preferredCurrency: dealer.preferredCurrency ?? "",
     // status'i backend yönetiyor: burada göndermiyoruz
   });
   const [saving, setSaving] = useState(false);
@@ -50,6 +51,11 @@ export default function EditDealerModal({ dealer, onClose, onSaved }: Props) {
         mobilePhone:
           (form.mobilePhone ?? "").trim() || dealer.mobilePhone || undefined,
         address: (form.address ?? "").trim() || dealer.address || undefined,
+        preferredCurrency:
+          (form.preferredCurrency ?? "").trim() ||
+          dealer.preferredCurrency ||
+          undefined,
+
         // status YOK -> backend yönetsin
       });
       onSaved();
@@ -150,6 +156,16 @@ export default function EditDealerModal({ dealer, onClose, onSaved }: Props) {
                   value={form.address || ""}
                   onChange={(e) =>
                     setForm({ ...form, address: e.target.value })
+                  }
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label">Para Birimi</label>
+                <input
+                  className="form-control"
+                  value={form.preferredCurrency || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, preferredCurrency: e.target.value })
                   }
                 />
               </div>

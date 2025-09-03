@@ -8432,3 +8432,6 @@ box-shadow: none !important;
 .order-list .sherah-table__head tr th{
 	padding: 26px 26px !important;
 }
+.sherah-table__head tr th {
+    padding: 28px 28px !important;
+}

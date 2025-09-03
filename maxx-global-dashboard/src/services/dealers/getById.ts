@@ -4,7 +4,6 @@ import type { Dealer } from "../../types/dealer";
 import { normalizeDealer } from "./_normalize";
 
 export async function getDealerById(id: number): Promise<Dealer> {
-  const res = await api.get<ApiEnvelope<any> | any>(`/dealers/${id}`);
-  const payload = (res as any).data?.data ?? (res as any).data;
-  return normalizeDealer(payload);
+  const res = await api.get<ApiEnvelope<Dealer> | Dealer>(`/dealers/${id}`);
+  return (res as any).data?.data ?? (res as any).data;
 }

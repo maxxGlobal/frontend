@@ -20,6 +20,7 @@ import ProductDetails from "../pages/products/ProductDetails";
 import DealerPricesPage from "../pages/dealers/DealerPricesPage";
 import ProductPriceManagement from "../pages/products/ProductPriceManagement";
 import OrderManagementPanel from "../pages/orders/OrderManagementPanel";
+import DealerDetail from "../pages/dealers/DealerDetail";
 
 export default function AppRoutes() {
   return (
@@ -79,6 +80,7 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute />}>
             <Route path="/orders-list" element={<OrderManagementPanel />} />
           </Route>
+          <Route path="/dealers/:id" element={<DealerDetail />} />
         </Route>
       </Route>
 
