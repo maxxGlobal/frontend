@@ -1,5 +1,5 @@
 // src/pages/product-prices/ProductPriceManagementPanel.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -17,7 +17,6 @@ import type {
   PageResponse,
   CreateProductPriceRequest,
   UpdateProductPriceRequest,
-  CurrencyAmount,
 } from "../../../types/product-prices";
 
 const MySwal = withReactContent(Swal);
@@ -551,6 +550,41 @@ export default function ProductPriceManagementPanel() {
                       );
                     })
                   )}
+                </div>
+
+                {/* Geçerlilik ve durum */}
+                <div className="row mt-3">
+                  <div className="col-md-6">
+                    <label className="form-label">Geçerlilik Başlangıç</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      value={validFromInput}
+                      onChange={(e) => setValidFromInput(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Geçerlilik Bitiş</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      value={validUntilInput}
+                      onChange={(e) => setValidUntilInput(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-check mt-3">
+                  <input
+                    id="isActive"
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={!!isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                  />
+                  <label className="form-check-label" htmlFor="isActive">
+                    Aktif mi?
+                  </label>
                 </div>
               </div>
 
