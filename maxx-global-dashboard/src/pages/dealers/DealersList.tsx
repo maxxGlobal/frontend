@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { hasPermission } from "../../utils/permissions";
 import type { PageResponse } from "../../types/paging";
 import type { DealerRow } from "../../types/dealer";
-
+import { useNavigate } from "react-router-dom";
 import { listDealers } from "../../services/dealers/list";
 import { deleteDealer } from "../../services/dealers/delete";
 import { searchDealers } from "../../services/dealers/search";
@@ -57,6 +57,7 @@ const DEFAULT_PAGE = 0;
 const DEFAULT_SIZE = 10;
 
 export default function DealersList() {
+  const navigate = useNavigate();
   const canRead = hasPermission({ anyOf: ["DEALER_READ", "DEALER_MANAGE"] });
   const canManage = hasPermission({ required: "DEALER_MANAGE" });
 
@@ -278,6 +279,7 @@ export default function DealersList() {
                 onEdit={(r) => canManage && setEditTarget(r)}
                 onAskDelete={(r) => canManage && setDeleteTarget(r)}
                 onRestore={(r) => canManage && handleRestore(r)}
+                onDetail={(r) => navigate(`/dealers/${r.id}`)}
               />
             </div>
 

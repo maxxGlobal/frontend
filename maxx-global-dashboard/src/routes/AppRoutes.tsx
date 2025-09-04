@@ -19,6 +19,15 @@ import ProductImagesPage from "../pages/products/ProductImagesPage";
 import ProductDetails from "../pages/products/ProductDetails";
 import DealerPricesPage from "../pages/dealers/DealerPricesPage";
 import ProductPriceManagement from "../pages/products/ProductPriceManagement";
+import OrderManagementPanel from "../pages/orders/OrderManagementPanel";
+import DealerDetail from "../pages/dealers/DealerDetail";
+import DiscountsList from "../pages/discounts/DiscountsList";
+import DiscountCreate from "../pages/discounts/DiscountCreate";
+import DiscountCalculate from "../pages/discounts/DiscountCalculate";
+import DiscountsUpcoming from "../pages/discounts/DiscountsUpcoming";
+import DiscountsByProduct from "../pages/discounts/DiscountsByProduct";
+import DiscountsExpired from "../pages/discounts/DiscountsExpired";
+import DiscountsByDealer from "../pages/discounts/DiscountsByDealer";
 
 export default function AppRoutes() {
   return (
@@ -68,12 +77,36 @@ export default function AppRoutes() {
             path="/dealers/:dealerId/prices"
             element={<DealerPricesPage />}
           />
-
           <Route
             path="/products/:productId/images"
             element={<ProductImagesPage />}
           />
           <Route path="/product-prices" element={<ProductPriceManagement />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/orders-list" element={<OrderManagementPanel />} />
+          </Route>
+          <Route path="/dealers/:id" element={<DealerDetail />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/discounts-list" element={<DiscountsList />} />
+          </Route>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/discounts-create" element={<DiscountCreate />} />
+          </Route>
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="/discounts/calculate"
+              element={<DiscountCalculate />}
+            />
+          </Route>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/discounts/upcoming" element={<DiscountsUpcoming />} />
+          </Route>
+          <Route
+            path="/discounts/by-product"
+            element={<DiscountsByProduct />}
+          />
+          <Route path="/discounts/expired" element={<DiscountsExpired />} />
+          <Route path="/discounts/by-dealer" element={<DiscountsByDealer />} />
         </Route>
       </Route>
 

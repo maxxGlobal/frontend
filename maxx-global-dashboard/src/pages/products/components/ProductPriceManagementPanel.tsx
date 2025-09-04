@@ -1,5 +1,5 @@
 // src/pages/product-prices/ProductPriceManagementPanel.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -17,9 +17,27 @@ import type {
   PageResponse,
   CreateProductPriceRequest,
   UpdateProductPriceRequest,
+  CurrencyAmount,
 } from "../../../types/product-prices";
 
 const MySwal = withReactContent(Swal);
+
+// Helpers
+function ensureSeconds(v?: string | null) {
+  if (!v) return v ?? null;
+  return v.length === 16 ? `${v}:00` : v;
+}
+function toLocalInput(iso?: string | null) {
+  if (!iso) return "";
+  return iso.slice(0, 16);
+}
+const PREFERRED = ["TRY", "USD", "EUR"];
+
+type Row = {
+  currency: string;
+  amount: number | undefined;
+  existing: boolean; // mevcut prices[]'ten mi geldi?
+};
 
 export default function ProductPriceManagementPanel() {
   const [prices, setPrices] = useState<PageResponse<ProductPrice> | null>(null);
@@ -32,15 +50,16 @@ export default function ProductPriceManagementPanel() {
   const [editItem, setEditItem] = useState<ProductPrice | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [dealers, setDealers] = useState<any[]>([]);
-  const [form, setForm] = useState<
-    Partial<CreateProductPriceRequest & UpdateProductPriceRequest>
-  >({
-    productId: undefined,
-    dealerId: undefined,
-    amount: 0,
-    currency: "TRY",
-    isActive: true,
-  });
+
+  // kayıt seviyesi alanlar (tüm satırlara birlikte uygulanır)
+  const [productId, setProductId] = useState<number | undefined>(undefined);
+  const [dealerId, setDealerId] = useState<number | undefined>(undefined);
+  const [validFromInput, setValidFromInput] = useState<string>("");
+  const [validUntilInput, setValidUntilInput] = useState<string>("");
+  const [isActive, setIsActive] = useState<boolean>(true);
+
+  // çoklu para birimi satırları
+  const [rows, setRows] = useState<Row[]>([]);
 
   async function loadData() {
     try {
@@ -54,119 +73,256 @@ export default function ProductPriceManagementPanel() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     loadData();
   }, [page]);
 
-  // ✅ Yeni fiyat ekle modalı aç
+  async function hydrateLookups() {
+    const prods = await listSimpleProducts();
+    const dels = await listSimpleDealers();
+    setProducts(prods);
+    setDealers(dels);
+  }
+
+  // Yeni Fiyat
   async function handleAdd() {
-    const prods = await listSimpleProducts();
-    const dels = await listSimpleDealers();
-    setProducts(prods);
-    setDealers(dels);
-
-    setForm({
-      productId: undefined,
-      dealerId: undefined,
-      amount: 0,
-      currency: "TRY",
-      isActive: true,
-    });
+    await hydrateLookups();
     setEditItem(null);
+
+    setProductId(undefined);
+    setDealerId(undefined);
+    setValidFromInput("");
+    setValidUntilInput("");
+    setIsActive(true);
+
+    // başlangıçta tek satır (TRY)
+    setRows([{ currency: "TRY", amount: undefined, existing: false }]);
+
     setShowModal(true);
   }
 
-  // ✅ Güncelle modalı aç
-  async function handleEdit(price: ProductPrice) {
-    const prods = await listSimpleProducts();
-    const dels = await listSimpleDealers();
-    setProducts(prods);
-    setDealers(dels);
+  // Güncelle
+  async function handleEdit(item: ProductPrice) {
+    await hydrateLookups();
+    setEditItem(item);
 
-    setForm({
-      productId: price.productId,
-      dealerId: price.dealerId,
-      amount: price.amount,
-      currency: price.currency,
-      validFrom: price.validFrom,
-      validUntil: price.validUntil,
-      isActive: price.isActive,
+    setProductId(item.productId);
+    setDealerId(item.dealerId);
+    setValidFromInput(toLocalInput(item.validFrom));
+    setValidUntilInput(toLocalInput(item.validUntil));
+    setIsActive(!!item.isActive);
+
+    // Mevcut tüm currency'leri satıra dök
+    const ordered = [...item.prices].sort((a, b) => {
+      const ai = PREFERRED.indexOf(a.currency);
+      const bi = PREFERRED.indexOf(b.currency);
+      const as = ai === -1 ? 999 : ai;
+      const bs = bi === -1 ? 999 : bi;
+      return as - bs;
     });
+    setRows(
+      ordered.map((p) => ({
+        currency: p.currency,
+        amount: p.amount,
+        existing: true,
+      }))
+    );
 
-    setEditItem(price);
     setShowModal(true);
   }
 
-  // ✅ Kaydet (create veya update)
+  // Currency seçenekleri (mevcut + tercih edilenler)
+  const currencyOptions = useMemo(() => {
+    const set = new Set<string>(PREFERRED);
+    rows.forEach((r) => set.add(r.currency));
+    return Array.from(set);
+  }, [rows]);
+
+  function usedCurrencies(excludeIndex?: number) {
+    return new Set(
+      rows
+        .map((r, i) =>
+          excludeIndex != null && i === excludeIndex ? null : r.currency
+        )
+        .filter((x): x is string => !!x)
+    );
+  }
+
+  function addRow() {
+    // ilk kullanılmayan tercih edilen para birimini seç
+    const used = usedCurrencies();
+    const firstFree = PREFERRED.find((c) => !used.has(c)) || "";
+    setRows((prev) => [
+      ...prev,
+      { currency: firstFree, amount: undefined, existing: false },
+    ]);
+  }
+
+  function removeRow(idx: number) {
+    setRows((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function updateRow(idx: number, patch: Partial<Row>) {
+    setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  }
+
+  // Kaydet
   async function handleSave() {
     try {
-      if (!form.productId || !form.dealerId || !form.amount) {
-        MySwal.fire("Hata", "Tüm alanlar doldurulmalı", "error");
+      // temel kontroller
+      if (!productId || !dealerId) {
+        await MySwal.fire("Hata", "Ürün ve Bayi seçiniz.", "error");
         return;
       }
-
-      if (editItem) {
-        await updateProductPrice(
-          editItem.id,
-          form as UpdateProductPriceRequest
+      if (rows.length === 0) {
+        await MySwal.fire(
+          "Hata",
+          "En az bir para birimi satırı ekleyin.",
+          "error"
         );
-        MySwal.fire("Başarılı", "Fiyat güncellendi", "success");
+        return;
+      }
+      // para birimi boş/duplikasyon/miktar kontrolü
+      const seen = new Set<string>();
+      for (const r of rows) {
+        if (!r.currency) {
+          await MySwal.fire("Hata", "Para birimi boş olamaz.", "error");
+          return;
+        }
+        if (seen.has(r.currency)) {
+          await MySwal.fire(
+            "Hata",
+            `Aynı para birimi birden fazla: ${r.currency}`,
+            "error"
+          );
+          return;
+        }
+        seen.add(r.currency);
+        if (
+          r.amount == null ||
+          !Number.isFinite(Number(r.amount)) ||
+          Number(r.amount) < 0
+        ) {
+          await MySwal.fire("Hata", `Geçersiz tutar (${r.currency}).`, "error");
+          return;
+        }
+      }
+
+      const vf = ensureSeconds(validFromInput || null);
+      const vu = ensureSeconds(validUntilInput || null);
+
+      // edit: değişenleri update, yeni eklenenleri create
+      if (editItem) {
+        const original = new Map<string, number>();
+        editItem.prices.forEach((p) => original.set(p.currency, p.amount));
+
+        const ops: Promise<any>[] = [];
+
+        rows.forEach((r) => {
+          const amt = Number(r.amount);
+          if (r.existing) {
+            const prevAmt = original.get(r.currency);
+            // sadece miktar değiştiyse update çekelim
+            if (
+              prevAmt !== amt ||
+              vf !== editItem.validFrom ||
+              vu !== editItem.validUntil ||
+              isActive !== editItem.isActive
+            ) {
+              ops.push(
+                updateProductPrice(editItem.id, {
+                  productId,
+                  dealerId,
+                  currency: r.currency,
+                  amount: amt,
+                  validFrom: vf,
+                  validUntil: vu,
+                  isActive,
+                } as UpdateProductPriceRequest)
+              );
+            }
+          } else {
+            // yeni para birimi -> create
+            ops.push(
+              createProductPrice({
+                productId,
+                dealerId,
+                currency: r.currency,
+                amount: amt,
+                validFrom: vf,
+                validUntil: vu,
+                isActive,
+              } as CreateProductPriceRequest)
+            );
+          }
+        });
+
+        await Promise.all(ops);
+        await MySwal.fire("Başarılı", "Fiyat(lar) güncellendi", "success");
       } else {
-        await createProductPrice(form as CreateProductPriceRequest);
-        MySwal.fire("Başarılı", "Yeni fiyat oluşturuldu", "success");
+        // create: her satır için create çağrısı
+        const ops: Promise<any>[] = rows.map((r) =>
+          createProductPrice({
+            productId,
+            dealerId,
+            currency: r.currency,
+            amount: Number(r.amount),
+            validFrom: vf,
+            validUntil: vu,
+            isActive,
+          } as CreateProductPriceRequest)
+        );
+        await Promise.all(ops);
+        await MySwal.fire("Başarılı", "Fiyat(lar) oluşturuldu", "success");
       }
 
       setShowModal(false);
       loadData();
     } catch (e: any) {
-      MySwal.fire("Hata", e.message || "Kaydetme başarısız", "error");
+      await MySwal.fire("Hata", e?.message || "Kaydetme başarısız", "error");
     }
   }
 
-  // ✅ Silme
-  async function handleDelete(price: ProductPrice) {
+  // Sil
+  async function handleDelete(item: ProductPrice) {
     const confirm = await MySwal.fire({
       title: "Emin misiniz?",
-      text: `Fiyat #${price.id} silinecek`,
+      text: `Fiyat #${item.id} silinecek`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Evet, sil",
       cancelButtonText: "İptal",
     });
-
     if (!confirm.isConfirmed) return;
-
     try {
-      const success = await deleteProductPrice(price.id);
-      if (success) {
+      const ok = await deleteProductPrice(item.id);
+      if (ok) {
         setPrices((prev) =>
           prev
-            ? {
-                ...prev,
-                content: prev.content.filter((p) => p.id !== price.id),
-              }
+            ? { ...prev, content: prev.content.filter((p) => p.id !== item.id) }
             : prev
         );
         MySwal.fire("Silindi", "Fiyat başarıyla silindi", "success");
       }
     } catch (e: any) {
-      MySwal.fire("Hata", e.message || "Silme başarısız", "error");
+      MySwal.fire("Hata", e?.message || "Silme başarısız", "error");
     }
   }
 
   return (
     <div className="sherah-table p-0">
       <div className="dataTables_wrapper dt-bootstrap5 no-footer">
-        <div className="row align-items-center mb-5">
+        <div className="row align-items-center mb-5 justify-content-between">
           <div className="col-sm-12 col-md-6">
             <h3 className="sherah-card__title py-3">Ürün Fiyat Yönetimi</h3>
           </div>
-          <div className="col-sm-12 col-md-6 d-flex justify-content-end">
-            <button className="sherah-btn sherah-gbcolor" onClick={handleAdd}>
-              Yeni Fiyat
-            </button>
-          </div>
+          <button
+            className="sherah-btn sherah-gbcolor ms-2"
+            onClick={handleAdd}
+            title="Yeni Fiyat"
+          >
+            Yeni Fiyat
+          </button>
         </div>
       </div>
 
@@ -180,10 +336,10 @@ export default function ProductPriceManagementPanel() {
         <table className="sherah-table__main sherah-table__main-v3">
           <thead className="sherah-table__head">
             <tr>
-              <th>Ürün ID</th>
+              <th>Ürün Fiyat ID</th>
               <th>Ürün</th>
               <th>Bayi</th>
-              <th>Tutar</th>
+              <th>Tutar(lar)</th>
               <th>Durum</th>
               <th>İşlem</th>
             </tr>
@@ -197,7 +353,20 @@ export default function ProductPriceManagementPanel() {
                 </td>
                 <td>{p.dealerName}</td>
                 <td>
-                  {p.amount} {p.currency}
+                  {Array.isArray(p.prices) && p.prices.length > 0 ? (
+                    <div className="d-flex flex-wrap gap-1">
+                      {p.prices.map((pa) => (
+                        <span
+                          key={pa.currency}
+                          className="badge bg-light text-dark border"
+                        >
+                          {pa.amount} {pa.currency}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-muted">—</span>
+                  )}
                 </td>
                 <td>
                   {p.isActive ? (
@@ -212,22 +381,20 @@ export default function ProductPriceManagementPanel() {
                 </td>
                 <td>
                   <div className="sherah-table__status__group justify-content-start">
-                    <a
-                      href="#"
+                    <button
                       className="sherah-table__action sherah-color2 sherah-color3__bg--opactity"
                       title="Güncelle"
                       onClick={() => handleEdit(p)}
                     >
                       <i className="fa-regular fa-pen-to-square" />
-                    </a>
-                    <a
-                      href="#"
+                    </button>
+                    <button
                       className="sherah-table__action sherah-color2 sherah-color2__bg--offset"
                       title="Sil"
                       onClick={() => handleDelete(p)}
                     >
                       <i className="fa-regular fa-trash-can" />
-                    </a>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -251,7 +418,9 @@ export default function ProductPriceManagementPanel() {
                   onClick={() => setShowModal(false)}
                 />
               </div>
+
               <div className="modal-body">
+                {/* Ürün */}
                 <label>Ürün</label>
                 <Select
                   options={products.map((p) => ({
@@ -259,61 +428,132 @@ export default function ProductPriceManagementPanel() {
                     label: `${p.name} (${p.code})`,
                   }))}
                   value={
-                    form.productId
+                    productId
                       ? products
                           .map((p) => ({
                             value: p.id,
                             label: `${p.name} (${p.code})`,
                           }))
-                          .find((opt) => opt.value === form.productId) || null
+                          .find((opt) => opt.value === productId) || null
                       : null
                   }
-                  onChange={(opt) =>
-                    setForm((prev) => ({ ...prev, productId: opt?.value }))
-                  }
+                  onChange={(opt) => setProductId(opt?.value)}
                 />
 
+                {/* Bayi */}
                 <label className="mt-2">Bayi</label>
                 <Select
-                  options={dealers.map((d) => ({
-                    value: d.id,
-                    label: d.name,
-                  }))}
+                  options={dealers.map((d) => ({ value: d.id, label: d.name }))}
                   value={
-                    form.dealerId
+                    dealerId
                       ? dealers
                           .map((d) => ({ value: d.id, label: d.name }))
-                          .find((opt) => opt.value === form.dealerId) || null
+                          .find((opt) => opt.value === dealerId) || null
                       : null
                   }
-                  onChange={(opt) =>
-                    setForm((prev) => ({ ...prev, dealerId: opt?.value }))
-                  }
+                  onChange={(opt) => setDealerId(opt?.value)}
                 />
 
-                <label className="mt-2">Tutar</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={form.amount ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      amount: Number(e.target.value),
-                    }))
-                  }
-                />
+                {/* Çoklu fiyat satırları */}
+                <div className="d-flex align-items-center justify-content-between mt-3">
+                  <h6 className="mb-0">Fiyatlar (çoklu para birimi)</h6>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={addRow}
+                  >
+                    + Para Birimi Ekle
+                  </button>
+                </div>
 
-                <label className="mt-2">Para Birimi</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={form.currency ?? "TRY"}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, currency: e.target.value }))
-                  }
-                />
+                <div className="border rounded p-2 mt-2">
+                  {rows.length === 0 ? (
+                    <div className="text-muted">Satır yok.</div>
+                  ) : (
+                    rows.map((r, idx) => {
+                      const used = usedCurrencies(idx);
+                      const opts = currencyOptions; // ["TRY","USD","EUR", + mevcutlar]
+                      return (
+                        <div
+                          className="row align-items-end g-2 mb-2"
+                          key={`${r.currency}_${idx}`}
+                        >
+                          <div className="col-md-4">
+                            <label className="form-label">Para Birimi</label>
+                            <select
+                              className="form-select"
+                              value={r.currency}
+                              disabled={r.existing} // mevcutta para birimi sabit
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (used.has(val)) {
+                                  MySwal.fire(
+                                    "Uyarı",
+                                    "Bu para birimi zaten eklendi.",
+                                    "warning"
+                                  );
+                                  return;
+                                }
+                                updateRow(idx, { currency: val });
+                              }}
+                            >
+                              <option value="">Seçiniz</option>
+                              {opts.map((c) => (
+                                <option
+                                  key={c}
+                                  value={c}
+                                  disabled={used.has(c)}
+                                >
+                                  {c}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col-md-4">
+                            <label className="form-label">Tutar</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              step="0.01"
+                              min={0}
+                              value={r.amount ?? ""}
+                              onChange={(e) =>
+                                updateRow(idx, {
+                                  amount:
+                                    e.target.value === ""
+                                      ? undefined
+                                      : Number(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="col-md-3">
+                            <label className="form-label d-block"> </label>
+                            {!r.existing ? (
+                              <button
+                                type="button"
+                                className="btn btn-outline-danger w-100"
+                                onClick={() => removeRow(idx)}
+                              >
+                                Sil
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary w-100"
+                                disabled
+                              >
+                                Mevcut
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
+
               <div className="modal-footer">
                 <button
                   className="btn btn-secondary"
@@ -327,6 +567,68 @@ export default function ProductPriceManagementPanel() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Sayfalama */}
+      {prices && (
+        <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
+          <ul className="pagination">
+            <li
+              className={`paginate_button page-item previous ${
+                prices.first ? "disabled" : ""
+              }`}
+            >
+              <a
+                href="#"
+                className="page-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!prices.first) setPage((p) => Math.max(0, p - 1));
+                }}
+              >
+                <i className="fas fa-angle-left" />
+              </a>
+            </li>
+            {Array.from({ length: prices.totalPages }, (_, i) => (
+              <li
+                key={i}
+                className={`paginate_button page-item ${
+                  i === prices.number ? "active" : ""
+                }`}
+              >
+                <a
+                  href="#"
+                  className="page-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setPage(i);
+                  }}
+                >
+                  {i + 1}
+                </a>
+              </li>
+            ))}
+            <li
+              className={`paginate_button page-item next ${
+                prices.last ? "disabled" : ""
+              }`}
+            >
+              <a
+                href="#"
+                className="page-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!prices.last)
+                    setPage((p) =>
+                      Math.min((prices.totalPages ?? 1) - 1, p + 1)
+                    );
+                }}
+              >
+                <i className="fas fa-angle-right" />
+              </a>
+            </li>
+          </ul>
         </div>
       )}
     </div>

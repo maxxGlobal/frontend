@@ -13,6 +13,9 @@ export interface DealerUserLite {
   lastName: string;
   email: string;
   fullName?: string;
+  fixedPhone?: string;
+  mobilePhone?: string;
+  phoneNumber?: string;
 }
 
 /** Tekil bayi modeli (normalize sonrası) */
@@ -26,6 +29,7 @@ export interface Dealer {
   status?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  preferredCurrency: string;
   users?: DealerUserLite[];
 }
 
@@ -38,6 +42,7 @@ export interface DealerCreateRequest {
   mobilePhone?: string;
   email?: string;
   address?: string;
+  preferredCurrency: string;
 }
 
 export interface DealerUpdateRequest {
@@ -47,4 +52,5 @@ export interface DealerUpdateRequest {
   email?: string;
   address?: string;
   status?: string;
+  preferredCurrency?: string;
 }

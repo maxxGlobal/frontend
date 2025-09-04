@@ -359,7 +359,7 @@ textarea::-ms-input-placeholder,input::-ms-input-placeholder {
 	justify-content: center;
 	align-items: center;
 	z-index: 80000;
-	background: #FFFFFF;
+	background: #646464;
 	opacity: 0.75;
 }
 /* Background */
