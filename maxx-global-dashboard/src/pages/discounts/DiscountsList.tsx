@@ -1,5 +1,5 @@
 // src/pages/discounts/DiscountsList.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listDiscounts } from "../../services/discounts/list";
@@ -51,27 +51,31 @@ export default function DiscountsList() {
     }
   }
 
-  useEffect(() => {
+ 
+const didInitialFetch = useRef(false);
+
+useEffect(() => {
+  const query = q.trim();
+
+  // İlk yükleme kontrolü
+  if (query.length === 0 && !didInitialFetch.current) {
+    didInitialFetch.current = true;
     loadData(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return; // erken çık, aşağıya düşmesin
+  }
 
-  useEffect(() => {
-    const query = q.trim();
-
-    // boşsa normal listeye dön
-    if (query.length === 0) {
-      const t = setTimeout(() => loadData(0), 0);
-      return () => clearTimeout(t);
-    }
-
-    // min 2 karakter şartı
-    if (query.length < 2) return;
-
-    const t = setTimeout(() => loadData(0), 300);
+  // Normal akış
+  if (query.length === 0) {
+    const t = setTimeout(() => loadData(0), 0);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }
+
+  if (query.length < 2) return;
+
+  const t = setTimeout(() => loadData(0), 300);
+  return () => clearTimeout(t);
+}, [q]);
+
 
   async function handleRestore(id: number) {
     const result = await Swal.fire({

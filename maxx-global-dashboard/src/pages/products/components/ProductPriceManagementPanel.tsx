@@ -1,670 +1,474 @@
-// src/pages/product-prices/ProductPriceManagementPanel.tsx
-import { useEffect, useMemo, useState } from "react";
+// src/pages/products/components/ProductPriceManagementPanel.tsx
+import { useEffect, useState, useRef } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-import { listAllProductPrices } from "../../../services/product-prices/listAll";
-import { createProductPrice } from "../../../services/product-prices/create";
-import { updateProductPrice } from "../../../services/product-prices/update";
-import { deleteProductPrice } from "../../../services/product-prices/delete";
-
-import { listSimpleProducts } from "../../../services/products/listSimple";
 import { listSimpleDealers } from "../../../services/dealers/listSimple";
-
-import type {
-  ProductPrice,
-  PageResponse,
-  CreateProductPriceRequest,
-  UpdateProductPriceRequest,
-} from "../../../types/product-prices";
+import {
+  downloadDealerTemplate,
+  downloadImportTemplate,
+  exportDealerPrices,
+  importPricesFromExcel,
+  validatePriceExcel,
+  downloadBlob,
+  type ExcelImportResult
+} from "../../../services/product-prices/excel";
 
 const MySwal = withReactContent(Swal);
 
-// Helpers
-function ensureSeconds(v?: string | null) {
-  if (!v) return v ?? null;
-  return v.length === 16 ? `${v}:00` : v;
-}
-function toLocalInput(iso?: string | null) {
-  if (!iso) return "";
-  return iso.slice(0, 16);
-}
-const PREFERRED = ["TRY", "USD", "EUR"];
-
-type Row = {
-  currency: string;
-  amount: number | undefined;
-  existing: boolean; // mevcut prices[]'ten mi geldi?
-};
-
 export default function ProductPriceManagementPanel() {
-  const [prices, setPrices] = useState<PageResponse<ProductPrice> | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [size] = useState(10);
-
-  // modal state
-  const [showModal, setShowModal] = useState(false);
-  const [editItem, setEditItem] = useState<ProductPrice | null>(null);
-  const [products, setProducts] = useState<any[]>([]);
   const [dealers, setDealers] = useState<any[]>([]);
+  const [selectedDealerId, setSelectedDealerId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Import state
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ExcelImportResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // kayıt seviyesi alanlar (tüm satırlara birlikte uygulanır)
-  const [productId, setProductId] = useState<number | undefined>(undefined);
-  const [dealerId, setDealerId] = useState<number | undefined>(undefined);
-  const [validFromInput, setValidFromInput] = useState<string>("");
-  const [validUntilInput, setValidUntilInput] = useState<string>("");
-  const [isActive, setIsActive] = useState<boolean>(true);
+  // Options
+  const [updateExisting, setUpdateExisting] = useState(true);
+  const [skipErrors, setSkipErrors] = useState(false);
+  const [activeOnly, setActiveOnly] = useState(true);
 
-  // çoklu para birimi satırları
-  const [rows, setRows] = useState<Row[]>([]);
+  // İlk yükleme kontrolü için ref
+  const didFetch = useRef(false);
 
-  async function loadData() {
+  useEffect(() => {
+    // StrictMode'daki ikinci tetiklemeyi önler
+    if (didFetch.current) return;
+    loadDealers();
+    didFetch.current = true;
+  }, []);
+
+  async function loadDealers() {
+    try {
+      const dealerList = await listSimpleDealers();
+      setDealers(dealerList);
+    } catch (e: any) {
+      MySwal.fire("Hata", "Bayiler yüklenemedi", "error");
+    }
+  }
+
+  // Template indirme (bayi seçili olmalı)
+  async function handleDownloadDealerTemplate() {
+    if (!selectedDealerId) {
+      MySwal.fire("Uyarı", "Lütfen bir bayi seçin", "warning");
+      return;
+    }
+
     try {
       setLoading(true);
-      const data = await listAllProductPrices(page, size);
-      setPrices(data);
+      const blob = await downloadDealerTemplate(selectedDealerId);
+      downloadBlob(blob, `bayi_${selectedDealerId}_fiyat_sablonu.xlsx`);
+      
+      MySwal.fire({
+        icon: "success",
+        title: "Şablon İndirildi",
+        text: "Bayi fiyat şablonu başarıyla indirildi (mevcut fiyatlarla dolu)",
+        confirmButtonText: "Tamam",
+      });
     } catch (e: any) {
-      console.error(e);
-      MySwal.fire("Hata", e.message || "Fiyatlar yüklenemedi", "error");
+      MySwal.fire({
+        icon: "error",
+        title: "Hata",
+        text: e.message,
+        confirmButtonText: "Tamam",
+      });
     } finally {
       setLoading(false);
     }
   }
-  useEffect(() => {
-    loadData();
-  }, [page]);
 
-  async function hydrateLookups() {
-    const prods = await listSimpleProducts();
-    const dels = await listSimpleDealers();
-    setProducts(prods);
-    setDealers(dels);
-  }
-
-  // Yeni Fiyat
-  async function handleAdd() {
-    await hydrateLookups();
-    setEditItem(null);
-
-    setProductId(undefined);
-    setDealerId(undefined);
-    setValidFromInput("");
-    setValidUntilInput("");
-    setIsActive(true);
-
-    // başlangıçta tek satır (TRY)
-    setRows([{ currency: "TRY", amount: undefined, existing: false }]);
-
-    setShowModal(true);
-  }
-
-  // Güncelle
-  async function handleEdit(item: ProductPrice) {
-    await hydrateLookups();
-    setEditItem(item);
-
-    setProductId(item.productId);
-    setDealerId(item.dealerId);
-    setValidFromInput(toLocalInput(item.validFrom));
-    setValidUntilInput(toLocalInput(item.validUntil));
-    setIsActive(!!item.isActive);
-
-    // Mevcut tüm currency'leri satıra dök
-    const ordered = [...item.prices].sort((a, b) => {
-      const ai = PREFERRED.indexOf(a.currency);
-      const bi = PREFERRED.indexOf(b.currency);
-      const as = ai === -1 ? 999 : ai;
-      const bs = bi === -1 ? 999 : bi;
-      return as - bs;
-    });
-    setRows(
-      ordered.map((p) => ({
-        currency: p.currency,
-        amount: p.amount,
-        existing: true,
-      }))
-    );
-
-    setShowModal(true);
-  }
-
-  // Currency seçenekleri (mevcut + tercih edilenler)
-  const currencyOptions = useMemo(() => {
-    const set = new Set<string>(PREFERRED);
-    rows.forEach((r) => set.add(r.currency));
-    return Array.from(set);
-  }, [rows]);
-
-  function usedCurrencies(excludeIndex?: number) {
-    return new Set(
-      rows
-        .map((r, i) =>
-          excludeIndex != null && i === excludeIndex ? null : r.currency
-        )
-        .filter((x): x is string => !!x)
-    );
-  }
-
-  function addRow() {
-    // ilk kullanılmayan tercih edilen para birimini seç
-    const used = usedCurrencies();
-    const firstFree = PREFERRED.find((c) => !used.has(c)) || "";
-    setRows((prev) => [
-      ...prev,
-      { currency: firstFree, amount: undefined, existing: false },
-    ]);
-  }
-
-  function removeRow(idx: number) {
-    setRows((prev) => prev.filter((_, i) => i !== idx));
-  }
-
-  function updateRow(idx: number, patch: Partial<Row>) {
-    setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
-  }
-
-  // Kaydet
-  async function handleSave() {
+  // Genel şablon indirme
+  async function handleDownloadImportTemplate() {
     try {
-      // temel kontroller
-      if (!productId || !dealerId) {
-        await MySwal.fire("Hata", "Ürün ve Bayi seçiniz.", "error");
-        return;
-      }
-      if (rows.length === 0) {
-        await MySwal.fire(
-          "Hata",
-          "En az bir para birimi satırı ekleyin.",
-          "error"
-        );
-        return;
-      }
-      // para birimi boş/duplikasyon/miktar kontrolü
-      const seen = new Set<string>();
-      for (const r of rows) {
-        if (!r.currency) {
-          await MySwal.fire("Hata", "Para birimi boş olamaz.", "error");
-          return;
-        }
-        if (seen.has(r.currency)) {
-          await MySwal.fire(
-            "Hata",
-            `Aynı para birimi birden fazla: ${r.currency}`,
-            "error"
-          );
-          return;
-        }
-        seen.add(r.currency);
-        if (
-          r.amount == null ||
-          !Number.isFinite(Number(r.amount)) ||
-          Number(r.amount) < 0
-        ) {
-          await MySwal.fire("Hata", `Geçersiz tutar (${r.currency}).`, "error");
-          return;
-        }
-      }
-
-      const vf = ensureSeconds(validFromInput || null);
-      const vu = ensureSeconds(validUntilInput || null);
-
-      // edit: değişenleri update, yeni eklenenleri create
-      if (editItem) {
-        const original = new Map<string, number>();
-        editItem.prices.forEach((p) => original.set(p.currency, p.amount));
-
-        const ops: Promise<any>[] = [];
-
-        rows.forEach((r) => {
-          const amt = Number(r.amount);
-          if (r.existing) {
-            const prevAmt = original.get(r.currency);
-            // sadece miktar değiştiyse update çekelim
-            if (
-              prevAmt !== amt ||
-              vf !== editItem.validFrom ||
-              vu !== editItem.validUntil ||
-              isActive !== editItem.isActive
-            ) {
-              ops.push(
-                updateProductPrice(editItem.id, {
-                  productId,
-                  dealerId,
-                  currency: r.currency,
-                  amount: amt,
-                  validFrom: vf,
-                  validUntil: vu,
-                  isActive,
-                } as UpdateProductPriceRequest)
-              );
-            }
-          } else {
-            // yeni para birimi -> create
-            ops.push(
-              createProductPrice({
-                productId,
-                dealerId,
-                currency: r.currency,
-                amount: amt,
-                validFrom: vf,
-                validUntil: vu,
-                isActive,
-              } as CreateProductPriceRequest)
-            );
-          }
-        });
-
-        await Promise.all(ops);
-        await MySwal.fire("Başarılı", "Fiyat(lar) güncellendi", "success");
-      } else {
-        // create: her satır için create çağrısı
-        const ops: Promise<any>[] = rows.map((r) =>
-          createProductPrice({
-            productId,
-            dealerId,
-            currency: r.currency,
-            amount: Number(r.amount),
-            validFrom: vf,
-            validUntil: vu,
-            isActive,
-          } as CreateProductPriceRequest)
-        );
-        await Promise.all(ops);
-        await MySwal.fire("Başarılı", "Fiyat(lar) oluşturuldu", "success");
-      }
-
-      setShowModal(false);
-      loadData();
+      setLoading(true);
+      const blob = await downloadImportTemplate();
+      downloadBlob(blob, "fiyat_import_sablonu.xlsx");
+      
+      MySwal.fire({
+        icon: "success",
+        title: "Şablon İndirildi",
+        text: "Genel import şablonu başarıyla indirildi",
+        confirmButtonText: "Tamam",
+      });
     } catch (e: any) {
-      await MySwal.fire("Hata", e?.message || "Kaydetme başarısız", "error");
+      MySwal.fire({
+        icon: "error",
+        title: "Hata",
+        text: e.message,
+        confirmButtonText: "Tamam",
+      });
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Sil
-  async function handleDelete(item: ProductPrice) {
-    const confirm = await MySwal.fire({
-      title: "Emin misiniz?",
-      text: `Fiyat #${item.id} silinecek`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Evet, sil",
-      cancelButtonText: "İptal",
-    });
-    if (!confirm.isConfirmed) return;
+  // Export
+  async function handleExportDealerPrices() {
+    if (!selectedDealerId) {
+      MySwal.fire("Uyarı", "Lütfen bir bayi seçin", "warning");
+      return;
+    }
+
     try {
-      const ok = await deleteProductPrice(item.id);
-      if (ok) {
-        setPrices((prev) =>
-          prev
-            ? { ...prev, content: prev.content.filter((p) => p.id !== item.id) }
-            : prev
-        );
-        MySwal.fire("Silindi", "Fiyat başarıyla silindi", "success");
+      setLoading(true);
+      const blob = await exportDealerPrices(selectedDealerId, activeOnly);
+      downloadBlob(blob, `bayi_${selectedDealerId}_fiyatlar.xlsx`);
+      
+      MySwal.fire({
+        icon: "success",
+        title: "Export Başarılı",
+        text: "Bayi fiyatları başarıyla dışa aktarıldı",
+        confirmButtonText: "Tamam",
+      });
+    } catch (e: any) {
+      MySwal.fire({
+        icon: "error",
+        title: "Export Hatası",
+        text: e.message,
+        confirmButtonText: "Tamam",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Import işlemi
+  async function handleImport(isValidation = false) {
+    if (!selectedDealerId) {
+      MySwal.fire("Uyarı", "Lütfen bir bayi seçin", "warning");
+      return;
+    }
+    
+    if (!file) {
+      setError("Lütfen bir Excel dosyası seçin.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setError(null);
+      
+      const res = isValidation 
+        ? await validatePriceExcel(selectedDealerId, file)
+        : await importPricesFromExcel(selectedDealerId, file, updateExisting, skipErrors);
+        
+      setResult(res);
+      
+      if (!isValidation && (res.success !== false)) {
+        MySwal.fire({
+          icon: "success",
+          title: "Import Başarılı!",
+          text: `${res.successCount} fiyat başarıyla işlendi (${res.createdCount} yeni, ${res.updatedCount} güncellenen)`,
+          confirmButtonText: "Tamam",
+        });
+        
+        // Dosya inputunu temizle
+        setFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     } catch (e: any) {
-      MySwal.fire("Hata", e?.message || "Silme başarısız", "error");
+      setError("İşlem hatası: " + e.message);
+    } finally {
+      setUploading(false);
     }
   }
 
   return (
     <div className="sherah-table p-0">
-      <div className="dataTables_wrapper dt-bootstrap5 no-footer">
-        <div className="row align-items-center mb-5 justify-content-between">
-          <div className="col-sm-12 col-md-6">
-            <h3 className="sherah-card__title py-3">Ürün Fiyat Yönetimi</h3>
-          </div>
-          <button
-            className="sherah-btn sherah-gbcolor ms-2"
-            onClick={handleAdd}
-            title="Yeni Fiyat"
-          >
-            Yeni Fiyat
-          </button>
+      <div className="row align-items-center mb-4">
+        <div className="col-12">
+          <h3 className="sherah-card__title py-3">
+            <i className="fa-solid fa-file-excel me-2"></i>
+            Ürün Fiyat Yönetimi (Excel)
+          </h3>
+          <p className="text-muted">
+            Tüm fiyat işlemlerini Excel üzerinden yönetin. 
+            Esnek para birimi desteği - sadece doldurduğunuz kurları işler.
+          </p>
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Yükleniyor</span>
+      {/* Bayi Seçimi */}
+      <div className="sherah-default-bg sherah-border p-4 mb-4">
+        <h5>
+          <i className="fa-solid fa-store me-2"></i>
+          Bayi Seçimi
+        </h5>
+        <div className="row mt-3">
+          <div className="col-md-6">
+            <label className="form-label">Çalışmak istediğiniz bayi seçin</label>
+            <Select
+              options={dealers.map((d) => ({ value: d.id, label: d.name }))}
+              value={
+                selectedDealerId
+                  ? dealers
+                      .map((d) => ({ value: d.id, label: d.name }))
+                      .find((opt) => opt.value === selectedDealerId) || null
+                  : null
+              }
+              onChange={(opt) => {
+                setSelectedDealerId(opt?.value || null);
+                setFile(null);
+                setResult(null);
+                setError(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
+              placeholder="Bayi seçin..."
+              isClearable
+            />
           </div>
         </div>
-      ) : (
-        <table className="sherah-table__main sherah-table__main-v3">
-          <thead className="sherah-table__head">
-            <tr>
-              <th>Ürün Fiyat ID</th>
-              <th>Ürün</th>
-              <th>Bayi</th>
-              <th>Tutar(lar)</th>
-              <th>Durum</th>
-              <th>İşlem</th>
-            </tr>
-          </thead>
-          <tbody className="sherah-table__body">
-            {prices?.content.map((p) => (
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>
-                  {p.productName} <small>({p.productCode})</small>
-                </td>
-                <td>{p.dealerName}</td>
-                <td>
-                  {Array.isArray(p.prices) && p.prices.length > 0 ? (
-                    <div className="d-flex flex-wrap gap-1">
-                      {p.prices.map((pa) => (
-                        <span
-                          key={pa.currency}
-                          className="badge bg-light text-dark border"
-                        >
-                          {pa.amount} {pa.currency}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-muted">—</span>
-                  )}
-                </td>
-                <td>
-                  {p.isActive ? (
-                    <span className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
-                      Aktif
-                    </span>
-                  ) : (
-                    <span className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
-                      Pasif
-                    </span>
-                  )}
-                </td>
-                <td>
-                  <div className="sherah-table__status__group justify-content-start">
-                    <button
-                      className="sherah-table__action sherah-color2 sherah-color3__bg--opactity"
-                      title="Güncelle"
-                      onClick={() => handleEdit(p)}
-                    >
-                      <i className="fa-regular fa-pen-to-square" />
-                    </button>
-                    <button
-                      className="sherah-table__action sherah-color2 sherah-color2__bg--offset"
-                      title="Sil"
-                      onClick={() => handleDelete(p)}
-                    >
-                      <i className="fa-regular fa-trash-can" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="modal fade show d-block" tabIndex={-1}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  {editItem ? "Fiyat Güncelle" : "Yeni Fiyat"}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowModal(false)}
-                />
+      {/* Şablon & Export */}
+      <div className="sherah-default-bg sherah-border p-4 mb-4">
+        <h5>
+          <i className="fa-solid fa-download me-2"></i>
+          Şablon & Export İşlemleri
+        </h5>
+        <div className="row mt-3">
+          <div className="col-md-8">
+            <div className="d-flex flex-wrap gap-3">
+              <button
+                className="sherah-btn sherah-btn__primary"
+                onClick={handleDownloadDealerTemplate}
+                disabled={loading || !selectedDealerId}
+                title="Seçili bayinin mevcut fiyatları dolu olarak gelir"
+              >
+                <i className="fa-solid fa-file-excel me-2"></i>
+                {loading ? "İndiriliyor..." : "Bayi Şablonu (Dolu)"}
+              </button>
+              
+              <button
+                className="sherah-btn sherah-btn__secondary"
+                onClick={handleDownloadImportTemplate}
+                disabled={loading}
+                title="Genel boş şablon - talimatlar içerir"
+              >
+                <i className="fa-solid fa-file-arrow-down me-2"></i>
+                {loading ? "İndiriliyor..." : "Genel Şablon (Boş)"}
+              </button> 
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="activeOnly"
+                checked={activeOnly}
+                onChange={(e) => setActiveOnly(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="activeOnly">
+                Sadece aktif fiyatları dışa aktar
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Import Section */}
+      <div className="sherah-default-bg sherah-border p-4">
+        <h5>
+          <i className="fa-solid fa-upload me-2"></i>
+          Excel Import İşlemi
+        </h5>
+        
+        {!selectedDealerId && (
+          <div className="alert alert-warning">
+            <i className="fa-solid fa-exclamation-triangle me-2"></i>
+            Import işlemi için önce bir bayi seçmelisiniz.
+          </div>
+        )}
+
+        <div className="row mt-3">
+          <div className="col-md-6">
+            <label className="form-label">Excel Dosyası Seç</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="form-control"
+              onChange={(e) => {
+                setError(null);
+                setResult(null);
+                setFile(e.target.files?.[0] ?? null);
+              }}
+              disabled={uploading || !selectedDealerId}
+            />
+            {file && (
+              <div className="alert alert-info py-2 mt-2">
+                <i className="fa-solid fa-file-excel me-2"></i>
+                Seçilen dosya: <strong>{file.name}</strong>
               </div>
-
-              <div className="modal-body">
-                {/* Ürün */}
-                <label>Ürün</label>
-                <Select
-                  options={products.map((p) => ({
-                    value: p.id,
-                    label: `${p.name} (${p.code})`,
-                  }))}
-                  value={
-                    productId
-                      ? products
-                          .map((p) => ({
-                            value: p.id,
-                            label: `${p.name} (${p.code})`,
-                          }))
-                          .find((opt) => opt.value === productId) || null
-                      : null
-                  }
-                  onChange={(opt) => setProductId(opt?.value)}
+            )}
+          </div>
+          
+          <div className="col-md-6">
+            <label className="form-label">İşlem Seçenekleri</label>
+            <div className="d-flex flex-column gap-2">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="updateExisting"
+                  checked={updateExisting}
+                  onChange={(e) => setUpdateExisting(e.target.checked)}
                 />
-
-                {/* Bayi */}
-                <label className="mt-2">Bayi</label>
-                <Select
-                  options={dealers.map((d) => ({ value: d.id, label: d.name }))}
-                  value={
-                    dealerId
-                      ? dealers
-                          .map((d) => ({ value: d.id, label: d.name }))
-                          .find((opt) => opt.value === dealerId) || null
-                      : null
-                  }
-                  onChange={(opt) => setDealerId(opt?.value)}
-                />
-
-                {/* Çoklu fiyat satırları */}
-                <div className="d-flex align-items-center justify-content-between mt-3">
-                  <h6 className="mb-0">Fiyatlar (çoklu para birimi)</h6>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={addRow}
-                  >
-                    + Para Birimi Ekle
-                  </button>
-                </div>
-
-                <div className="border rounded p-2 mt-2">
-                  {rows.length === 0 ? (
-                    <div className="text-muted">Satır yok.</div>
-                  ) : (
-                    rows.map((r, idx) => {
-                      const used = usedCurrencies(idx);
-                      const opts = currencyOptions; // ["TRY","USD","EUR", + mevcutlar]
-                      return (
-                        <div
-                          className="row align-items-end g-2 mb-2"
-                          key={`${r.currency}_${idx}`}
-                        >
-                          <div className="col-md-4">
-                            <label className="form-label">Para Birimi</label>
-                            <select
-                              className="form-select"
-                              value={r.currency}
-                              disabled={r.existing} // mevcutta para birimi sabit
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (used.has(val)) {
-                                  MySwal.fire(
-                                    "Uyarı",
-                                    "Bu para birimi zaten eklendi.",
-                                    "warning"
-                                  );
-                                  return;
-                                }
-                                updateRow(idx, { currency: val });
-                              }}
-                            >
-                              <option value="">Seçiniz</option>
-                              {opts.map((c) => (
-                                <option
-                                  key={c}
-                                  value={c}
-                                  disabled={used.has(c)}
-                                >
-                                  {c}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="col-md-4">
-                            <label className="form-label">Tutar</label>
-                            <input
-                              type="number"
-                              className="form-control"
-                              step="0.01"
-                              min={0}
-                              value={r.amount ?? ""}
-                              onChange={(e) =>
-                                updateRow(idx, {
-                                  amount:
-                                    e.target.value === ""
-                                      ? undefined
-                                      : Number(e.target.value),
-                                })
-                              }
-                            />
-                          </div>
-                          <div className="col-md-3">
-                            <label className="form-label d-block"> </label>
-                            {!r.existing ? (
-                              <button
-                                type="button"
-                                className="btn btn-outline-danger w-100"
-                                onClick={() => removeRow(idx)}
-                              >
-                                Sil
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary w-100"
-                                disabled
-                              >
-                                Mevcut
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-
-                {/* Geçerlilik ve durum */}
-                <div className="row mt-3">
-                  <div className="col-md-6">
-                    <label className="form-label">Geçerlilik Başlangıç</label>
-                    <input
-                      type="datetime-local"
-                      className="form-control"
-                      value={validFromInput}
-                      onChange={(e) => setValidFromInput(e.target.value)}
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label">Geçerlilik Bitiş</label>
-                    <input
-                      type="datetime-local"
-                      className="form-control"
-                      value={validUntilInput}
-                      onChange={(e) => setValidUntilInput(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-check mt-3">
-                  <input
-                    id="isActive"
-                    type="checkbox"
-                    className="form-check-input"
-                    checked={!!isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor="isActive">
-                    Aktif mi?
-                  </label>
-                </div>
+                <label className="form-check-label" htmlFor="updateExisting">
+                  Mevcut fiyatları güncelle
+                </label>
               </div>
-
-              <div className="modal-footer">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
-                >
-                  İptal
-                </button>
-                <button className="btn btn-primary" onClick={handleSave}>
-                  Kaydet
-                </button>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="skipErrors"
+                  checked={skipErrors}
+                  onChange={(e) => setSkipErrors(e.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="skipErrors">
+                  Hatalı satırları atla
+                </label>
               </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Sayfalama */}
-      {prices && (
-        <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
-          <ul className="pagination">
-            <li
-              className={`paginate_button page-item previous ${
-                prices.first ? "disabled" : ""
-              }`}
-            >
-              <a
-                href="#"
-                className="page-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!prices.first) setPage((p) => Math.max(0, p - 1));
-                }}
-              >
-                <i className="fas fa-angle-left" />
-              </a>
-            </li>
-            {Array.from({ length: prices.totalPages }, (_, i) => (
-              <li
-                key={i}
-                className={`paginate_button page-item ${
-                  i === prices.number ? "active" : ""
-                }`}
-              >
-                <a
-                  href="#"
-                  className="page-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setPage(i);
-                  }}
-                >
-                  {i + 1}
-                </a>
-              </li>
-            ))}
-            <li
-              className={`paginate_button page-item next ${
-                prices.last ? "disabled" : ""
-              }`}
-            >
-              <a
-                href="#"
-                className="page-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!prices.last)
-                    setPage((p) =>
-                      Math.min((prices.totalPages ?? 1) - 1, p + 1)
-                    );
-                }}
-              >
-                <i className="fas fa-angle-right" />
-              </a>
-            </li>
-          </ul>
+        {error && (
+          <div className="alert alert-danger mt-3" role="alert">
+            <i className="fa-solid fa-triangle-exclamation me-2"></i>
+            {error}
+          </div>
+        )}
+
+        <div className="d-flex gap-3 mt-3"> 
+          <button
+            className="sherah-btn sherah-btn__primary bg-primary"
+            onClick={() => handleImport(false)}
+            disabled={uploading || !file || !selectedDealerId}
+          >
+            {uploading ? (
+              <>
+                <i className="fa-solid fa-spinner fa-spin me-2"></i>
+                İçe Aktarılıyor...
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-upload me-2"></i>
+                Excel'i İçe Aktar
+              </>
+            )}
+          </button>
         </div>
-      )}
+
+        {/* Results */}
+        {result && (
+          <div className="mt-4">
+            <div className="card">
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <h6 className="mb-0">
+                  <i className="fa-solid fa-chart-line me-2"></i>
+                  İşlem Özeti
+                </h6>
+                <span className={`badge ${result.success !== false ? 'bg-success' : 'bg-warning'}`}>
+                  {result.success !== false ? 'Başarılı' : 'Uyarılar Var'}
+                </span>
+              </div>
+              <div className="card-body">
+                <div className="row g-3 mb-3">
+                  <div className="col-6 col-lg-2">
+                    <div className="text-center p-2 bg-light rounded">
+                      <h5 className="text-primary mb-1">{result.totalRows}</h5>
+                      <small className="text-muted">Toplam Satır</small>
+                    </div>
+                  </div>
+                  <div className="col-6 col-lg-2">
+                    <div className="text-center p-2 bg-light rounded">
+                      <h5 className="text-success mb-1">{result.successCount}</h5>
+                      <small className="text-muted">Başarılı</small>
+                    </div>
+                  </div>
+                  <div className="col-6 col-lg-2">
+                    <div className="text-center p-2 bg-light rounded">
+                      <h5 className="text-info mb-1">{result.createdCount}</h5>
+                      <small className="text-muted">Yeni</small>
+                    </div>
+                  </div>
+                  <div className="col-6 col-lg-2">
+                    <div className="text-center p-2 bg-light rounded">
+                      <h5 className="text-warning mb-1">{result.updatedCount}</h5>
+                      <small className="text-muted">Güncellenen</small>
+                    </div>
+                  </div>
+                  <div className="col-6 col-lg-2">
+                    <div className="text-center p-2 bg-light rounded">
+                      <h5 className="text-danger mb-1">{result.failedCount}</h5>
+                      <small className="text-muted">Başarısız</small>
+                    </div>
+                  </div>
+                </div>
+
+                {result.message && (
+                  <div className="alert alert-info">
+                    <strong>Durum:</strong> {result.message}
+                  </div>
+                )}
+
+                {result.errors && result.errors.length > 0 && (
+                  <div className="mt-3">
+                    <h6>
+                      <i className="fa-solid fa-exclamation-triangle text-warning me-2"></i>
+                      Hatalar ({result.errors.length})
+                    </h6>
+                    <div className="table-responsive">
+                      <table className="table table-sm table-striped table-bordered">
+                        <thead className="table-dark">
+                          <tr>
+                            <th width="60">Satır</th>
+                            <th width="120">Ürün Kodu</th>
+                            <th width="200">Hata Açıklaması</th>
+                            <th>Ham Veri</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {result.errors.slice(0, 10).map((error, i) => (
+                            <tr key={i}>
+                              <td className="text-center">{error.rowNumber}</td>
+                              <td>{error.productCode || "-"}</td>
+                              <td>{error.errorMessage}</td>
+                              <td className="text-truncate" style={{maxWidth: "300px"}} title={error.rowData || ""}>
+                                {error.rowData}
+                              </td>
+                            </tr>
+                          ))}
+                          {result.errors.length > 10 && (
+                            <tr>
+                              <td colSpan={4} className="text-center text-muted">
+                                ... ve {result.errors.length - 10} hata daha
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
