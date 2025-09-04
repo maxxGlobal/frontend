@@ -90,7 +90,7 @@ export default function DealerDetail() {
       </div>
 
       {/* Bayi Bilgileri Tablosu */}
-      <div className="col-lg-4 col-md-12 col-12">
+      <div className="col-lg-12 col-md-12 col-12">
         <div className="sherah-contact-card sherah-default-bg sherah-border mg-top-30">
           <h3 className="sherah-contact-card__title">Bayi Bilgileri</h3>
 

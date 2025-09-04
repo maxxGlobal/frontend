@@ -98,3 +98,9 @@ export interface ProductUpdateRequest extends Partial<ProductCreateRequest> {
   stock?: number;
   isActive?: boolean;
 }
+
+export interface ProductSimple {
+  id: number;
+  name: string;
+  code?: string | null;
+}

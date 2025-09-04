@@ -7,7 +7,6 @@ export default function ProductPriceManagement() {
     <div className="sherah-dsinner">
       <div className="sherah-card__body">
         <div className="sherah-page-inner sherah-default-bg sherah-border">
-          {" "}
           <ProductPriceManagementPanel />
         </div>
       </div>

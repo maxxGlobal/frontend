@@ -7,7 +7,6 @@ import type { PageResponse, OrderResponse } from "../../types/order";
 import OrderDetailModal from "./components/OrderDetailModal";
 import EditOrderModal from "./components/EditOrderModal";
 import { downloadOrderPdf } from "../../services/orders/downloadPdf";
-
 import Swal from "sweetalert2";
 
 export default function OrderManagementPanel() {
@@ -65,39 +64,34 @@ export default function OrderManagementPanel() {
     }
   }
 
-  // ✅ Modal açma
+  // Modal helpers
   function openDetail(order: OrderResponse) {
     setSelectedOrder(order);
     setModalOpen(true);
   }
-
   function openEdit(order: OrderResponse) {
     setSelectedOrder(order);
     setEditModalOpen(true);
   }
-
   function closeModals() {
     setModalOpen(false);
     setEditModalOpen(false);
     setSelectedOrder(null);
   }
 
-  // ✅ Aksiyonlar
+  // Actions
   async function handleApprove(orderId: number, note: string) {
     const updated = await approveOrder(orderId, note);
     updateOrderInList(updated);
   }
-
   async function handleReject(orderId: number, reason: string) {
     const updated = await rejectOrder(orderId, reason);
     updateOrderInList(updated);
   }
-
   async function handleShip(orderId: number, note: string) {
     const updated = await shipOrder(orderId, note);
     updateOrderInList(updated);
   }
-
   function updateOrderInList(updated: OrderResponse) {
     setOrders((prev) =>
       prev
@@ -113,6 +107,35 @@ export default function OrderManagementPanel() {
   }
   function canShowDetail(status: string) {
     return status === "BEKLEMEDE" || status === "ONAYLANDI";
+  }
+
+  // --- İndirim kolonu için yardımcı render ---
+  function renderDiscountCol(o: OrderResponse) {
+    const hasDiscount = (o as any)?.hasDiscount as boolean | undefined;
+    const discountAmount = (o as any)?.discountAmount as number | undefined;
+    const applied = (o as any)?.appliedDiscount as
+      | {
+          discountId: number;
+          discountName: string;
+          discountType: string;
+          discountValue: number;
+          calculatedAmount: number | null;
+        }
+      | null
+      | undefined;
+
+    if (hasDiscount) {
+      return (
+        <div>
+          <span className="badge bg-success me-2">İndirim</span>
+          <div className="small text-muted">
+            −{discountAmount} {o.currency}
+            {applied?.discountName ? ` • ${applied.discountName}` : ""}
+          </div>
+        </div>
+      );
+    }
+    return <span className="badge bg-secondary">İndirim Yok</span>;
   }
 
   return (
@@ -137,6 +160,7 @@ export default function OrderManagementPanel() {
                 <th>Oluşturan</th>
                 <th>Ürünler</th>
                 <th>Tutar</th>
+                <th>İndirim</th> {/* ✅ yeni kolon */}
                 <th>Durum</th>
                 <th>İşlemler</th>
               </tr>
@@ -148,20 +172,29 @@ export default function OrderManagementPanel() {
                   <td>{o.dealerName}</td>
                   <td>{o.createdBy?.fullName}</td>
                   <td>
-                    {o.items.map((it) => (
-                      <div key={it.productPriceId}>
+                    {o.items.map((it, idx) => (
+                      <div key={it.productPriceId ?? `${it.productId}-${idx}`}>
                         {it.productName} x{it.quantity}
                       </div>
                     ))}
                   </td>
+
+                  {/* Tutar: SADECE toplam gösterilir */}
                   <td>
-                    {o.totalAmount} {o.currency}
+                    <strong>
+                      {o.totalAmount} {o.currency}
+                    </strong>
                   </td>
+
+                  {/* ✅ Yeni: İndirim kolonu */}
+                  <td>{renderDiscountCol(o)}</td>
+
                   <td>
                     <div className={statusClass(o.orderStatus)}>
                       {o.orderStatus}
                     </div>
                   </td>
+
                   <td className="text-end ">
                     <div className="d-flex gap-2 aligin-items-center">
                       <button
@@ -214,7 +247,6 @@ export default function OrderManagementPanel() {
                   </a>
                 </li>
 
-                {/* Sayfa numaraları */}
                 {orders &&
                   Array.from({ length: orders.totalPages }, (_, i) => (
                     <li
@@ -236,7 +268,6 @@ export default function OrderManagementPanel() {
                     </li>
                   ))}
 
-                {/* Sonraki */}
                 <li
                   className={`paginate_button page-item next ${
                     orders?.last ? "disabled" : ""
@@ -262,7 +293,7 @@ export default function OrderManagementPanel() {
         </>
       )}
 
-      {/* Modallar */}
+      {/* Modals */}
       <OrderDetailModal
         open={modalOpen}
         onClose={closeModals}
@@ -274,7 +305,7 @@ export default function OrderManagementPanel() {
       {selectedOrder && (
         <EditOrderModal
           open={editModalOpen}
-          order={selectedOrder} // ✅ burada null olmayacak
+          order={selectedOrder}
           onClose={() => {
             setEditModalOpen(false);
             setSelectedOrder(null);
@@ -284,8 +315,8 @@ export default function OrderManagementPanel() {
               prev
                 ? {
                     ...prev,
-                    content: prev.content.map((o) =>
-                      o.id === updated.id ? updated : o
+                    content: prev.content.map((oo) =>
+                      oo.id === updated.id ? updated : oo
                     ),
                   }
                 : prev
