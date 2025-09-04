@@ -1,9 +1,9 @@
 // src/types/product-prices.ts
+
 export interface CurrencyAmount {
   currency: string;
   amount: number;
 }
-
 export interface ProductPrice {
   id: number;
   productId: number;
@@ -53,8 +53,8 @@ export type BulkUpdateRequest = {
 export type CreateProductPriceRequest = {
   productId: number;
   dealerId: number;
-  currency: string;
   prices: CurrencyAmount[];
+  currency: string;
   amount: number;
   validFrom?: string | null;
   validUntil?: string | null;
