@@ -17,6 +17,7 @@ export interface RoleOption {
 export type RoleRow = {
   id: number;
   name: string;
+  status: string;
   permissions?: Permission[];
   createdAt?: string;
 };

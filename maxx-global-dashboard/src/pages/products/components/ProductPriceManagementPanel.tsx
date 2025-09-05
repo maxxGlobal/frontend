@@ -12,7 +12,7 @@ import {
   importPricesFromExcel,
   validatePriceExcel,
   downloadBlob,
-  type ExcelImportResult
+  type ExcelImportResult,
 } from "../../../services/product-prices/excel";
 
 const MySwal = withReactContent(Swal);
@@ -21,7 +21,7 @@ export default function ProductPriceManagementPanel() {
   const [dealers, setDealers] = useState<any[]>([]);
   const [selectedDealerId, setSelectedDealerId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Import state
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -64,7 +64,7 @@ export default function ProductPriceManagementPanel() {
       setLoading(true);
       const blob = await downloadDealerTemplate(selectedDealerId);
       downloadBlob(blob, `bayi_${selectedDealerId}_fiyat_sablonu.xlsx`);
-      
+
       MySwal.fire({
         icon: "success",
         title: "Şablon İndirildi",
@@ -89,7 +89,7 @@ export default function ProductPriceManagementPanel() {
       setLoading(true);
       const blob = await downloadImportTemplate();
       downloadBlob(blob, "fiyat_import_sablonu.xlsx");
-      
+
       MySwal.fire({
         icon: "success",
         title: "Şablon İndirildi",
@@ -119,7 +119,7 @@ export default function ProductPriceManagementPanel() {
       setLoading(true);
       const blob = await exportDealerPrices(selectedDealerId, activeOnly);
       downloadBlob(blob, `bayi_${selectedDealerId}_fiyatlar.xlsx`);
-      
+
       MySwal.fire({
         icon: "success",
         title: "Export Başarılı",
@@ -144,7 +144,7 @@ export default function ProductPriceManagementPanel() {
       MySwal.fire("Uyarı", "Lütfen bir bayi seçin", "warning");
       return;
     }
-    
+
     if (!file) {
       setError("Lütfen bir Excel dosyası seçin.");
       return;
@@ -153,21 +153,26 @@ export default function ProductPriceManagementPanel() {
     try {
       setUploading(true);
       setError(null);
-      
-      const res = isValidation 
+
+      const res = isValidation
         ? await validatePriceExcel(selectedDealerId, file)
-        : await importPricesFromExcel(selectedDealerId, file, updateExisting, skipErrors);
-        
+        : await importPricesFromExcel(
+            selectedDealerId,
+            file,
+            updateExisting,
+            skipErrors
+          );
+
       setResult(res);
-      
-      if (!isValidation && (res.success !== false)) {
+
+      if (!isValidation && res.success !== false) {
         MySwal.fire({
           icon: "success",
           title: "Import Başarılı!",
           text: `${res.successCount} fiyat başarıyla işlendi (${res.createdCount} yeni, ${res.updatedCount} güncellenen)`,
           confirmButtonText: "Tamam",
         });
-        
+
         // Dosya inputunu temizle
         setFile(null);
         if (fileInputRef.current) {
@@ -190,8 +195,8 @@ export default function ProductPriceManagementPanel() {
             Ürün Fiyat Yönetimi (Excel)
           </h3>
           <p className="text-muted">
-            Tüm fiyat işlemlerini Excel üzerinden yönetin. 
-            Esnek para birimi desteği - sadece doldurduğunuz kurları işler.
+            Tüm fiyat işlemlerini Excel üzerinden yönetin. Esnek para birimi
+            desteği - sadece doldurduğunuz kurları işler.
           </p>
         </div>
       </div>
@@ -204,7 +209,9 @@ export default function ProductPriceManagementPanel() {
         </h5>
         <div className="row mt-3">
           <div className="col-md-6">
-            <label className="form-label">Çalışmak istediğiniz bayi seçin</label>
+            <label className="form-label">
+              Çalışmak istediğiniz bayi seçin
+            </label>
             <Select
               options={dealers.map((d) => ({ value: d.id, label: d.name }))}
               value={
@@ -248,7 +255,7 @@ export default function ProductPriceManagementPanel() {
                 <i className="fa-solid fa-file-excel me-2"></i>
                 {loading ? "İndiriliyor..." : "Bayi Şablonu (Dolu)"}
               </button>
-              
+
               <button
                 className="sherah-btn sherah-btn__secondary"
                 onClick={handleDownloadImportTemplate}
@@ -257,7 +264,7 @@ export default function ProductPriceManagementPanel() {
               >
                 <i className="fa-solid fa-file-arrow-down me-2"></i>
                 {loading ? "İndiriliyor..." : "Genel Şablon (Boş)"}
-              </button> 
+              </button>
             </div>
           </div>
           <div className="col-md-4">
@@ -283,7 +290,7 @@ export default function ProductPriceManagementPanel() {
           <i className="fa-solid fa-upload me-2"></i>
           Excel Import İşlemi
         </h5>
-        
+
         {!selectedDealerId && (
           <div className="alert alert-warning">
             <i className="fa-solid fa-exclamation-triangle me-2"></i>
@@ -313,7 +320,7 @@ export default function ProductPriceManagementPanel() {
               </div>
             )}
           </div>
-          
+
           <div className="col-md-6">
             <label className="form-label">İşlem Seçenekleri</label>
             <div className="d-flex flex-column gap-2">
@@ -352,7 +359,7 @@ export default function ProductPriceManagementPanel() {
           </div>
         )}
 
-        <div className="d-flex gap-3 mt-3"> 
+        <div className="d-flex gap-3 mt-3">
           <button
             className="sherah-btn sherah-btn__primary bg-primary"
             onClick={() => handleImport(false)}
@@ -381,8 +388,12 @@ export default function ProductPriceManagementPanel() {
                   <i className="fa-solid fa-chart-line me-2"></i>
                   İşlem Özeti
                 </h6>
-                <span className={`badge ${result.success !== false ? 'bg-success' : 'bg-warning'}`}>
-                  {result.success !== false ? 'Başarılı' : 'Uyarılar Var'}
+                <span
+                  className={`badge ${
+                    result.success !== false ? "bg-success" : "bg-warning"
+                  }`}
+                >
+                  {result.success !== false ? "Başarılı" : "Uyarılar Var"}
                 </span>
               </div>
               <div className="card-body">
@@ -395,7 +406,9 @@ export default function ProductPriceManagementPanel() {
                   </div>
                   <div className="col-6 col-lg-2">
                     <div className="text-center p-2 bg-light rounded">
-                      <h5 className="text-success mb-1">{result.successCount}</h5>
+                      <h5 className="text-success mb-1">
+                        {result.successCount}
+                      </h5>
                       <small className="text-muted">Başarılı</small>
                     </div>
                   </div>
@@ -407,7 +420,9 @@ export default function ProductPriceManagementPanel() {
                   </div>
                   <div className="col-6 col-lg-2">
                     <div className="text-center p-2 bg-light rounded">
-                      <h5 className="text-warning mb-1">{result.updatedCount}</h5>
+                      <h5 className="text-warning mb-1">
+                        {result.updatedCount}
+                      </h5>
                       <small className="text-muted">Güncellenen</small>
                     </div>
                   </div>
@@ -435,9 +450,9 @@ export default function ProductPriceManagementPanel() {
                       <table className="table table-sm table-striped table-bordered">
                         <thead className="table-dark">
                           <tr>
-                            <th width="60">Satır</th>
-                            <th width="120">Ürün Kodu</th>
-                            <th width="200">Hata Açıklaması</th>
+                            <th style={{ width: 60 }}>Satır</th>
+                            <th style={{ width: 120 }}>Ürün Kodu</th>
+                            <th style={{ width: 200 }}>Hata Açıklaması</th>
                             <th>Ham Veri</th>
                           </tr>
                         </thead>
@@ -447,14 +462,21 @@ export default function ProductPriceManagementPanel() {
                               <td className="text-center">{error.rowNumber}</td>
                               <td>{error.productCode || "-"}</td>
                               <td>{error.errorMessage}</td>
-                              <td className="text-truncate" style={{maxWidth: "300px"}} title={error.rowData || ""}>
+                              <td
+                                className="text-truncate"
+                                style={{ maxWidth: "300px" }}
+                                title={error.rowData || ""}
+                              >
                                 {error.rowData}
                               </td>
                             </tr>
                           ))}
                           {result.errors.length > 10 && (
                             <tr>
-                              <td colSpan={4} className="text-center text-muted">
+                              <td
+                                colSpan={4}
+                                className="text-center text-muted"
+                              >
                                 ... ve {result.errors.length - 10} hata daha
                               </td>
                             </tr>

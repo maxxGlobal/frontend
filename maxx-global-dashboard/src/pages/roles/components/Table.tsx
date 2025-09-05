@@ -152,6 +152,16 @@ export default function RolesTable({ data, onEdit, onAskDelete }: Props) {
     const mi = String(d.getMinutes()).padStart(2, "0");
     return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
   };
+  const statusBadge = (s?: string | null) =>
+    s === "ACTIVE" ? (
+      <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
+        AKTİF
+      </div>
+    ) : (
+      <div className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
+        PASİF
+      </div>
+    );
 
   return (
     <div className="sherah-table p-0">
@@ -201,15 +211,7 @@ export default function RolesTable({ data, onEdit, onAskDelete }: Props) {
                 </td>
                 <td className="sherah-table__column-4 sherah-table__data-4">
                   <div className="sherah-table__product-content">
-                    {(() => {
-                      const count = r.permissions?.length ?? 0;
-                      const klass =
-                        count > 0
-                          ? "sherah-table__status sherah-color3 sherah-color3__bg--opactity"
-                          : "sherah-table__status sherah-color2 sherah-color2__bg--opactity";
-                      const label = count > 0 ? "AKTİF" : "PASİF";
-                      return <div className={klass}>{label}</div>;
-                    })()}
+                    {statusBadge(r.status)}
                   </div>
                 </td>
 
