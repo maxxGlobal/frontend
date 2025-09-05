@@ -223,4 +223,23 @@ export const menuItems: MenuItem[] = [
       },
     ],
   },
+  {
+    id: "menu-item__notifications",
+    label: "Bildirimler",
+    iconHtml: RolesIconHTML,
+    children: [
+      {
+        id: "notifications-create",
+        label: "Bildirim Ekle",
+        to: "/notifications/broadcast",
+        required: "SYSTEM_ADMIN",
+      },
+      {
+        id: "notifications_list",
+        label: "Bildirim Listesi",
+        to: "/notifications",
+        required: "SYSTEM_ADMIN",
+      },
+    ],
+  },
 ];

@@ -28,6 +28,8 @@ import DiscountsUpcoming from "../pages/discounts/DiscountsUpcoming";
 import DiscountsByProduct from "../pages/discounts/DiscountsByProduct";
 import DiscountsExpired from "../pages/discounts/DiscountsExpired";
 import DiscountsByDealer from "../pages/discounts/DiscountsByDealer";
+import AdminBroadcastPanel from "../pages/notifications/AdminBroadcastPanel";
+import AdminNotificationsList from "../pages/notifications/AdminNotificationsList";
 
 export default function AppRoutes() {
   return (
@@ -107,6 +109,11 @@ export default function AppRoutes() {
           />
           <Route path="/discounts/expired" element={<DiscountsExpired />} />
           <Route path="/discounts/by-dealer" element={<DiscountsByDealer />} />
+          <Route
+            path="/notifications/broadcast"
+            element={<AdminBroadcastPanel />}
+          />
+          <Route path="/notifications" element={<AdminNotificationsList />} />
         </Route>
       </Route>
 
