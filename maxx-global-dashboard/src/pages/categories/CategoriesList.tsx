@@ -235,13 +235,9 @@ export default function CategoriesList() {
             </div>
 
             {/* Pagination */}
-            <div className="row align-items-center mt-3">
-              <div className="col-sm-12 col-md-5">
-                Toplam <strong>{data.totalElements}</strong> kayıt • Sayfa{" "}
-                {data.number + 1} / {data.totalPages}
-              </div>
-              <div className="col-sm-12 col-md-7">
-                <div className="dataTables_paginate paging_simple_numbers">
+            <div className="row align-items-center mt-3 justify-content-end">
+              <div className="col-sm-12 col-md-13">
+                <div className="dataTables_paginate paging_simple_numbers justify-content-end">
                   <ul className="pagination">
                     <li
                       className={`paginate_button page-item previous ${

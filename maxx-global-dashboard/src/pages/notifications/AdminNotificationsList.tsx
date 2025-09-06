@@ -1,3 +1,4 @@
+// src/pages/notifications/AdminSentNotificationsList.tsx
 import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 import Swal from "sweetalert2";
@@ -15,18 +16,34 @@ const MySwal = withReactContent(Swal);
 
 type TypeOpt = { value: string; label: string };
 
+// Öncelik -> TR
+function trPriority(p?: string | null) {
+  if (!p) return "-";
+  switch (String(p).toUpperCase()) {
+    case "HIGH":
+      return "Yüksek";
+    case "MEDIUM":
+      return "Orta";
+    case "LOW":
+      return "Düşük";
+    default:
+      return p;
+  }
+}
+
 export default function AdminSentNotificationsList() {
   // filtreler
   const [q, setQ] = useState("");
   const [typeValue, setTypeValue] = useState<string>("");
 
   // sayfalama
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(20);
+  const [page, setPage] = useState(0); // 0-tabanlı
+  const [size, setSize] = useState(20); // API için gerekli ama UI RolesList ile aynı
 
   // data
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
 
   // type options
@@ -57,16 +74,29 @@ export default function AdminSentNotificationsList() {
         size,
       });
 
+      // sunucunun farklı zarf desenlerine tolerans
       const content = Array.isArray((res as any).content)
         ? (res as any).content
         : (res as any).data?.content ?? [];
+      const te =
+        (res as any).totalElements ??
+        (res as any).data?.totalElements ??
+        content.length;
+      const tp =
+        (res as any).totalPages ??
+        (res as any).data?.totalPages ??
+        Math.max(1, Math.ceil(te / size));
+
+      // aynı id’leri tekilleştir (backend birden çok hedefe gidenleri çoğaltabiliyor)
       const unique = Array.from(
         new Map(
           (content as NotificationRow[]).map((row) => [row.id, row])
         ).values()
       );
+
       setRows(unique);
-      setTotalElements((res as any).totalElements ?? unique.length);
+      setTotalElements(te);
+      setTotalPages(tp);
     } catch (e: any) {
       console.error(e);
       MySwal.fire("Hata", e?.message || "Kayıtlar yüklenemedi", "error");
@@ -103,167 +133,193 @@ export default function AdminSentNotificationsList() {
     load();
   }
 
-  const totalPages = Math.ceil(totalElements / size) || 1;
-
   return (
     <div className="sherah-table p-0">
       <div className="dataTables_wrapper dt-bootstrap5 no-footer">
-        {/* Başlık */}
-        <div className="row align-items-center pb-3 mb-3">
-          <div className="col-md-6 mb-2 mb-md-0">
-            <h3 className="sherah-card__title m-0 fw-bold mt-5">
-              Gönderilmiş Bildirimler
-            </h3>
+        {/* Üst başlık: RolesList ile aynı düzen */}
+        <div className="row align-items-center">
+          <div className="col-sm-12 col-md-6 py-4">
+            <h3 className="sherah-card__title py-3">Gönderilmiş Bildirimler</h3>
           </div>
-        </div>
 
-        {/* Filtre Bar */}
-        <div className="card card-body mb-3">
-          <div className="row g-3 align-items-end">
-            <div className="col-md-6">
-              <label className="form-label">Ara</label>
+          {/* Sağda kompakt filtre paneli (RolesList’teki FilterPanel konumu) */}
+          {/* <div className="col-sm-12 col-md-6 d-flex justify-content-end">
+            <div className="d-flex gap-2" style={{ minWidth: 420 }}>
               <input
-                style={{ height: 64 }}
-                className="form-control"
-                placeholder="Başlık / Mesaj"
+                className="form-control form-control-sm"
+                placeholder="Ara (başlık / mesaj)"
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") applyFilters();
                 }}
               />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Tip</label>
-              <Select<TypeOpt, false>
-                options={typeOptions}
-                value={selectedType}
-                onChange={(opt) => setTypeValue(opt?.value ?? "")}
-                isClearable={false}
-              />
-            </div>
-            <div className="col-12 text-end">
-              <button
-                className="sherah-btn sherah-btn__primary"
-                onClick={applyFilters}
-              >
+              <div style={{ width: 200 }}>
+                <Select<TypeOpt, false>
+                  options={typeOptions}
+                  value={selectedType}
+                  onChange={(opt) => setTypeValue(opt?.value ?? "")}
+                  isClearable={false}
+                  // react-select’i kompakt göstermek için
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      minHeight: 31,
+                      height: 31,
+                    }),
+                    valueContainer: (base) => ({
+                      ...base,
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    }),
+                    indicatorsContainer: (base) => ({
+                      ...base,
+                      height: 31,
+                    }),
+                  }}
+                />
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={applyFilters}>
                 Uygula
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
 
-        {/* Tablo */}
-        {loading ? (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ minHeight: "200px" }}
-          >
-            <div className="spinner-border" role="status">
-              <span className="visually-hidden">Yükleniyor</span>
-            </div>
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="alert alert-info m-3">Kayıt bulunamadı.</div>
-        ) : (
-          <>
-            <table className="sherah-table__main sherah-table__main-v3 d-block overflow-y-scrolls">
-              <thead className="sherah-table__head">
-                <tr>
-                  <th>Başlık </th>
-                  <th>Mesaj</th>
-                  <th>Tip</th>
-                  <th>Öncelik</th>
-                  <th>Oluşturma</th>
-                  <th>Aksiyon</th>
-                </tr>
-              </thead>
-              <tbody className="sherah-table__body">
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td>
-                      <div className="fw-semibold">{r.title}</div>
-                    </td>
-                    <td>
-                      {" "}
-                      <div>{r.message}</div>
-                    </td>
-                    <td>
-                      <span className="badge bg-info">
-                        {r.typeDisplayName || r.type}
-                      </span>
-                    </td>
-                    <td>{r.priority || "-"}</td>
-                    <td>
-                      {r.createdAt
-                        ? new Date(r.createdAt).toLocaleString()
-                        : "-"}
-                    </td>
-                    <td className="d-flex justify-content-end">
-                      {r.actionUrl ? (
-                        <a
-                          className="btn btn-sm btn-outline-secondary"
-                          href={r.actionUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Aç
-                        </a>
-                      ) : (
-                        <span className="text-muted small">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Sayfalama */}
-            <div className="row align-items-center mt-3">
-              <div className="col-sm-12 col-md-5">
-                Toplam <strong>{totalElements.toLocaleString("tr-TR")}</strong>{" "}
-                kayıt • Sayfa {page + 1} / {Math.max(1, totalPages)}
+        <div className="sherah-card__body">
+          {loading ? (
+            <div className="text-center">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">Yükleniyor</span>
               </div>
-              <div className="col-sm-12 col-md-7">
-                <div className="dataTables_paginate paging_simple_numbers d-flex justify-content-end align-items-center gap-2">
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    disabled={page <= 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  >
-                    ‹ Önceki
-                  </button>
-                  <div className="small">
-                    {page + 1} / {Math.max(1, totalPages)}
-                  </div>
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    disabled={page + 1 >= totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Sonraki ›
-                  </button>
-
-                  <select
-                    className="form-select form-select-sm ms-2"
-                    style={{ width: 90 }}
-                    value={size}
-                    onChange={(e) => {
-                      setSize(Number(e.target.value));
-                      setPage(0);
-                    }}
-                  >
-                    {[10, 20, 50, 100].map((s) => (
-                      <option key={s} value={s}>
-                        {s}/sayfa
-                      </option>
-                    ))}
-                  </select>
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="alert alert-info m-3">Kayıt bulunamadı.</div>
+          ) : (
+            <>
+              {/* RolesList’teki içerik kabı */}
+              <div className="sherah-page-inner sherah-default-bg sherah-border">
+                <div className="table-responsive">
+                  <table className="sherah-table__main sherah-table__main-v3">
+                    <thead className="sherah-table__head">
+                      <tr>
+                        <th>Başlık</th>
+                        <th>Mesaj</th>
+                        <th>Tip</th>
+                        <th>Öncelik</th>
+                        <th>Oluşturma</th>
+                        <th className="text-end">Aksiyon</th>
+                      </tr>
+                    </thead>
+                    <tbody className="sherah-table__body">
+                      {rows.map((r) => (
+                        <tr key={r.id}>
+                          <td className="fw-semibold">{r.title}</td>
+                          <td>{r.message}</td>
+                          <td>
+                            <span className="badge bg-info">
+                              {r.typeDisplayName || r.type}
+                            </span>
+                          </td>
+                          <td>{trPriority(r.priority)}</td>
+                          <td>
+                            {r.createdAt
+                              ? new Date(r.createdAt).toLocaleString("tr-TR")
+                              : "-"}
+                          </td>
+                          <td className="text-end">
+                            {r.actionUrl ? (
+                              <a
+                                className="btn btn-sm btn-outline-secondary"
+                                href={r.actionUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Aç
+                              </a>
+                            ) : (
+                              <span className="text-muted small">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+
+              {/* Pagination — RolesList ile birebir aynı markup/sınıflar */}
+              <div className="row align-items-center mt-3">
+                <div className="col-sm-12 col-md-5">
+                  Toplam{" "}
+                  <strong>{totalElements.toLocaleString("tr-TR")}</strong> kayıt
+                  • Sayfa {page + 1} / {totalPages}
+                </div>
+                <div className="col-sm-12 col-md-7">
+                  <div className="dataTables_paginate paging_simple_numbers">
+                    <ul className="pagination">
+                      <li
+                        className={`paginate_button page-item previous ${
+                          page === 0 ? "disabled" : ""
+                        }`}
+                      >
+                        <a
+                          href="#"
+                          className="page-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (page > 0) setPage((p) => Math.max(0, p - 1));
+                          }}
+                        >
+                          <i className="fas fa-angle-left" />
+                        </a>
+                      </li>
+
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <li
+                          key={i}
+                          className={`paginate_button page-item ${
+                            i === page ? "active" : ""
+                          }`}
+                        >
+                          <a
+                            href="#"
+                            className="page-link"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPage(i);
+                            }}
+                          >
+                            {i + 1}
+                          </a>
+                        </li>
+                      ))}
+
+                      <li
+                        className={`paginate_button page-item next ${
+                          page + 1 >= totalPages ? "disabled" : ""
+                        }`}
+                      >
+                        <a
+                          href="#"
+                          className="page-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (page + 1 < totalPages) setPage((p) => p + 1);
+                          }}
+                        >
+                          <i className="fas fa-angle-right" />
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

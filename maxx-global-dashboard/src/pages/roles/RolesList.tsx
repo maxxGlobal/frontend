@@ -75,7 +75,6 @@ export default function RolesList() {
         setLoading(true);
         setError(null);
         const rows = await listRoles();
-        setAll(rows);
       } catch (e) {
         console.error(e);
         setError("Roller yüklenirken bir hata oluştu.");

@@ -171,10 +171,6 @@ export default function ProductDetails() {
                     <span className="p-list-title fw-bold">Birim :</span>{" "}
                     {product!.unit || "-"}
                   </li>
-                  <li>
-                    <span className="p-list-title fw-bold">Raf Ömrü :</span>{" "}
-                    {product!.shelfLifeMonths ?? "-"}
-                  </li>
                 </ul>
               </div>
             </div>

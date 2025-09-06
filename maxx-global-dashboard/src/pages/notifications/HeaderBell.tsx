@@ -8,7 +8,7 @@ import {
   getNotificationSummary,
   markAllNotificationsRead,
 } from "../../services/notifications/header";
-import api from "../../lib/api"; // 👈 ekledik
+import api from "../../lib/api";
 import type {
   NotificationSummary,
   NotificationRow,
@@ -18,7 +18,41 @@ const MySwal = withReactContent(Swal);
 
 const qkUnread = ["notifications", "unreadCount"];
 const qkSummary = ["notifications", "summary"];
-const qkLatest = ["notifications", "latest"]; // 👈 yeni key
+const qkLatest = ["notifications", "latest"];
+
+/** createdAt -> “x dk / x sa / x gün önce” */
+function formatTimeAgo(iso?: string | null) {
+  if (!iso) return "";
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const diffMs = Math.max(0, now - then);
+
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "az önce";
+  if (mins < 60) return `${mins} dk`;
+
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} sa`;
+
+  const days = Math.floor(hrs / 24);
+  return `${days} gün`;
+}
+
+/** Başlığın/Tipin ilk harfi (avatar için) */
+function initialOf(n: NotificationRow) {
+  const s = (n.typeDisplayName || n.type || n.title || "").trim();
+  return s ? s.charAt(0).toUpperCase() : "•";
+}
+
+/** Tip/kategoriye göre avatar rengi (çok sade) */
+function colorFor(n: NotificationRow) {
+  const cat = (n.typeCategory || "").toLowerCase();
+  if (cat.includes("order")) return "#3b82f6"; // mavi
+  if (cat.includes("warn") || cat.includes("high")) return "#f59e0b"; // amber
+  if (cat.includes("error")) return "#ef4444"; // kırmızı
+  if (cat.includes("success")) return "#10b981"; // yeşil
+  return "#6366f1"; // default indigo
+}
 
 export default function HeaderBell() {
   const qc = useQueryClient();
@@ -28,8 +62,9 @@ export default function HeaderBell() {
   // dışarı tıklayınca kapat
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node))
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) {
         setOpen(false);
+      }
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -49,7 +84,6 @@ export default function HeaderBell() {
     staleTime: 15_000,
   });
 
-  // 🔔 Son bildirimler için query
   const latestQ = useQuery({
     queryKey: qkLatest,
     queryFn: async (): Promise<NotificationRow[]> => {
@@ -80,14 +114,22 @@ export default function HeaderBell() {
     }
   }
 
+  function handleOpen(n: NotificationRow) {
+    if (n.actionUrl) window.open(n.actionUrl, "_blank", "noopener,noreferrer");
+  }
+
   return (
-    <div className="sherah-header__dropmenu" ref={boxRef}>
-      {/* Zil butonu */}
+    <div
+      className={`sherah-header__dropmenu np ${open ? "is-open" : ""}`}
+      ref={boxRef}
+    >
+      {/* Zil butonu — SVG’ye dokunmuyoruz */}
       <button
         type="button"
-        className="btn p-0 border-0 bg-transparent border-0 shadow-none"
-        onClick={() => setOpen((s) => !s)}
+        className="btn p-0 border-0 bg-transparent shadow-none"
+        aria-expanded={open}
         aria-label="Bildirimler"
+        onClick={() => setOpen((s) => !s)}
       >
         <svg
           className="sherah-offset__fill"
@@ -129,107 +171,79 @@ export default function HeaderBell() {
               transform="translate(15384.189 -7175.73)"
             />
           </svg>
-
-          <div className="d-flex align-items-center justify-content-between sherah-border-btm">
-            <h3 className="sherah-dropdown-card__title mb-0">Bildirim Özeti</h3>
-            <div className="d-flex gap-2 pe-4">
-              <button
-                className="btn btn-sm btn-outline-secondary"
-                onClick={() => {
-                  unreadQ.refetch();
-                  summaryQ.refetch();
-                  latestQ.refetch();
-                }}
+          <div className="np-header">
+            <div className="np-header-title">Bildirimler</div>
+            <div className="np-header-actions">
+              {/* <button
+                className="np-icon-btn text-primary"
+                onClick={() => latestQ.refetch()}
+                title="Yenile"
               >
-                Yenile
-              </button>
+                ↻
+              </button> */}
               <button
-                className="btn btn-sm btn-success"
+                className="np-icon-btn text-success"
                 onClick={handleMarkAll}
+                title="Tümünü okundu işaretle"
               >
-                Tümünü okundu işaretle
+                ✓
               </button>
             </div>
           </div>
+          <ul className="sherah-dropdown-card_list notif-list">
+            {latestQ.isLoading && (
+              <li className="notif-loading">Yükleniyor…</li>
+            )}
 
-          {/* Özet */}
-          {/* {summaryQ.isLoading || unreadQ.isLoading ? (
-            <div className="p-3 text-center">
-              <div className="spinner-border spinner-border-sm" role="status" />
-            </div>
-          ) : summaryQ.isError ? (
-            <div className="p-3 text-danger small">Özet yüklenemedi.</div>
-          ) : (
-            <ul className="sherah-dropdown-card_list">
-              <SummaryRow label="Toplam" value={summary?.totalCount ?? 0} />
-              <SummaryRow
-                label="Okunmamış"
-                value={summary?.unreadCount ?? 0}
-                strong
-              />
-              <SummaryRow label="Okunmuş" value={summary?.readCount ?? 0} />
-              <SummaryRow label="Arşiv" value={summary?.archivedCount ?? 0} />
-              <SummaryRow label="Bugün" value={summary?.todayCount ?? 0} />
-              <SummaryRow
-                label="Bu Hafta"
-                value={summary?.thisWeekCount ?? 0}
-              />
-              <SummaryRow
-                label="Öncelikli (Okunmamış)"
-                value={summary?.highPriorityUnreadCount ?? 0}
-              />
-            </ul>
-          )} */}
+            {!latestQ.isLoading && latest.length === 0 && (
+              <li className="notif-empty">Bildirim yok</li>
+            )}
 
-          {/* Son Bildirimler */}
-          <div className="">
-            {latestQ.isLoading ? (
-              <div className="p-2 small text-muted">Yükleniyor...</div>
-            ) : latest.length > 0 ? (
-              <ul className="list-group list-group-flush px-4">
-                {latest.map((n) => (
+            {!latestQ.isLoading &&
+              latest.map((n) => {
+                const unread = !n.isRead && n.notificationStatus !== "READ";
+                return (
                   <li
                     key={n.id}
-                    className="px-2 py-3 small d-flex justify-content-between border-bottom list-group-item"
+                    className={`notif-item ${unread ? "is-unread" : "is-read"}`}
+                    onClick={() => handleOpen(n)}
+                    role={n.actionUrl ? "button" : undefined}
+                    style={{ cursor: n.actionUrl ? "pointer" : "default" }}
                   >
-                    <span>{n.title}</span>
-                    {!n.isRead && (
-                      <span className="badge bg-warning text-dark p-2 rounded-3">
-                        Yeni
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="p-2 small text-muted">Bildirim yok</div>
-            )}
-          </div>
+                    <div className="d-flex gap-3">
+                      <div
+                        className="notif-avatar"
+                        style={{ backgroundColor: colorFor(n) }}
+                        aria-hidden
+                      >
+                        {initialOf(n)}
+                      </div>
 
-          <div className="sherah-dropdown-card__button">
-            <a className="sherah-dropdown-card__sell-all" href="/notifications">
-              Tüm bildirimleri gör
+                      <div className="notif-body">
+                        <div className="notif-title">{n.title}</div>
+                        {n.message && (
+                          <div className="notif-desc">{n.message}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="notif-time">
+                      {formatTimeAgo(n.createdAt)} önce
+                    </div>
+                  </li>
+                );
+              })}
+          </ul>
+          <div className="sherah-dropdown-card__button mt-4">
+            <a
+              href="/my-notifications"
+              className="sherah-dropdown-card__sell-all"
+            >
+              Tüm Bildirimleri Görüntele
             </a>
           </div>
         </div>
       )}
     </div>
-  );
-}
-
-function SummaryRow({
-  label,
-  value,
-  strong,
-}: {
-  label: string;
-  value: number;
-  strong?: boolean;
-}) {
-  return (
-    <li className="py-1 px-2 d-flex align-items-center justify-content-between">
-      <span className="small">{label}</span>
-      <span className={`small ${strong ? "fw-bold" : ""}`}>{value}</span>
-    </li>
   );
 }
