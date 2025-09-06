@@ -119,9 +119,9 @@ export default function DiscountsByDealer() {
       <div className="dataTables_wrapper dt-bootstrap5 no-footer mb-4">
         <div className="row align-items-center border-bottom pb-3 mb-3">
           <div className="col-md-6">
-            <h2 className="sherah-card__title m-0 fw-bold">
+            <h3 className="sherah-card__title m-0 fw-bold">
               Bayiye Uygulanabilir İndirimler
-            </h2>
+            </h3>
           </div>
           <div className="col-md-6 d-flex flex-wrap justify-content-md-end gap-2 mt-4">
             <Link to="/discounts-list" className="sherah-btn sherah-gbcolor">

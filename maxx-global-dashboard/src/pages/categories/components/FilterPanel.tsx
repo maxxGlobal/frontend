@@ -56,26 +56,6 @@ export default function FilterPanel({
             <i className="fa-solid fa-xmark" />
           </button>
         )}
-        <select
-          className="form-select form-select-sm ms-2"
-          value={size}
-          onChange={(e) => onChangeSize(Number(e.target.value))}
-          style={{ maxWidth: 110 }}
-        >
-          {[10, 20, 50].map((n) => (
-            <option key={n} value={n}>
-              {n} / sayfa
-            </option>
-          ))}
-        </select>
-
-        <button
-          type="button"
-          className="btn btn-light btn-sm ms-2"
-          onClick={onRefresh}
-        >
-          Yenile
-        </button>
       </div>
     </div>
   );

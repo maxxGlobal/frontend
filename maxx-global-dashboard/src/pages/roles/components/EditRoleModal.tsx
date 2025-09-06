@@ -95,7 +95,6 @@ export default function EditRoleModal({ role, onClose, onSaved }: Props) {
                             onChange={() => toggle(p.id)}
                           />
                           <div>
-                            <div className="fw-semibold">{p.name}</div>
                             {p.description && (
                               <div className="text-muted small">
                                 {p.description}
