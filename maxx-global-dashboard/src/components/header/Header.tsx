@@ -110,7 +110,7 @@ export default function Header() {
                     {openProfile && (
                       <div className="sherah-dropdown-card sherah-dropdown-card__profile sherah-border">
                         <h3 className="sherah-dropdown-card__title sherah-border-btm">
-                          My Profile
+                          Profilim
                         </h3>
                         <ul className="sherah-dropdown-card_list">
                           <li>
@@ -146,7 +146,7 @@ export default function Header() {
                               </div>
                               <h4 className="sherah-dropdown-card-name">
                                 <a href="/profile" className="fw-normal">
-                                  My Profile
+                                  Profilim
                                 </a>
                               </h4>
                             </div>
@@ -169,12 +169,12 @@ export default function Header() {
                                 </svg>
                               </div>
                               <h4 className="sherah-dropdown-card-name">
-                                <button
+                                <a
                                   onClick={logout}
                                   className="underline fw-normal border-0 bg-transparent"
                                 >
-                                  Logout
-                                </button>
+                                  Çıkış Yap
+                                </a>
                               </h4>
                             </div>
                           </li>
