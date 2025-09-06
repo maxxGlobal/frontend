@@ -149,7 +149,7 @@ export default function DiscountCalculate() {
     <div className="sherah-page-inner sherah-default-bg sherah-border p-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="mb-0">İndirim Hesaplama</h2>
-        <Link to="/discounts-list" className="btn btn-secondary">
+        <Link to="/discounts-list" className="sherah-btn sherah-gbcolor">
           ← İndirim Listesi
         </Link>
       </div>

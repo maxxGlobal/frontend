@@ -9,7 +9,6 @@ import type { DiscountCreateRequest } from "../../types/discount";
 import type { ProductSimple } from "../../types/product";
 import type { DealerSummary } from "../../types/dealer";
 
-// "YYYY-MM-DDTHH:mm" -> "YYYY-MM-DDTHH:mm:00"
 function ensureSeconds(v: string) {
   if (!v) return v;
   return v.length === 16 ? `${v}:00` : v;
@@ -33,9 +32,9 @@ export default function DiscountCreate() {
     useState<string>("");
 
   // ✅ yeni alanlar (opsiyonel)
-  const [usageLimit, setUsageLimit] = useState<string>(""); // toplam limit
+  const [usageLimit, setUsageLimit] = useState<string>("");
   const [usageLimitPerCustomer, setUsageLimitPerCustomer] =
-    useState<string>(""); // müşteri başı
+    useState<string>("");
 
   // Seçenekler
   const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
@@ -164,7 +163,6 @@ export default function DiscountCreate() {
           ? undefined
           : Number(maximumDiscountAmount),
 
-      // ✅ yeni alanlar
       usageLimit: ul,
       usageLimitPerCustomer: ulpc,
     };
@@ -193,93 +191,126 @@ export default function DiscountCreate() {
     <div className="sherah-page-inner sherah-default-bg sherah-border p-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="mb-0">Yeni İndirim</h2>
-        <Link to="/discounts" className="btn btn-secondary">
+        <Link to="/discounts-list" className="sherah-btn sherah-gbcolor">
           ← İndirim Listesi
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        {/* Ad */}
-        <div className="mb-3">
-          <label className="form-label">Ad *</label>
-          <input
-            type="text"
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Açıklama */}
-        <div className="mb-3">
-          <label className="form-label">Açıklama</label>
-          <input
-            type="text"
-            className="form-control"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        {/* Tip */}
-        <div className="mb-3">
-          <label className="form-label">Tip *</label>
-          <select
-            className="form-select"
-            value={discountType}
-            onChange={(e) =>
-              setDiscountType(e.target.value as "PERCENTAGE" | "FIXED_AMOUNT")
-            }
-          >
-            <option value="PERCENTAGE">Yüzde</option>
-            <option value="FIXED_AMOUNT">Sabit Tutar</option>
-          </select>
-        </div>
-
-        {/* Değer */}
-        <div className="mb-3">
-          <label className="form-label">Değer *</label>
-          <input
-            type="number"
-            className="form-control"
-            value={discountValue}
-            onChange={(e) => setDiscountValue(parseFloat(e.target.value))}
-            step="0.01"
-            required
-          />
-        </div>
-
-        {/* Tarihler */}
+      <form onSubmit={handleSubmit} className="sherah-wc__form-main p-0">
         <div className="row">
-          <div className="col-md-6 mb-3">
-            <label className="form-label">Başlangıç Tarihi *</label>
-            <input
-              type="datetime-local"
-              className="form-control"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-            />
+          {/* Ad */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Ad *</label>
+              <div className="form-group__input">
+                <input
+                  type="text"
+                  className="sherah-wc__form-input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="İndirim Adı"
+                />
+              </div>
+            </div>
           </div>
-          <div className="col-md-6 mb-3">
-            <label className="form-label">Bitiş Tarihi *</label>
-            <input
-              type="datetime-local"
-              className="form-control"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-            />
-          </div>
-        </div>
 
-        {/* Checkbox listeleri */}
-        <div className="row">
-          {/* ÜRÜNLER */}
-          <div className="col-md-6 mb-3">
-            <div className="d-flex justify-content-between align-items-end mb-1">
-              <label className="form-label mb-0">
+          {/* Açıklama */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Açıklama</label>
+
+              <div className="form-group__input">
+                <input
+                  type="text"
+                  className="sherah-wc__form-input"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="İndirim Açıklaması"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Tip */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Tip *</label>
+              <div className="form-group__input">
+                <select
+                  className="form-group__input"
+                  value={discountType}
+                  onChange={(e) =>
+                    setDiscountType(
+                      e.target.value as "PERCENTAGE" | "FIXED_AMOUNT"
+                    )
+                  }
+                >
+                  <option value="PERCENTAGE">Yüzde</option>
+                  <option value="FIXED_AMOUNT">Sabit Tutar</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Değer */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Değer *</label>
+              <div className="form-group__input">
+                <input
+                  type="number"
+                  className="sherah-wc__form-input"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(parseFloat(e.target.value))}
+                  required
+                  step="0.01"
+                  placeholder="örn. 100"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Tarihler */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">
+                Başlangıç Tarihi *
+              </label>
+              <div className="form-group__input">
+                <input
+                  type="datetime-local"
+                  lang="tr"
+                  className="sherah-wc__form-input"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Bitiş Tarihi *</label>
+              <div className="form-group__input">
+                <input
+                  type="datetime-local"
+                  className="sherah-wc__form-input"
+                  lang="tr"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Checkbox listeleri */}
+          <div className="col-lg-6 col-12">
+            {/* ÜRÜNLER */}
+
+            <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
+              <label className="sherah-wc__form-label">
                 Ürünler{" "}
                 {productIds.length > 0 && (
                   <span className="text-muted">
@@ -290,7 +321,7 @@ export default function DiscountCreate() {
               <div className="btn-group btn-group-sm">
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
+                  className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
                   onClick={() => selectAll(filteredProducts, setProductIds)}
                   disabled={optsLoading || filteredProducts.length === 0}
                 >
@@ -298,7 +329,7 @@ export default function DiscountCreate() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
+                  className="btn btn-danger border-0 outline-none shadow-none custom-box-shadow"
                   onClick={() => clearAll(setProductIds)}
                   disabled={optsLoading || productIds.length === 0}
                 >
@@ -308,7 +339,7 @@ export default function DiscountCreate() {
             </div>
 
             <input
-              className="form-control mb-2"
+              className="sherah-wc__form-input"
               placeholder="Ürün ara (ad/kod)"
               value={productFilter}
               onChange={(e) => setProductFilter(e.target.value)}
@@ -328,9 +359,13 @@ export default function DiscountCreate() {
                   const checked = productIds.includes(p.id);
                   const label = p.code ? `${p.name} (${p.code})` : p.name;
                   return (
-                    <div className="form-check" key={p.id}>
+                    <div
+                      className="form-check d-flex align-items-center gap-2"
+                      key={p.id}
+                    >
                       <input
-                        className="form-check-input"
+                        className="form-check-input mb-2"
+                        style={{ padding: 0, width: 20, height: 20 }}
                         type="checkbox"
                         id={`prod_${p.id}`}
                         checked={checked}
@@ -339,7 +374,7 @@ export default function DiscountCreate() {
                         }
                       />
                       <label
-                        className="form-check-label"
+                        className="form-check-label mb-0"
                         htmlFor={`prod_${p.id}`}
                       >
                         {label}
@@ -352,9 +387,9 @@ export default function DiscountCreate() {
           </div>
 
           {/* BAYİLER */}
-          <div className="col-md-6 mb-3">
-            <div className="d-flex justify-content-between align-items-end mb-1">
-              <label className="form-label mb-0">
+          <div className="col-lg-6 col-12">
+            <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
+              <label className="sherah-wc__form-label">
                 Bayiler{" "}
                 {dealerIds.length > 0 && (
                   <span className="text-muted">
@@ -365,7 +400,7 @@ export default function DiscountCreate() {
               <div className="btn-group btn-group-sm">
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
+                  className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
                   onClick={() => selectAll(filteredDealers, setDealerIds)}
                   disabled={optsLoading || filteredDealers.length === 0}
                 >
@@ -373,7 +408,7 @@ export default function DiscountCreate() {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
+                  className="btn btn-danger border-0 outline-none shadow-none custom-box-shadow"
                   onClick={() => clearAll(setDealerIds)}
                   disabled={optsLoading || dealerIds.length === 0}
                 >
@@ -383,7 +418,7 @@ export default function DiscountCreate() {
             </div>
 
             <input
-              className="form-control mb-2"
+              className="sherah-wc__form-input"
               placeholder="Bayi ara (ad)"
               value={dealerFilter}
               onChange={(e) => setDealerFilter(e.target.value)}
@@ -402,9 +437,13 @@ export default function DiscountCreate() {
                 filteredDealers.map((d) => {
                   const checked = dealerIds.includes(d.id);
                   return (
-                    <div className="form-check" key={d.id}>
+                    <div
+                      className="form-check d-flex align-items-center gap-2"
+                      key={d.id}
+                    >
                       <input
-                        className="form-check-input"
+                        className="form-check-input mb-2"
+                        style={{ padding: 0, width: 20, height: 20 }}
                         type="checkbox"
                         id={`dealer_${d.id}`}
                         checked={checked}
@@ -422,82 +461,110 @@ export default function DiscountCreate() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Limitler */}
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <label className="form-label">Minimum Sipariş Tutarı</label>
-            <input
-              type="number"
-              className="form-control"
-              value={minimumOrderAmount}
-              onChange={(e) => setMinimumOrderAmount(e.target.value)}
-              step="0.01"
-              placeholder="örn. 100"
-            />
+          {/* Limitler */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">
+                Minimum Sipariş Tutarı
+              </label>
+              <div className="form-group__input">
+                <input
+                  type="number"
+                  className="sherah-wc__form-input"
+                  value={minimumOrderAmount}
+                  onChange={(e) => setMinimumOrderAmount(e.target.value)}
+                  step="0.01"
+                  placeholder="örn. 100"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">
+                Maksimum İndirim Tutarı
+              </label>
+              <div className="form-group__input">
+                <input
+                  type="number"
+                  className="sherah-wc__form-input"
+                  value={maximumDiscountAmount}
+                  onChange={(e) => setMaximumDiscountAmount(e.target.value)}
+                  step="0.01"
+                  placeholder="örn. 500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ✅ Kullanım limitleri */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">
+                Toplam Kullanım Limiti
+              </label>
+              <div className="form-group__input">
+                <input
+                  type="number"
+                  className="sherah-wc__form-input"
+                  value={usageLimit}
+                  onChange={(e) => setUsageLimit(e.target.value)}
+                  step="1"
+                  min="0"
+                  placeholder="örn. 100"
+                />
+              </div>
+            </div>
           </div>
           <div className="col-md-6 mb-3">
-            <label className="form-label">Maksimum İndirim Tutarı</label>
+            <div className="form-group">
+              <label className="sherah-wc__form-label">
+                Müşteri Başı Kullanım Limiti
+              </label>
+              <div className="form-group__input">
+                <input
+                  type="number"
+                  className="sherah-wc__form-input"
+                  value={usageLimitPerCustomer}
+                  onChange={(e) => setUsageLimitPerCustomer(e.target.value)}
+                  step="1"
+                  min="0"
+                  placeholder="örn. 1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Aktif */}
+          <div className="form-check mb-4 ms-3 d-flex align-items-center gap-2">
             <input
-              type="number"
-              className="form-control"
-              value={maximumDiscountAmount}
-              onChange={(e) => setMaximumDiscountAmount(e.target.value)}
-              step="0.01"
-              placeholder="örn. 500"
+              style={{ padding: 0, width: 20, height: 20 }}
+              type="checkbox"
+              className="form-check-input mt-0s"
+              id="isActiveChk"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
             />
+            <label
+              className="form-check-label mb-0 lh-sm"
+              htmlFor="isActiveChk"
+            >
+              Aktif mi?
+            </label>
           </div>
         </div>
 
-        {/* ✅ Kullanım limitleri */}
-        <div className="row">
-          <div className="col-md-6 mb-3">
-            <label className="form-label">Toplam Kullanım Limiti</label>
-            <input
-              type="number"
-              className="form-control"
-              value={usageLimit}
-              onChange={(e) => setUsageLimit(e.target.value)}
-              step="1"
-              min="0"
-              placeholder="örn. 100"
-            />
-          </div>
-          <div className="col-md-6 mb-3">
-            <label className="form-label">Müşteri Başı Kullanım Limiti</label>
-            <input
-              type="number"
-              className="form-control"
-              value={usageLimitPerCustomer}
-              onChange={(e) => setUsageLimitPerCustomer(e.target.value)}
-              step="1"
-              min="0"
-              placeholder="örn. 1"
-            />
-          </div>
-        </div>
-
-        {/* Aktif */}
-        <div className="form-check mb-4">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            id="isActiveChk"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="isActiveChk">
-            Aktif mi?
-          </label>
-        </div>
-
-        <button type="submit" className="btn btn-success" disabled={saving}>
+        <button
+          type="submit"
+          className="sherah-btn sherah-btn__secondary"
+          disabled={saving}
+        >
           {saving ? "Kaydediliyor..." : "Kaydet"}
         </button>
         <button
           type="button"
-          className="btn btn-secondary ms-2"
+          className="sherah-btn bg-secondary ms-3"
           onClick={() => navigate("/discounts")}
           disabled={saving}
         >
