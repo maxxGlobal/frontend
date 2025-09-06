@@ -108,75 +108,85 @@ export default function AdminSentNotificationsList() {
   return (
     <div className="sherah-table p-0">
       <div className="dataTables_wrapper dt-bootstrap5 no-footer">
-        <div className="row align-items-center mb-4 justify-content-between">
-          <div className="col-sm-12 col-md-6">
-            <h3 className="sherah-card__title py-3">Gönderilmiş Bildirimler</h3>
+        {/* Başlık */}
+        <div className="row align-items-center pb-3 mb-3">
+          <div className="col-md-6 mb-2 mb-md-0">
+            <h3 className="sherah-card__title m-0 fw-bold mt-5">
+              Gönderilmiş Bildirimler
+            </h3>
           </div>
         </div>
-      </div>
 
-      {/* Filtre Bar */}
-      <div className="card card-body mb-3">
-        <div className="row g-3">
-          <div className="col-md-6">
-            <label className="form-label">Ara</label>
-            <input
-              className="form-control"
-              placeholder="Başlık / Mesaj"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") applyFilters();
-              }}
-            />
-          </div>
-          <div className="col-md-6">
-            <label className="form-label">Tip</label>
-            <Select<TypeOpt, false>
-              options={typeOptions}
-              value={selectedType}
-              onChange={(opt) => setTypeValue(opt?.value ?? "")}
-              isClearable={false}
-            />
-          </div>
-          <div className="col-12 text-end">
-            <button className="btn btn-primary" onClick={applyFilters}>
-              Uygula
-            </button>
+        {/* Filtre Bar */}
+        <div className="card card-body mb-3">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-6">
+              <label className="form-label">Ara</label>
+              <input
+                style={{ height: 64 }}
+                className="form-control"
+                placeholder="Başlık / Mesaj"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") applyFilters();
+                }}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Tip</label>
+              <Select<TypeOpt, false>
+                options={typeOptions}
+                value={selectedType}
+                onChange={(opt) => setTypeValue(opt?.value ?? "")}
+                isClearable={false}
+              />
+            </div>
+            <div className="col-12 text-end">
+              <button
+                className="sherah-btn sherah-btn__primary"
+                onClick={applyFilters}
+              >
+                Uygula
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tablo */}
-      <div className="card card-body">
+        {/* Tablo */}
         {loading ? (
-          <div className="text-center my-5">
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ minHeight: "200px" }}
+          >
             <div className="spinner-border" role="status">
               <span className="visually-hidden">Yükleniyor</span>
             </div>
           </div>
         ) : rows.length === 0 ? (
-          <div className="text-center text-muted py-5">Kayıt bulunamadı.</div>
+          <div className="alert alert-info m-3">Kayıt bulunamadı.</div>
         ) : (
-          <div className="table-responsive">
-            <table className="table align-middle">
-              <thead>
+          <>
+            <table className="sherah-table__main sherah-table__main-v3 d-block overflow-y-scrolls">
+              <thead className="sherah-table__head">
                 <tr>
-                  <th>ID</th>
-                  <th>Başlık / Mesaj</th>
+                  <th>Başlık </th>
+                  <th>Mesaj</th>
                   <th>Tip</th>
                   <th>Öncelik</th>
                   <th>Oluşturma</th>
                   <th>Aksiyon</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="sherah-table__body">
                 {rows.map((r) => (
                   <tr key={r.id}>
-                    <td>{r.id}</td>
                     <td>
                       <div className="fw-semibold">{r.title}</div>
-                      <div className="text-muted small">{r.message}</div>
+                    </td>
+                    <td>
+                      {" "}
+                      <div>{r.message}</div>
                     </td>
                     <td>
                       <span className="badge bg-info">
@@ -189,7 +199,7 @@ export default function AdminSentNotificationsList() {
                         ? new Date(r.createdAt).toLocaleString()
                         : "-"}
                     </td>
-                    <td className="text-end">
+                    <td className="d-flex justify-content-end">
                       {r.actionUrl ? (
                         <a
                           className="btn btn-sm btn-outline-secondary"
@@ -209,47 +219,50 @@ export default function AdminSentNotificationsList() {
             </table>
 
             {/* Sayfalama */}
-            <div className="d-flex align-items-center justify-content-between mt-3">
-              <div className="text-muted">
-                Toplam: {totalElements.toLocaleString("tr-TR")}
+            <div className="row align-items-center mt-3">
+              <div className="col-sm-12 col-md-5">
+                Toplam <strong>{totalElements.toLocaleString("tr-TR")}</strong>{" "}
+                kayıt • Sayfa {page + 1} / {Math.max(1, totalPages)}
               </div>
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={page <= 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                >
-                  ‹ Önceki
-                </button>
-                <div className="align-self-center small">
-                  Sayfa {page + 1} / {Math.max(1, totalPages)}
-                </div>
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={page + 1 >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Sonraki ›
-                </button>
+              <div className="col-sm-12 col-md-7">
+                <div className="dataTables_paginate paging_simple_numbers d-flex justify-content-end align-items-center gap-2">
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    disabled={page <= 0}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
+                    ‹ Önceki
+                  </button>
+                  <div className="small">
+                    {page + 1} / {Math.max(1, totalPages)}
+                  </div>
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    disabled={page + 1 >= totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Sonraki ›
+                  </button>
 
-                <select
-                  className="form-select form-select-sm ms-2"
-                  style={{ width: 90 }}
-                  value={size}
-                  onChange={(e) => {
-                    setSize(Number(e.target.value));
-                    setPage(0);
-                  }}
-                >
-                  {[10, 20, 50, 100].map((s) => (
-                    <option key={s} value={s}>
-                      {s}/sayfa
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    className="form-select form-select-sm ms-2"
+                    style={{ width: 90 }}
+                    value={size}
+                    onChange={(e) => {
+                      setSize(Number(e.target.value));
+                      setPage(0);
+                    }}
+                  >
+                    {[10, 20, 50, 100].map((s) => (
+                      <option key={s} value={s}>
+                        {s}/sayfa
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

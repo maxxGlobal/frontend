@@ -307,9 +307,7 @@ export default function AdminBroadcastPanel() {
       <div className="dataTables_wrapper dt-bootstrap5 no-footer">
         <div className="row align-items-center mb-4 justify-content-between">
           <div className="col-sm-12 col-md-6">
-            <h3 className="sherah-card__title py-3">
-              Admin Broadcast Bildirim
-            </h3>
+            <h3 className="sherah-card__title py-3">Admin Bildirim Ekle</h3>
           </div>
         </div>
       </div>
@@ -327,6 +325,7 @@ export default function AdminBroadcastPanel() {
             <div className="col-md-6">
               <label className="form-label">Başlık</label>
               <input
+                style={{ height: 64 }}
                 className="form-control"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -356,7 +355,7 @@ export default function AdminBroadcastPanel() {
               />
             </div>
 
-            <div className="col-md-4">
+            <div className="col-md-6 mb-4">
               <label className="form-label">Öncelik</label>
               <Select<PriorityOpt, false>
                 options={PRIORITY_OPTIONS}
@@ -367,36 +366,16 @@ export default function AdminBroadcastPanel() {
               />
             </div>
 
-            <div className="col-md-4">
+            <div className="col-md-6 mb-4">
               <label className="form-label">Aksiyon Linki</label>
               <input
+                style={{ height: 64 }}
                 className="form-control"
                 value={actionUrl}
                 onChange={(e) => setActionUrl(e.target.value)}
                 placeholder="Tıklanınca gidilecek URL"
               />
             </div>
-          </div>
-
-          {/* Hedefleme */}
-          <hr className="my-4" />
-          <h5>Hedefleme</h5>
-
-          <div className="form-check mb-3">
-            <input
-              id="sendToAll"
-              type="checkbox"
-              className="form-check-input"
-              checked={sendToAll}
-              onChange={(e) => {
-                const v = e.target.checked;
-                setSendToAll(v);
-                if (v) resetAllTargetsExcept("all"); // başka hedef bırakma
-              }}
-            />
-            <label className="form-check-label" htmlFor="sendToAll">
-              Tüm kullanıcılara gönder (sendToAll)
-            </label>
           </div>
 
           {!sendToAll && (
@@ -470,10 +449,29 @@ export default function AdminBroadcastPanel() {
               </div>
             </>
           )}
+          {/* Hedefleme */}
+          <hr className="my-4" />
+
+          <div className="form-check mb-3">
+            <input
+              id="sendToAll"
+              type="checkbox"
+              className="form-check-input"
+              checked={sendToAll}
+              onChange={(e) => {
+                const v = e.target.checked;
+                setSendToAll(v);
+                if (v) resetAllTargetsExcept("all"); // başka hedef bırakma
+              }}
+            />
+            <label className="form-check-label" htmlFor="sendToAll">
+              Tüm kullanıcılara gönder (sendToAll)
+            </label>
+          </div>
 
           <div className="text-end mt-4">
             <button
-              className="btn btn-primary"
+              className="sherah-btn sherah-gbcolor"
               onClick={handleSubmit}
               disabled={posting}
               title="Yayınla"
