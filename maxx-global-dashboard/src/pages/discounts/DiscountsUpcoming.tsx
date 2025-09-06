@@ -4,38 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
-import EditDiscountModal from "./components/EditDiscountModal"; // 👈 modal eklendi
+import EditDiscountModal from "./components/EditDiscountModal";
+import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
+import PopoverBadgeDealer from "../../components/popover/PopoverBadgeDealer";
 
 // helpers
-function namesFrom<T extends { id: number; name?: string }>(arr?: T[]) {
-  const list = Array.isArray(arr) ? arr : [];
-  return list.map((x) => (x.name?.trim() ? x.name : `#${x.id}`));
-}
-function renderBadges<T extends { id: number; name?: string }>(
-  arr?: T[],
-  max = 3
-) {
-  const all = namesFrom(arr);
-  const shown = all.slice(0, max);
-  const rest = all.slice(max);
-  const restTitle = rest.join(", ");
-
-  return (
-    <div className="d-flex flex-wrap gap-1" title={all.join(", ")}>
-      {shown.map((n, i) => (
-        <span key={i} className="badge bg-info text-dark">
-          {n}
-        </span>
-      ))}
-      {rest.length > 0 && (
-        <span className="badge bg-secondary" title={restTitle}>
-          +{rest.length}
-        </span>
-      )}
-    </div>
-  );
-}
-
 function formatTimeLeft(startIso?: string) {
   if (!startIso) return "-";
   const ms = new Date(startIso).getTime() - Date.now();
@@ -54,7 +27,6 @@ export default function DiscountsUpcoming() {
   const [rows, setRows] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 👇 Güncelle modali için hedef
   const [editTarget, setEditTarget] = useState<Discount | null>(null);
 
   async function load() {
@@ -75,106 +47,173 @@ export default function DiscountsUpcoming() {
   }, []);
 
   const hasRows = rows.length > 0;
-
+  const statusBadge = (s?: string | null) =>
+    s === "AKTİF" ? (
+      <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
+        AKTİF
+      </div>
+    ) : (
+      <div className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
+        PASİF
+      </div>
+    );
   return (
-    <div className="sherah-page-inner sherah-default-bg sherah-border p-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="mb-0">Yaklaşan İndirimler</h2>
-        <div className="d-flex gap-2">
-          <button
-            className="btn btn-outline-primary"
-            onClick={() => navigate("/discounts-create")}
-          >
-            + Yeni İndirim
-          </button>
-          <Link to="/discounts-list" className="btn btn-secondary">
-            ← İndirim Listesi
-          </Link>
+    <div className="sherah-table p-0">
+      <div className="dataTables_wrapper dt-bootstrap5 no-footer mb-4">
+        <div className="row align-items-center border-bottom pb-3 mb-3">
+          <div className="col-md-6 mb-2 mb-md-0">
+            <h2 className="sherah-card__title m-0 fw-bold">
+              Yaklaşan İndirimler
+            </h2>
+          </div>
+          <div className="col-md-6 d-flex flex-wrap justify-content-md-end gap-2 mt-4">
+            <Link to="/discounts-list" className="sherah-btn sherah-gbcolor">
+              ← İndirim Listesi
+            </Link>
+          </div>
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center">Yükleniyor...</div>
-      ) : hasRows ? (
-        <>
-          <table className="table table-bordered table-hover align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>Ad</th>
-                <th>Açıklama</th>
-                <th>Tip</th>
-                <th>Değer</th>
-                <th>Ürünler</th>
-                <th>Bayiler</th>
-                <th>Başlangıç</th>
-                <th>Bitiş</th>
-                <th>Kalan</th>
-                <th>Durum</th>
-                <th style={{ width: 120 }}>İşlemler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((d) => (
-                <tr key={d.id}>
-                  <td>{d.name}</td>
-                  <td>{d.description ?? "-"}</td>
-                  <td>{d.discountType}</td>
-                  <td>
-                    {d.discountType === "PERCENTAGE"
-                      ? `%${d.discountValue}`
-                      : `${d.discountValue} ₺`}
-                  </td>
-                  <td style={{ minWidth: 180 }}>
-                    {renderBadges(d.applicableProducts, 3)}
-                  </td>
-                  <td style={{ minWidth: 180 }}>
-                    {renderBadges(d.applicableDealers, 3)}
-                  </td>
-                  <td>
-                    {d.startDate ? new Date(d.startDate).toLocaleString() : "-"}
-                  </td>
-                  <td>
-                    {d.endDate ? new Date(d.endDate).toLocaleString() : "-"}
-                  </td>
-                  <td>
-                    <span className="badge bg-warning text-dark">
-                      {formatTimeLeft(d.startDate)}
-                    </span>
-                  </td>
-                  <td>{d.status ?? (d.isActive ? "AKTİF" : "PASİF")}</td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-warning"
-                      onClick={() => setEditTarget(d)}
-                      title="Güncelle"
-                    >
-                      <i className="fa-regular fa-pen-to-square"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="text-muted">
-            Toplam: <strong>{rows.length}</strong> yaklaşan indirim.
+      <div>
+        {loading ? (
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ minHeight: "300px" }}
+          >
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Yükleniyor...</span>
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="alert alert-info">Yaklaşan indirim bulunamadı.</div>
-      )}
+        ) : hasRows ? (
+          <>
+            <table className="sherah-table__main sherah-table__main-v3 d-block overflow-y-scrolls">
+              <thead className="sherah-table__head">
+                <tr>
+                  <th>Ad</th>
+                  <th>Açıklama</th>
+                  <th>Tip</th>
+                  <th>Değer</th>
+                  <th>Ürünler</th>
+                  <th>Bayiler</th>
+                  <th>Başlangıç</th>
+                  <th>Bitiş</th>
+                  <th>Kalan</th>
+                  <th>Durum</th>
+                  <th>İşlemler</th>
+                </tr>
+              </thead>
+              <tbody className="sherah-table__body">
+                {rows.map((d) => (
+                  <tr key={d.id}>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">{d.name}</p>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">
+                          {d.description ?? "-"}
+                        </p>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">
+                          {d.discountType}
+                        </p>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">
+                          {d.discountType === "PERCENTAGE"
+                            ? `%${d.discountValue}`
+                            : `${d.discountValue} ₺`}
+                        </p>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        {d.applicableProducts?.length ? (
+                          <PopoverBadgeProduct items={d.applicableProducts} />
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        {d.applicableDealers?.length ? (
+                          <PopoverBadgeDealer items={d.applicableDealers} />
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">
+                          {d.startDate
+                            ? new Date(d.startDate).toLocaleString()
+                            : "-"}
+                        </p>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">
+                          {d.endDate
+                            ? new Date(d.endDate).toLocaleString()
+                            : "-"}
+                        </p>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge bg-warning text-dark">
+                        {formatTimeLeft(d.startDate)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="sherah-table__product-content">
+                        <p className="sherah-table__product-desc">
+                          {statusBadge(d.status)}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="d-flex gap-1 flex-nowrap">
+                      <button
+                        className="sherah-table__action sherah-color3 sherah-color3__bg--opactit border-0"
+                        onClick={() => setEditTarget(d)}
+                        title="Güncelle"
+                      >
+                        <i className="fa-regular fa-pen-to-square" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-      {/* Güncelleme Modalı */}
-      {editTarget && (
-        <EditDiscountModal
-          target={editTarget}
-          onClose={() => setEditTarget(null)}
-          onSaved={() => {
-            setEditTarget(null);
-            load(); // 👈 güncellemeden sonra listeyi tazele
-          }}
-        />
-      )}
+            <div className="text-muted mt-3">
+              Toplam: <strong>{rows.length}</strong> yaklaşan indirim.
+            </div>
+          </>
+        ) : (
+          <div className="alert alert-info">Yaklaşan indirim bulunamadı.</div>
+        )}
+
+        {editTarget && (
+          <EditDiscountModal
+            target={editTarget}
+            onClose={() => setEditTarget(null)}
+            onSaved={() => {
+              setEditTarget(null);
+              load();
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -8434,3 +8434,6 @@ box-shadow: none !important;
 .sherah-table__head tr th {
     padding: 28px 28px !important;
 }
+.custom-box-shadow:focus{
+	box-shadow: none !important;
+}

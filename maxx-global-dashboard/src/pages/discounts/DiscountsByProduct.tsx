@@ -9,35 +9,8 @@ import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
 import type { ProductSimple } from "../../types/product";
 import type { DealerSummary } from "../../types/dealer";
+import PopoverBadgeDealer from "../../components/popover/PopoverBadgeDealer";
 
-// helpers
-function namesFrom<T extends { id: number; name?: string }>(arr?: T[]) {
-  const list = Array.isArray(arr) ? arr : [];
-  return list.map((x) => (x.name?.trim() ? x.name : `#${x.id}`));
-}
-function renderBadges<T extends { id: number; name?: string }>(
-  arr?: T[],
-  max = 3
-) {
-  const all = namesFrom(arr);
-  const shown = all.slice(0, max);
-  const rest = all.slice(max);
-  const restTitle = rest.join(", ");
-  return (
-    <div className="d-flex flex-wrap gap-1" title={all.join(", ")}>
-      {shown.map((n, i) => (
-        <span key={i} className="badge bg-info text-dark">
-          {n}
-        </span>
-      ))}
-      {rest.length > 0 && (
-        <span className="badge bg-secondary" title={restTitle}>
-          +{rest.length}
-        </span>
-      )}
-    </div>
-  );
-}
 function dedupeById<T extends { id: number }>(arr: T[]): T[] {
   const map = new Map<number, T>();
   for (const x of arr) map.set(x.id, x);
@@ -54,27 +27,21 @@ function statusBadge(d: Discount) {
   if (start > now) {
     return <span className="badge bg-warning text-dark">YAKLAŞAN</span>;
   }
-  return (
-    <span className="badge bg-secondary">{d.isActive ? "PASİF" : "PASİF"}</span>
-  );
+  return <span className="badge bg-secondary">PASİF</span>;
 }
 
 export default function DiscountsByProduct() {
-  // dropdown seçenekleri
   const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
   const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
   const [optsLoading, setOptsLoading] = useState(true);
 
-  // seçimler
   const [productId, setProductId] = useState<string>("");
   const [dealerId, setDealerId] = useState<string>("");
-  const [includeUpcoming, setIncludeUpcoming] = useState<boolean>(true); // 👈 yeni
+  const [includeUpcoming, setIncludeUpcoming] = useState<boolean>(true);
 
-  // sonuçlar
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Discount[]>([]);
 
-  // dropdown verileri
   useEffect(() => {
     (async () => {
       try {
@@ -108,10 +75,8 @@ export default function DiscountsByProduct() {
     try {
       setLoading(true);
 
-      // 1) ŞU AN GEÇERLİ indirimler
       const active = await listDiscountsByProduct(pid, did);
 
-      // 2) Yaklaşanları dahil et (opsiyonel)
       let merged = active;
       if (includeUpcoming) {
         const upcomingAll = await listUpcomingDiscounts();
@@ -152,18 +117,30 @@ export default function DiscountsByProduct() {
   }
 
   const hasRows = rows.length > 0;
-
+  const statusBadge = (s?: string | null) =>
+    s === "AKTİF" ? (
+      <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
+        AKTİF
+      </div>
+    ) : (
+      <div className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
+        PASİF
+      </div>
+    );
   return (
-    <div className="sherah-page-inner sherah-default-bg sherah-border p-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="mb-0">Ürüne Göre İndirimler</h2>
-        <div className="d-flex gap-2">
-          <Link to="/discounts" className="btn btn-secondary">
-            ← İndirim Listesi
-          </Link>
-          <Link to="/discounts/upcoming" className="btn btn-outline-primary">
-            Yaklaşan İndirimler
-          </Link>
+    <div className="sherah-table p-0">
+      <div className="dataTables_wrapper dt-bootstrap5 no-footer mb-4">
+        <div className="row align-items-center border-bottom pb-3 mb-3">
+          <div className="col-md-6">
+            <h2 className="sherah-card__title m-0 fw-bold">
+              Ürüne Göre İndirimler
+            </h2>
+          </div>
+          <div className="col-md-6 d-flex flex-wrap justify-content-md-end gap-2 mt-4">
+            <Link to="/discounts-list" className="sherah-btn sherah-gbcolor">
+              ← İndirim Listesi
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -188,7 +165,6 @@ export default function DiscountsByProduct() {
               ))}
             </select>
           </div>
-
           <div className="col-md-4">
             <label className="form-label">Bayi (opsiyonel)</label>
             <select
@@ -205,17 +181,16 @@ export default function DiscountsByProduct() {
               ))}
             </select>
           </div>
-
           <div className="col-md-2 d-flex">
             <button
+              style={{ height: 50 }}
               type="submit"
-              className="btn btn-primary w-100"
+              className="sherah-btn sherah-btn__secondary"
               disabled={optsLoading || loading || !productId}
             >
               {loading ? "Yükleniyor..." : "Getir"}
             </button>
           </div>
-
           <div className="col-12">
             <div className="form-check mt-2">
               <input
@@ -229,21 +204,24 @@ export default function DiscountsByProduct() {
                 Yaklaşan indirimleri de göster
               </label>
             </div>
-            <div className="form-text">
-              Not: “Getir”, şu an geçerli indirimleri arar. Bu kutu işaretliyse,
-              ürünü kapsayan yaklaşan indirimler de eklenir.
-            </div>
           </div>
         </div>
       </form>
 
-      {/* Sonuç Tablosu */}
+      {/* Tablo */}
       {loading ? (
-        <div className="text-center">Yükleniyor...</div>
+        <div
+          className="d-flex justify-content-center align-items-center"
+          style={{ minHeight: "300px" }}
+        >
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
+          </div>
+        </div>
       ) : hasRows ? (
         <>
-          <table className="table table-bordered table-hover align-middle">
-            <thead className="table-light">
+          <table className="sherah-table__main sherah-table__main-v3 d-block overflow-y-scrolls">
+            <thead className="sherah-table__head">
               <tr>
                 <th>Ad</th>
                 <th>Tip</th>
@@ -254,18 +232,26 @@ export default function DiscountsByProduct() {
                 <th>Durum</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="sherah-table__body">
               {rows.map((d) => (
                 <tr key={d.id}>
-                  <td>{d.name}</td>
+                  <td>
+                    <div className="sherah-table__product-content">
+                      <p className="sherah-table__product-desc">{d.name}</p>
+                    </div>
+                  </td>
                   <td>{d.discountType}</td>
                   <td>
                     {d.discountType === "PERCENTAGE"
                       ? `%${d.discountValue}`
                       : `${d.discountValue} ₺`}
                   </td>
-                  <td style={{ minWidth: 160 }}>
-                    {renderBadges(d.applicableDealers, 3)}
+                  <td>
+                    {d.applicableDealers?.length ? (
+                      <PopoverBadgeDealer items={d.applicableDealers} />
+                    ) : (
+                      <span className="text-muted">-</span>
+                    )}
                   </td>
                   <td>
                     {d.startDate ? new Date(d.startDate).toLocaleString() : "-"}
@@ -273,13 +259,13 @@ export default function DiscountsByProduct() {
                   <td>
                     {d.endDate ? new Date(d.endDate).toLocaleString() : "-"}
                   </td>
-                  <td>{statusBadge(d)}</td>
+                  <td> {statusBadge(d.status)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <div className="text-muted">
+          <div className="text-muted mt-3">
             Toplam: <strong>{rows.length}</strong> indirim.
           </div>
         </>

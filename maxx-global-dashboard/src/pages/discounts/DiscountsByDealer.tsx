@@ -8,35 +8,9 @@ import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
 import type { DealerSummary } from "../../types/dealer";
 import EditDiscountModal from "./components/EditDiscountModal";
+import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
 
 // helpers
-function namesFrom<T extends { id: number; name?: string }>(arr?: T[]) {
-  const list = Array.isArray(arr) ? arr : [];
-  return list.map((x) => (x.name?.trim() ? x.name : `#${x.id}`));
-}
-function renderBadges<T extends { id: number; name?: string }>(
-  arr?: T[],
-  max = 3
-) {
-  const all = namesFrom(arr);
-  const shown = all.slice(0, max);
-  const rest = all.slice(max);
-  const restTitle = rest.join(", ");
-  return (
-    <div className="d-flex flex-wrap gap-1" title={all.join(", ")}>
-      {shown.map((n, i) => (
-        <span key={i} className="badge bg-info text-dark">
-          {n}
-        </span>
-      ))}
-      {rest.length > 0 && (
-        <span className="badge bg-secondary" title={restTitle}>
-          +{rest.length}
-        </span>
-      )}
-    </div>
-  );
-}
 function dedupeById<T extends { id: number }>(arr: T[]): T[] {
   const m = new Map<number, T>();
   for (const x of arr) m.set(x.id, x);
@@ -54,22 +28,16 @@ function statusBadge(d: Discount) {
 }
 
 export default function DiscountsByDealer() {
-  // dropdown seçenekleri
   const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
   const [optsLoading, setOptsLoading] = useState(true);
 
-  // seçimler
   const [dealerId, setDealerId] = useState<string>("");
-  const [includeUpcoming, setIncludeUpcoming] = useState<boolean>(true); // 👈 yeni
+  const [includeUpcoming, setIncludeUpcoming] = useState<boolean>(true);
 
-  // sonuçlar
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<Discount[]>([]);
-
-  // modal
   const [editTarget, setEditTarget] = useState<Discount | null>(null);
 
-  // dropdown verileri
   useEffect(() => {
     (async () => {
       try {
@@ -99,10 +67,8 @@ export default function DiscountsByDealer() {
     try {
       setLoading(true);
 
-      // 1) Şu an geçerli indirimler
       const active = await listDiscountsByDealer(did);
 
-      // 2) Yaklaşanlar (opsiyonel)
       let merged = active;
       if (includeUpcoming) {
         const upcomingAll = await listUpcomingDiscounts();
@@ -138,18 +104,30 @@ export default function DiscountsByDealer() {
   }
 
   const hasRows = rows.length > 0;
-
+  const statusBadge = (s?: string | null) =>
+    s === "AKTİF" ? (
+      <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
+        AKTİF
+      </div>
+    ) : (
+      <div className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
+        PASİF
+      </div>
+    );
   return (
-    <div className="sherah-page-inner sherah-default-bg sherah-border p-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="mb-0">Bayiye Uygulanabilir İndirimler</h2>
-        <div className="d-flex gap-2">
-          <Link to="/discounts" className="btn btn-secondary">
-            ← İndirim Listesi
-          </Link>
-          <Link to="/discounts/upcoming" className="btn btn-outline-primary">
-            Yaklaşan İndirimler
-          </Link>
+    <div className="sherah-table p-0">
+      <div className="dataTables_wrapper dt-bootstrap5 no-footer mb-4">
+        <div className="row align-items-center border-bottom pb-3 mb-3">
+          <div className="col-md-6">
+            <h2 className="sherah-card__title m-0 fw-bold">
+              Bayiye Uygulanabilir İndirimler
+            </h2>
+          </div>
+          <div className="col-md-6 d-flex flex-wrap justify-content-md-end gap-2 mt-4">
+            <Link to="/discounts-list" className="sherah-btn sherah-gbcolor">
+              ← İndirim Listesi
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -176,8 +154,9 @@ export default function DiscountsByDealer() {
 
           <div className="col-md-4 d-flex">
             <button
+              style={{ height: 50 }}
               type="submit"
-              className="btn btn-primary w-100"
+              className="sherah-btn sherah-btn__secondary"
               disabled={optsLoading || loading || !dealerId}
             >
               {loading ? "Yükleniyor..." : "Getir"}
@@ -197,22 +176,24 @@ export default function DiscountsByDealer() {
                 Yaklaşan indirimleri de göster
               </label>
             </div>
-            <div className="form-text">
-              Not: “Getir”, seçilen bayi için şu an geçerli indirimleri
-              döndürür. Bu kutu işaretliyse, aynı bayiyi kapsayan yaklaşan
-              indirimler de eklenir.
-            </div>
           </div>
         </div>
       </form>
 
-      {/* Sonuçlar */}
+      {/* Tablo */}
       {loading ? (
-        <div className="text-center">Yükleniyor...</div>
+        <div
+          className="d-flex justify-content-center align-items-center"
+          style={{ minHeight: "300px" }}
+        >
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
+          </div>
+        </div>
       ) : hasRows ? (
         <>
-          <table className="table table-bordered table-hover align-middle">
-            <thead className="table-light">
+          <table className="sherah-table__main sherah-table__main-v3 d-block overflow-y-scrolls">
+            <thead className="sherah-table__head">
               <tr>
                 <th>Ad</th>
                 <th>Açıklama</th>
@@ -222,22 +203,36 @@ export default function DiscountsByDealer() {
                 <th>Başlangıç</th>
                 <th>Bitiş</th>
                 <th>Durum</th>
-                <th style={{ width: 120 }}>İşlemler</th>
+                <th>İşlemler</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="sherah-table__body">
               {rows.map((d) => (
                 <tr key={d.id}>
-                  <td>{d.name}</td>
-                  <td>{d.description ?? "-"}</td>
+                  <td>
+                    <div className="sherah-table__product-content">
+                      <p className="sherah-table__product-desc">{d.name}</p>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="sherah-table__product-content">
+                      <p className="sherah-table__product-desc">
+                        {d.description ?? "-"}
+                      </p>
+                    </div>
+                  </td>
                   <td>{d.discountType}</td>
                   <td>
                     {d.discountType === "PERCENTAGE"
                       ? `%${d.discountValue}`
                       : `${d.discountValue} ₺`}
                   </td>
-                  <td style={{ minWidth: 180 }}>
-                    {renderBadges(d.applicableProducts, 3)}
+                  <td>
+                    {d.applicableProducts?.length ? (
+                      <PopoverBadgeProduct items={d.applicableProducts} />
+                    ) : (
+                      <span className="text-muted">-</span>
+                    )}
                   </td>
                   <td>
                     {d.startDate ? new Date(d.startDate).toLocaleString() : "-"}
@@ -245,14 +240,14 @@ export default function DiscountsByDealer() {
                   <td>
                     {d.endDate ? new Date(d.endDate).toLocaleString() : "-"}
                   </td>
-                  <td>{statusBadge(d)}</td>
-                  <td>
+                  <td>{statusBadge(d.status)}</td>
+                  <td className="d-flex gap-1 flex-nowrap">
                     <button
-                      className="btn btn-sm btn-warning"
+                      className="sherah-table__action sherah-color3 sherah-color3__bg--opactit border-0"
                       onClick={() => setEditTarget(d)}
                       title="Güncelle"
                     >
-                      <i className="fa-regular fa-pen-to-square"></i>
+                      <i className="fa-regular fa-pen-to-square" />
                     </button>
                   </td>
                 </tr>
@@ -260,7 +255,7 @@ export default function DiscountsByDealer() {
             </tbody>
           </table>
 
-          <div className="text-muted">
+          <div className="text-muted mt-3">
             Toplam: <strong>{rows.length}</strong> indirim.
           </div>
         </>
@@ -277,7 +272,6 @@ export default function DiscountsByDealer() {
           onClose={() => setEditTarget(null)}
           onSaved={() => {
             setEditTarget(null);
-            // seçim ve includeUpcoming durumuna göre tekrar yükle
             if (dealerId) {
               reloadList();
             }
