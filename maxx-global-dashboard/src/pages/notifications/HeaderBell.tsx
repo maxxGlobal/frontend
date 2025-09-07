@@ -171,8 +171,10 @@ export default function HeaderBell() {
               transform="translate(15384.189 -7175.73)"
             />
           </svg>
-          <div className="np-header">
-            <div className="np-header-title">Bildirimler</div>
+          <div className="np-header sherah-border-btm">
+            <h3 className="sherah-dropdown-card__title px-0 py-2">
+              Bildirimler
+            </h3>
             <div className="np-header-actions">
               {/* <button
                 className="np-icon-btn text-primary"

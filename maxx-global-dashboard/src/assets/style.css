@@ -8896,3 +8896,11 @@ box-shadow: none !important;
   color: #fff;
 }
 .btn-warning-700:hover { filter: brightness(0.95); }
+
+.charts-main__heading .sherah-heading__title{
+	font-size: 22px;
+}
+
+.dashboard .sherah-table__main .sherah-table__head tr th, .sherah-table__main .sherah-table__body tr td{
+	width: 16%;
+}
