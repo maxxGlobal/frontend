@@ -158,93 +158,98 @@ export default function HeaderBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="sherah-dropdown-card sherah-dropdown-card__alarm sherah-border">
-          <svg
-            className="sherah-dropdown-arrow"
-            xmlns="http://www.w3.org/2000/svg"
-            width="43.488"
-            height="22.207"
-            viewBox="0 0 43.488 22.207"
-          >
-            <path
-              d="M-15383,7197.438l20.555-20.992,20.555,20.992Z"
-              transform="translate(15384.189 -7175.73)"
-            />
-          </svg>
-          <div className="np-header sherah-border-btm">
-            <h3 className="sherah-dropdown-card__title px-0 py-2">
-              Bildirimler
-            </h3>
-            <div className="np-header-actions">
-              {/* <button
+        <>
+          <div className="notif-backdrop" onClick={() => setOpen(false)} />
+          <div className="sherah-dropdown-card notifications-header sherah-dropdown-card__alarm sherah-border">
+            <svg
+              className="sherah-dropdown-arrow"
+              xmlns="http://www.w3.org/2000/svg"
+              width="43.488"
+              height="22.207"
+              viewBox="0 0 43.488 22.207"
+            >
+              <path
+                d="M-15383,7197.438l20.555-20.992,20.555,20.992Z"
+                transform="translate(15384.189 -7175.73)"
+              />
+            </svg>
+            <div className="np-header sherah-border-btm">
+              <h3 className="sherah-dropdown-card__title px-0 py-2">
+                Bildirimler
+              </h3>
+              <div className="np-header-actions">
+                {/* <button
                 className="np-icon-btn text-primary"
                 onClick={() => latestQ.refetch()}
                 title="Yenile"
               >
                 ↻
               </button> */}
-              <button
-                className="np-icon-btn text-success"
-                onClick={handleMarkAll}
-                title="Tümünü okundu işaretle"
+                <button
+                  className="np-icon-btn text-success"
+                  onClick={handleMarkAll}
+                  title="Tümünü okundu işaretle"
+                >
+                  ✓
+                </button>
+              </div>
+            </div>
+            <ul className="sherah-dropdown-card_list notif-list">
+              {latestQ.isLoading && (
+                <li className="notif-loading">Yükleniyor…</li>
+              )}
+
+              {!latestQ.isLoading && latest.length === 0 && (
+                <li className="notif-empty">Bildirim yok</li>
+              )}
+
+              {!latestQ.isLoading &&
+                latest.map((n) => {
+                  const unread = !n.isRead && n.notificationStatus !== "READ";
+                  return (
+                    <li
+                      key={n.id}
+                      className={`notif-item ${
+                        unread ? "is-unread" : "is-read"
+                      }`}
+                      onClick={() => handleOpen(n)}
+                      role={n.actionUrl ? "button" : undefined}
+                      style={{ cursor: n.actionUrl ? "pointer" : "default" }}
+                    >
+                      <div className="d-flex gap-3">
+                        <div
+                          className="notif-avatar"
+                          style={{ backgroundColor: colorFor(n) }}
+                          aria-hidden
+                        >
+                          {initialOf(n)}
+                        </div>
+
+                        <div className="notif-body">
+                          <div className="notif-title">{n.title}</div>
+                          {n.message && (
+                            <div className="notif-desc">{n.message}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="notif-time">
+                        {formatTimeAgo(n.createdAt)} önce
+                      </div>
+                    </li>
+                  );
+                })}
+            </ul>
+            <div className="sherah-dropdown-card__button mt-4">
+              <a
+                href="/my-notifications"
+                className="sherah-dropdown-card__sell-all"
               >
-                ✓
-              </button>
+                Tüm Bildirimleri Görüntele
+              </a>
             </div>
           </div>
-          <ul className="sherah-dropdown-card_list notif-list">
-            {latestQ.isLoading && (
-              <li className="notif-loading">Yükleniyor…</li>
-            )}
-
-            {!latestQ.isLoading && latest.length === 0 && (
-              <li className="notif-empty">Bildirim yok</li>
-            )}
-
-            {!latestQ.isLoading &&
-              latest.map((n) => {
-                const unread = !n.isRead && n.notificationStatus !== "READ";
-                return (
-                  <li
-                    key={n.id}
-                    className={`notif-item ${unread ? "is-unread" : "is-read"}`}
-                    onClick={() => handleOpen(n)}
-                    role={n.actionUrl ? "button" : undefined}
-                    style={{ cursor: n.actionUrl ? "pointer" : "default" }}
-                  >
-                    <div className="d-flex gap-3">
-                      <div
-                        className="notif-avatar"
-                        style={{ backgroundColor: colorFor(n) }}
-                        aria-hidden
-                      >
-                        {initialOf(n)}
-                      </div>
-
-                      <div className="notif-body">
-                        <div className="notif-title">{n.title}</div>
-                        {n.message && (
-                          <div className="notif-desc">{n.message}</div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="notif-time">
-                      {formatTimeAgo(n.createdAt)} önce
-                    </div>
-                  </li>
-                );
-              })}
-          </ul>
-          <div className="sherah-dropdown-card__button mt-4">
-            <a
-              href="/my-notifications"
-              className="sherah-dropdown-card__sell-all"
-            >
-              Tüm Bildirimleri Görüntele
-            </a>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
