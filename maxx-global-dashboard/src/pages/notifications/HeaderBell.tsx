@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
@@ -20,7 +21,7 @@ const qkUnread = ["notifications", "unreadCount"];
 const qkSummary = ["notifications", "summary"];
 const qkLatest = ["notifications", "latest"];
 
-/** createdAt -> “x dk / x sa / x gün önce” */
+/** createdAt -> "x dk / x sa / x gün önce" */
 function formatTimeAgo(iso?: string | null) {
   if (!iso) return "";
   const then = new Date(iso).getTime();
@@ -56,6 +57,7 @@ function colorFor(n: NotificationRow) {
 
 export default function HeaderBell() {
   const qc = useQueryClient();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
@@ -70,18 +72,38 @@ export default function HeaderBell() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Sayfa değişimlerinde notification verilerini yenile
+  useEffect(() => {
+    // Sayfa her değiştiğinde bildirim verilerini background'da yenile
+    const refreshNotifications = () => {
+      qc.invalidateQueries({ queryKey: qkUnread });
+      qc.invalidateQueries({ queryKey: qkSummary });
+      qc.invalidateQueries({ queryKey: qkLatest });
+    };
+
+    // Sayfa yüklendiğinde bir kere çalıştır
+    refreshNotifications();
+  }, [location.pathname, qc]);
+
+  // Bildirim kutusunu açtığında verileri yenile
+  useEffect(() => {
+    if (open) {
+      qc.invalidateQueries({ queryKey: qkLatest });
+    }
+  }, [open, qc]);
+
   const unreadQ = useQuery({
     queryKey: qkUnread,
     queryFn: () => getUnreadCount(),
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    staleTime: 5 * 60 * 1000, // 5 dakika fresh kalsin
+    // refetchInterval kaldırıldı - manuel yenileyeceğiz
   });
 
   const summaryQ = useQuery({
     queryKey: qkSummary,
     queryFn: () => getNotificationSummary(),
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    staleTime: 5 * 60 * 1000, // 5 dakika fresh kalsin
+    // refetchInterval kaldırıldı
   });
 
   const latestQ = useQuery({
@@ -90,8 +112,8 @@ export default function HeaderBell() {
       const res = await api.get(`/notifications?page=0&size=5`);
       return res.data?.data?.content ?? [];
     },
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    staleTime: 2 * 60 * 1000, // 2 dakika fresh kalsin
+    // refetchInterval kaldırıldı
   });
 
   const unread = unreadQ.data ?? 0;
@@ -106,6 +128,7 @@ export default function HeaderBell() {
         "Tüm bildirimler okundu olarak işaretlendi.",
         "success"
       );
+      // Tüm notification cache'lerini yenile
       qc.invalidateQueries({ queryKey: qkUnread });
       qc.invalidateQueries({ queryKey: qkSummary });
       qc.invalidateQueries({ queryKey: qkLatest });
@@ -115,15 +138,29 @@ export default function HeaderBell() {
   }
 
   function handleOpen(n: NotificationRow) {
-    if (n.actionUrl) window.open(n.actionUrl, "_blank", "noopener,noreferrer");
+    if (n.actionUrl) {
+      window.open(n.actionUrl, "_blank", "noopener,noreferrer");
+      // Bildirime tıklandığında da verileri yenile (okundu durumu değişebilir)
+      setTimeout(() => {
+        qc.invalidateQueries({ queryKey: qkUnread });
+        qc.invalidateQueries({ queryKey: qkLatest });
+      }, 1000);
+    }
   }
+
+  // Manuel yenileme butonu fonksiyonu
+  const handleManualRefresh = () => {
+    qc.invalidateQueries({ queryKey: qkUnread });
+    qc.invalidateQueries({ queryKey: qkSummary });
+    qc.invalidateQueries({ queryKey: qkLatest });
+  };
 
   return (
     <div
       className={`sherah-header__dropmenu np ${open ? "is-open" : ""}`}
       ref={boxRef}
     >
-      {/* Zil butonu — SVG’ye dokunmuyoruz */}
+      {/* Zil butonu — SVG'ye dokunmuyoruz */}
       <button
         type="button"
         className="btn p-0 border-0 bg-transparent shadow-none"
@@ -178,13 +215,14 @@ export default function HeaderBell() {
                 Bildirimler
               </h3>
               <div className="np-header-actions">
-                {/* <button
-                className="np-icon-btn text-primary"
-                onClick={() => latestQ.refetch()}
-                title="Yenile"
-              >
-                ↻
-              </button> */}
+                <button
+                  className="np-icon-btn text-primary"
+                  onClick={handleManualRefresh}
+                  title="Yenile"
+                  disabled={latestQ.isFetching}
+                >
+                  {latestQ.isFetching ? "⟳" : "↻"}
+                </button>
                 <button
                   className="np-icon-btn text-success"
                   onClick={handleMarkAll}

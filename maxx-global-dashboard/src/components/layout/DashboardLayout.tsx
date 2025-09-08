@@ -1,7 +1,8 @@
-// src/layouts/DashboardLayout.tsx
+// src/components/layout/DashboardLayout.tsx
 import { Outlet } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
 import Header from "../header/Header";
+import { AutoNotificationProvider } from "../../hooks/AutoNotificationProvider"
 
 export default function DashboardLayout() {
   return (
@@ -20,8 +21,10 @@ export default function DashboardLayout() {
           <div className="row">
             <div className="col-12 sherah-main__column">
               <div className="sherah-body">
-                <div className="sherah-dsinner">
-                  <Outlet />
+                <div className="sherah-dsinner"> 
+                  <AutoNotificationProvider>
+                    <Outlet />
+                  </AutoNotificationProvider>
                 </div>
               </div>
             </div>
