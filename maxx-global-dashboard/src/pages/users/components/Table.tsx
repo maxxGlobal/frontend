@@ -23,8 +23,8 @@ export default function UsersTable({
   onAskDelete,
   onAskEdit,
 }: Props) {
-  const canDelete = hasPermission({ required: "USER_MANAGE" });
-
+  const canDelete = hasPermission({ anyOf: ["SYSTEM_ADMIN", "USER_READ", "USER_MANAGE"] });
+    const deleted = "SİLİNDİ";
   return (
     <div className="sherah-table p-0">
       <table
@@ -146,7 +146,7 @@ export default function UsersTable({
                         {/* edit icon */}
                         <i className="fa-regular fa-pen-to-square" />
                       </a>
-                      {canDelete && (
+                      {canDelete && u.status !== deleted  && (
                         <a
                           href="#"
                           onClick={(e) => {

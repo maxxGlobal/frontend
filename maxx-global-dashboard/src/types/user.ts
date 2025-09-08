@@ -28,6 +28,7 @@ export interface UserRow {
   dealer?: DealerMini | null;
   roles: RoleMini[];
   status: string;
+  address:string;
   createdAt: string;
 }
 
@@ -67,10 +68,12 @@ export type UpdateUserRequest = Partial<{
   firstName: string;
   lastName: string;
   email: string;
-  address: string;
+  address: string;      
+  password: string;     
   phoneNumber: string;
   dealerId: number;
   roleId: number; // tek rol veriyorsanız
   status: string; // ör: "ACTIVE" | "PASSIVE" vs.
 }>;
+
 export type UpdatedUser = UserRow;

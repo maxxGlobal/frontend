@@ -23,6 +23,7 @@ export interface UserRow {
   lastName: string;
   email: string;
   phoneNumber?: string | null;
+  address?:string | null,
   dealer?: DealerMini | null;
   roles: RoleMini[];
   status: string;
@@ -66,7 +67,7 @@ export interface RegisterUserRequest {
   password: string;
   address?: string;
   phoneNumber?: string;
-  dealerId: number;
+  dealerId?: number;
   roleId: number;
 }
 
