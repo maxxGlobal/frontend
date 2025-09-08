@@ -44,6 +44,9 @@ export interface OrderResponse {
   notes: string | null;
   adminNotes: string | null;
   status: string;
+  hasDiscount: string;
+  appliedDiscount: string;
+  discountName: string;
 }
 
 export interface PageResponse<T> {
