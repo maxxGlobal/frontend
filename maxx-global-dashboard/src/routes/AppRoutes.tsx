@@ -32,6 +32,7 @@ import AdminBroadcastPanel from "../pages/notifications/AdminBroadcastPanel";
 import AdminNotificationsList from "../pages/notifications/AdminNotificationsList";
 import MyNotificationsPage from "../pages/notifications/MyNotificationsPage";
 import OrderDetailPage from "../pages/orders/OrderDetailPage";
+ 
 
 export default function AppRoutes() {
   return (
@@ -47,36 +48,48 @@ export default function AppRoutes() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<ProfilePage />} />
 
-          {/* /users sadece USER_MANAGE */}
-          <Route element={<ProtectedRoute required="USER_MANAGE" />}>
-            <Route path="/users/register" element={<RegisterUser />} />
+          {/* ✅ Users - daha esnek yetki */}
+          <Route element={<ProtectedRoute anyOf={["USER_READ", "USER_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/users/list" element={<UsersList />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute anyOf={["USER_MANAGE", "SYSTEM_ADMIN"]} />}>
+            <Route path="/users/register" element={<RegisterUser />} />
+          </Route>
+
+          {/* ✅ Roles - ADMIN'e de izin ver */}
+          <Route element={<ProtectedRoute anyOf={["SYSTEM_ADMIN", "ADMIN"]} />}>
             <Route path="/roles" element={<RolesList />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute required="SYSTEM_ADMIN" />}>
             <Route path="/roles/new" element={<RoleCreate />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+
+          {/* ✅ Dealers - daha esnek yetki */}
+          <Route element={<ProtectedRoute anyOf={["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/dealers" element={<DealersList />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute anyOf={["DEALER_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/dealers-add" element={<DealerCreate />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+
+          {/* ✅ Categories - daha esnek yetki */}
+          <Route element={<ProtectedRoute anyOf={["CATEGORY_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/category-add" element={<CategoryCreate />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute anyOf={["CATEGORY_READ", "CATEGORY_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/category" element={<CategoriesList />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+
+          {/* ✅ Products - daha esnek yetki */}
+          <Route element={<ProtectedRoute anyOf={["PRODUCT_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/product-add" element={<ProductCreate />} />
           </Route>
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute anyOf={["PRODUCT_READ", "PRODUCT_MANAGE", "SYSTEM_ADMIN"]} />}>
             <Route path="/product" element={<ProductsList />} />
-            <Route path="/products/:id" element={<ProductDetails />} />{" "}
+            <Route path="/products/:id" element={<ProductDetails />} />
           </Route>
+
+          {/* Diğer rotalar aynı kalabilir */}
           <Route
             path="/dealers/:dealerId/prices"
             element={<DealerPricesPage />}

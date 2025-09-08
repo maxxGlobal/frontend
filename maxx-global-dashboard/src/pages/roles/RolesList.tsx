@@ -69,20 +69,21 @@ export default function RolesList() {
   const [showUndo, setShowUndo] = useState(false);
   const undoTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const rows = await listRoles();
-      } catch (e) {
-        console.error(e);
-        setError("Roller yüklenirken bir hata oluştu.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [refreshKey]);
+useEffect(() => {
+  (async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const rows = await listRoles();
+      setAll(rows);  
+    } catch (e) {
+      console.error(e);
+      setError("Roller yüklenirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [refreshKey]);
 
   const filtered = useMemo(() => {
     const t = q.trim().toLocaleLowerCase("tr-TR");

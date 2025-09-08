@@ -3,26 +3,55 @@ import { listAdminOrders } from "../../services/orders/listAdminOrders";
 import { approveOrder } from "../../services/orders/approve";
 import { rejectOrder } from "../../services/orders/reject";
 import { shipOrder } from "../../services/orders/ship";
+import { listSimpleDealers } from "../../services/dealers/listSimple";
 import type { PageResponse, OrderResponse } from "../../types/order";
+import type { SimpleDealer } from "../../services/dealers/listSimple";
 import OrderDetailModal from "./components/OrderDetailModal";
 import EditOrderModal from "./components/EditOrderModal";
 import { downloadOrderPdf } from "../../services/orders/downloadPdf";
 import Swal from "sweetalert2";
 
+// Sipariş durumları sabitleri
+const ORDER_STATUSES = [
+  { value: "", label: "Tüm Durumlar" },
+  { value: "PENDING", label: "Beklemede" },
+  { value: "APPROVED", label: "Onaylandı" },
+  { value: "REJECTED", label: "Reddedildi" },
+  { value: "EDITED_PENDING_APPROVAL", label: "Düzenleme Onay Bekliyor" },
+  { value: "SHIPPED", label: "Kargolandı" },
+  { value: "CANCELLED", label: "İptal Edildi" },
+];
+
 export default function OrderManagementPanel() {
-  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(
-    null
-  );
+  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(null);
+  const [dealers, setDealers] = useState<SimpleDealer[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
+  // Filtre state'leri
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedDealerId, setSelectedDealerId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
-    null
-  );
+  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
 
+  // Dealers'ı yükle
+  useEffect(() => {
+    async function loadDealers() {
+      try {
+        const dealerList = await listSimpleDealers();
+        setDealers(dealerList);
+      } catch (error) {
+        console.error("Bayiler yüklenemedi:", error);
+      }
+    }
+    loadDealers();
+  }, []);
+
+  // Siparişleri yükle
   async function loadData() {
     try {
       setLoading(true);
@@ -31,6 +60,8 @@ export default function OrderManagementPanel() {
         size,
         sortBy: "orderDate",
         sortDirection: "desc",
+        status: selectedStatus || undefined,
+        dealerId: selectedDealerId || undefined,
       });
       setOrders(data);
     } catch (e) {
@@ -43,7 +74,21 @@ export default function OrderManagementPanel() {
 
   useEffect(() => {
     loadData();
-  }, [page]);
+  }, [page, selectedStatus, selectedDealerId]);
+
+  // Filtreleri temizle
+  function clearFilters() {
+    setSelectedStatus("");
+    setSelectedDealerId(null);
+    setSearchTerm("");
+    setPage(0);
+  }
+
+  // Arama fonksiyonu
+  function handleSearch() {
+    setPage(0);
+    loadData();
+  }
 
   function statusClass(s?: string | null) {
     switch (s) {
@@ -109,7 +154,7 @@ export default function OrderManagementPanel() {
     return status === "BEKLEMEDE" || status === "ONAYLANDI";
   }
 
-  // --- İndirim kolonu için yardımcı render ---
+  // İndirim kolonu için yardımcı render
   function renderDiscountCol(o: OrderResponse) {
     const hasDiscount = (o as any)?.hasDiscount as boolean | undefined;
     const discountAmount = (o as any)?.discountAmount as number | undefined;
@@ -144,6 +189,105 @@ export default function OrderManagementPanel() {
         <h3 className="sherah-heading__title mb-0">Sipariş Yönetimi</h3>
       </div>
 
+      {/* Filtre Bölümü */}
+      <div className="sherah-table__filter p-3 border-bottom">
+        <div className="row g-3 align-items-end">
+          {/* Sipariş Durumu Filtresi */}
+          <div className="col-md-3">
+            <label className="form-label small fw-medium">Sipariş Durumu</label>
+            <select
+              className="form-select"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            >
+              {ORDER_STATUSES.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Bayi Filtresi */}
+          <div className="col-md-3">
+            <label className="form-label small fw-medium">Bayi</label>
+            <select
+              className="form-select"
+              value={selectedDealerId || ""}
+              onChange={(e) => 
+                setSelectedDealerId(e.target.value ? Number(e.target.value) : null)
+              }
+            >
+              <option value="">Tüm Bayiler</option>
+              {dealers.map((dealer) => (
+                <option key={dealer.id} value={dealer.id}>
+                  {dealer.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Arama Kutusu */}
+         <div className="col-md-4">
+  <label className="form-label small fw-medium">Arama</label>
+  <div className="input-group">
+    <input
+      type="text"
+      className="form-control"
+      placeholder="Sipariş no, müşteri adı..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+    />
+    <button
+      className="btn btn-outline-secondary"
+      type="button"
+      onClick={handleSearch}
+    >
+      <i className="fa-solid fa-magnifying-glass"></i>
+    </button>
+  </div>
+</div>
+
+
+          {/* Filtre Butonları */}
+          <div className="col-md-2">
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={clearFilters}
+                title="Filtreleri Temizle"
+              >
+                <i className="fa-solid fa-eraser me-1"></i>
+                Temizle
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Aktif Filtreler Göstergesi */}
+        {(selectedStatus || selectedDealerId || searchTerm) && (
+          <div className="mt-2">
+            <small className="text-muted">Aktif filtreler: </small>
+            {selectedStatus && (
+              <span className="badge bg-primary me-1">
+                Durum: {ORDER_STATUSES.find(s => s.value === selectedStatus)?.label}
+              </span>
+            )}
+            {selectedDealerId && (
+              <span className="badge bg-primary me-1">
+                Bayi: {dealers.find(d => d.id === selectedDealerId)?.name}
+              </span>
+            )}
+            {searchTerm && (
+              <span className="badge bg-primary me-1">
+                Arama: {searchTerm}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div className="text-center my-4">
           <div className="spinner-border" role="status">
@@ -160,7 +304,7 @@ export default function OrderManagementPanel() {
                 <th>Oluşturan</th>
                 <th>Ürünler</th>
                 <th>Tutar</th>
-                <th>İndirim</th> {/* ✅ yeni kolon */}
+                <th>İndirim</th>
                 <th>Durum</th>
                 <th>İşlemler</th>
               </tr>
@@ -178,25 +322,19 @@ export default function OrderManagementPanel() {
                       </div>
                     ))}
                   </td>
-
-                  {/* Tutar: SADECE toplam gösterilir */}
                   <td>
                     <strong>
                       {o.totalAmount} {o.currency}
                     </strong>
                   </td>
-
-                  {/* ✅ Yeni: İndirim kolonu */}
                   <td>{renderDiscountCol(o)}</td>
-
                   <td>
                     <div className={statusClass(o.orderStatus)}>
                       {o.orderStatus}
                     </div>
                   </td>
-
-                  <td className="text-end ">
-                    <div className="d-flex gap-2 aligin-items-center">
+                  <td className="text-end">
+                    <div className="d-flex gap-2 align-items-center">
                       <button
                         className="sherah-table__action sherah-color2 sherah-color3__bg--opactity border-0"
                         onClick={() => openDetail(o)}
@@ -224,70 +362,89 @@ export default function OrderManagementPanel() {
                   </td>
                 </tr>
               ))}
+              {orders?.content.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center py-4">
+                    <div className="text-muted">
+                      <i className="fa-solid fa-box-open fa-2x mb-2"></i>
+                      <p>Filtrelere uygun sipariş bulunamadı</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
 
-          {orders && (
+          {orders && orders.totalElements > 0 && (
             <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
-              <ul className="pagination">
-                <li
-                  className={`paginate_button page-item previous ${
-                    orders?.first ? "disabled" : ""
-                  }`}
-                >
-                  <a
-                    href="#"
-                    className="page-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (!orders?.first) setPage((p) => Math.max(0, p - 1));
-                    }}
+              <div className="d-flex justify-content-between align-items-center">
+                <small className="text-muted">
+                  Toplam {orders.totalElements} siparişten {orders.content.length} tanesi gösteriliyor
+                </small>
+                <ul className="pagination">
+                  <li
+                    className={`paginate_button page-item previous ${
+                      orders?.first ? "disabled" : ""
+                    }`}
                   >
-                    <i className="fas fa-angle-left" />
-                  </a>
-                </li>
-
-                {orders &&
-                  Array.from({ length: orders.totalPages }, (_, i) => (
-                    <li
-                      key={i}
-                      className={`paginate_button page-item ${
-                        i === orders.number ? "active" : ""
-                      }`}
+                    <a
+                      href="#"
+                      className="page-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!orders?.first) setPage((p) => Math.max(0, p - 1));
+                      }}
                     >
-                      <a
-                        href="#"
-                        className="page-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setPage(i);
-                        }}
-                      >
-                        {i + 1}
-                      </a>
-                    </li>
-                  ))}
+                      <i className="fas fa-angle-left" />
+                    </a>
+                  </li>
 
-                <li
-                  className={`paginate_button page-item next ${
-                    orders?.last ? "disabled" : ""
-                  }`}
-                >
-                  <a
-                    href="#"
-                    className="page-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (!orders?.last)
-                        setPage((p) =>
-                          Math.min((orders?.totalPages ?? 1) - 1, p + 1)
-                        );
-                    }}
+                  {orders &&
+                    Array.from({ length: Math.min(orders.totalPages, 5) }, (_, i) => {
+                      const pageNum = Math.max(0, page - 2) + i;
+                      if (pageNum >= orders.totalPages) return null;
+                      return (
+                        <li
+                          key={pageNum}
+                          className={`paginate_button page-item ${
+                            pageNum === orders.number ? "active" : ""
+                          }`}
+                        >
+                          <a
+                            href="#"
+                            className="page-link"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPage(pageNum);
+                            }}
+                          >
+                            {pageNum + 1}
+                          </a>
+                        </li>
+                      );
+                    })}
+
+                  <li
+                    className={`paginate_button page-item next ${
+                      orders?.last ? "disabled" : ""
+                    }`}
                   >
-                    <i className="fas fa-angle-right" />
-                  </a>
-                </li>
-              </ul>
+                    <a
+                      href="#"
+                      className="page-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!orders?.last)
+                          setPage((p) =>
+                            Math.min((orders?.totalPages ?? 1) - 1, p + 1)
+                          );
+                      }}
+                    >
+                      <i className="fas fa-angle-right" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
           )}
         </>

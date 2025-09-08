@@ -9,7 +9,7 @@ import { type UserRow } from "../../types/user";
 import EditUserModal from "./components/EditUserModal";
 
 export default function UsersList() {
-  if (!hasPermission({ required: "USER_MANAGE" })) {
+  if (!hasPermission({ anyOf: ["SYSTEM_ADMIN", "USER_READ", "USER_MANAGE"] })) {
     return (
       <div className="alert alert-danger m-3">
         Bu sayfaya erişim yetkiniz yok.

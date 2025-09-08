@@ -58,13 +58,16 @@ const DEFAULT_SIZE = 10;
 
 export default function DealersList() {
   const navigate = useNavigate();
-  const canRead = hasPermission({ anyOf: ["DEALER_READ", "DEALER_MANAGE"] });
-  const canManage = hasPermission({ required: "DEALER_MANAGE" });
+  
+  // ✅ Daha esnek yetki kontrolü
+  const canRead = hasPermission({ anyOf: ["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"] });
+  const canManage = hasPermission({ anyOf: ["DEALER_MANAGE", "SYSTEM_ADMIN"] });
 
-  if (!canManage) {
+  // ✅ Okuma yetkisi bile yoksa engelleyin
+  if (!canRead) {
     return (
       <div className="alert alert-danger m-3">
-        Bu sayfaya erişim yetkiniz yok (SYSTEM_ADMIN gerekli).
+        Bu sayfaya erişim yetkiniz yok (DEALER_READ veya DEALER_MANAGE gerekli).
       </div>
     );
   }
