@@ -261,7 +261,7 @@ export const menuItems: MenuItem[] = [
         required: "SYSTEM_ADMIN",
       },
       {
-        id: "notifications_list",
+        id: "my_notifications",
         label: "Bildirimlerim",
         to: "/my-notifications",
         required: "SYSTEM_ADMIN",
