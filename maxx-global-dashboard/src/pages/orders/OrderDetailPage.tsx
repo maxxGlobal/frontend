@@ -10,7 +10,7 @@ export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [images, setImages] = useState<Record<number, string>>({}); // productId -> image url
+  const [images, setImages] = useState<Record<number, string>>({});
 
   useEffect(() => {
     async function load() {
@@ -19,7 +19,6 @@ export default function OrderDetailPage() {
         const data = await getOrderById(Number(id));
         setOrder(data);
 
-        // ürün resimlerini paralel getir
         const results = await Promise.all(
           data.items.map(async (it) => {
             const imgs = await listProductImages(it.productId);
@@ -131,6 +130,7 @@ export default function OrderDetailPage() {
                                     height: 50,
                                     objectFit: "contain",
                                   }}
+                                  className="border p-2 rounded-2"
                                 />
                               </div>
                             </td>

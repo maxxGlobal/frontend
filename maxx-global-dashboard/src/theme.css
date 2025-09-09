@@ -1,0 +1,25 @@
+/* src/theme.css */
+@import "tailwindcss";
+
+/* Renkleri burada tanımla */
+@theme {
+  --color-primarygray: #f8f8f8;
+  --color-qblack: #222222;
+  --color-qyellow: #FFBB38;
+  --color-qred: #EF262C;
+  --color-qgray: #797979;
+  --color-qblacktext: #1D1D1D;
+  --color-qgraytwo: #8E8E8E;
+  --color-qgray-border: #EFEFEF;
+  --color-qblue-white: #CBECFF;
+  --color-qh2-green: #2D6F6D;
+  --color-qh4-pink: #FDB2BB;
+  --color-qh5-bwhite: #95D7DE;
+  --color-qh3-blue: #1868D5;
+}
+
+@utility text-qblacktext { color: var(--color-qblacktext); }
+@utility bg-qyellow      { background-color: var(--color-qyellow); }
+@utility bg-qh3-blue     { background-color: var(--color-qh3-blue); }
+@utility text-qblack     { color: var(--color-qblack); }
+@utility border-qyellow  { border-color: var(--color-qyellow); }

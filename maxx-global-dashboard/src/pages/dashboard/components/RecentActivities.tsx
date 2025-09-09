@@ -12,7 +12,7 @@ export default function RecentActivities() {
 
   return (
     <div className="col-lg-12 col-12">
-      <div className="sherah-table sherah-default-bg sherah-border mg-top-30 dashboard">
+      <div className="sherah-table sherah-default-bg sherah-border mg-top-30 dashboard-table">
         <div className="sherah-table__heading">
           <h3 className="sherah-heading__title mb-0">Son Siparişler</h3>
         </div>
@@ -44,7 +44,12 @@ export default function RecentActivities() {
                   <td>
                     <div className="sherah-table__product--id">
                       <p className="crany-table__product--number mb-0">
-                        <a href={a.actionUrl}>{orderCode}</a>
+                        <a
+                          href={a.actionUrl}
+                          className="text-primary fw-semibold"
+                        >
+                          {orderCode}
+                        </a>
                       </p>
                     </div>
                   </td>
