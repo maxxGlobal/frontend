@@ -54,7 +54,9 @@ export default function HomeTwo() {
         <SectionStyleTwo products={products.slice(3, products.length)} />
       </ViewMoreTitle>
       <ProductsAds
-        ads={[`${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.3.png`]}
+        ads={[
+          `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.3.png`,
+        ]}
         className="products-ads-section mb-[60px]"
       />
       <SectionStyleThreeHomeTwo
@@ -66,7 +68,9 @@ export default function HomeTwo() {
       />
       <ProductsAds
         sectionHeight="164"
-        ads={[`${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.4.png`]}
+        ads={[
+          `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.4.png`,
+        ]}
         className="products-ads-section mb-[60px]"
       />
       <SectionStyleFour

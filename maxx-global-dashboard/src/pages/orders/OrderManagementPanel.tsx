@@ -23,7 +23,9 @@ const ORDER_STATUSES = [
 ];
 
 export default function OrderManagementPanel() {
-  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(null);
+  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(
+    null
+  );
   const [dealers, setDealers] = useState<SimpleDealer[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -36,7 +38,9 @@ export default function OrderManagementPanel() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
+    null
+  );
 
   // Dealers'ı yükle
   useEffect(() => {
@@ -214,8 +218,10 @@ export default function OrderManagementPanel() {
             <select
               className="form-select"
               value={selectedDealerId || ""}
-              onChange={(e) => 
-                setSelectedDealerId(e.target.value ? Number(e.target.value) : null)
+              onChange={(e) =>
+                setSelectedDealerId(
+                  e.target.value ? Number(e.target.value) : null
+                )
               }
             >
               <option value="">Tüm Bayiler</option>
@@ -228,27 +234,26 @@ export default function OrderManagementPanel() {
           </div>
 
           {/* Arama Kutusu */}
-         <div className="col-md-4">
-  <label className="form-label small fw-medium">Arama</label>
-  <div className="input-group">
-    <input
-      type="text"
-      className="form-control"
-      placeholder="Sipariş no, müşteri adı..."
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-    />
-    <button
-      className="btn btn-outline-secondary"
-      type="button"
-      onClick={handleSearch}
-    >
-      <i className="fa-solid fa-magnifying-glass"></i>
-    </button>
-  </div>
-</div>
-
+          <div className="col-md-4">
+            <label className="form-label small fw-medium">Arama</label>
+            <div className="input-group flex-nowrap">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Sipariş no, müşteri adı..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={handleSearch}
+              >
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
+          </div>
 
           {/* Filtre Butonları */}
           <div className="col-md-2">
@@ -271,18 +276,17 @@ export default function OrderManagementPanel() {
             <small className="text-muted">Aktif filtreler: </small>
             {selectedStatus && (
               <span className="badge bg-primary me-1">
-                Durum: {ORDER_STATUSES.find(s => s.value === selectedStatus)?.label}
+                Durum:{" "}
+                {ORDER_STATUSES.find((s) => s.value === selectedStatus)?.label}
               </span>
             )}
             {selectedDealerId && (
               <span className="badge bg-primary me-1">
-                Bayi: {dealers.find(d => d.id === selectedDealerId)?.name}
+                Bayi: {dealers.find((d) => d.id === selectedDealerId)?.name}
               </span>
             )}
             {searchTerm && (
-              <span className="badge bg-primary me-1">
-                Arama: {searchTerm}
-              </span>
+              <span className="badge bg-primary me-1">Arama: {searchTerm}</span>
             )}
           </div>
         )}
@@ -379,7 +383,8 @@ export default function OrderManagementPanel() {
             <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
               <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">
-                  Toplam {orders.totalElements} siparişten {orders.content.length} tanesi gösteriliyor
+                  Toplam {orders.totalElements} siparişten{" "}
+                  {orders.content.length} tanesi gösteriliyor
                 </small>
                 <ul className="pagination">
                   <li
@@ -400,29 +405,32 @@ export default function OrderManagementPanel() {
                   </li>
 
                   {orders &&
-                    Array.from({ length: Math.min(orders.totalPages, 5) }, (_, i) => {
-                      const pageNum = Math.max(0, page - 2) + i;
-                      if (pageNum >= orders.totalPages) return null;
-                      return (
-                        <li
-                          key={pageNum}
-                          className={`paginate_button page-item ${
-                            pageNum === orders.number ? "active" : ""
-                          }`}
-                        >
-                          <a
-                            href="#"
-                            className="page-link"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setPage(pageNum);
-                            }}
+                    Array.from(
+                      { length: Math.min(orders.totalPages, 5) },
+                      (_, i) => {
+                        const pageNum = Math.max(0, page - 2) + i;
+                        if (pageNum >= orders.totalPages) return null;
+                        return (
+                          <li
+                            key={pageNum}
+                            className={`paginate_button page-item ${
+                              pageNum === orders.number ? "active" : ""
+                            }`}
                           >
-                            {pageNum + 1}
-                          </a>
-                        </li>
-                      );
-                    })}
+                            <a
+                              href="#"
+                              className="page-link"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setPage(pageNum);
+                              }}
+                            >
+                              {pageNum + 1}
+                            </a>
+                          </li>
+                        );
+                      }
+                    )}
 
                   <li
                     className={`paginate_button page-item next ${

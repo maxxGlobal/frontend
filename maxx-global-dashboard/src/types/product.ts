@@ -104,3 +104,17 @@ export interface ProductSimple {
   name: string;
   code?: string | null;
 }
+
+export type LowStockProduct = {
+  id: number;
+  name: string;
+  code: string;
+  categoryName: string;
+  primaryImageUrl: string | null;
+  stockQuantity: number;
+  unit: string;
+  isActive: boolean;
+  isInStock: boolean;
+  status: string;
+  isFavorite: boolean | null;
+};

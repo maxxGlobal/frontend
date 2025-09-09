@@ -101,3 +101,5 @@ export interface DiscountEffectiveness {
   period: string;
   discounts: any[];
 }
+
+export type DashboardRefreshMessage = string;

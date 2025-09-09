@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
+import AuthLayout from "../components/layout/AuthLayout";
 import LoginForm from "../components/login/LoginForm";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import Dashboard from "../pages/dashboard/Dashboard";
@@ -32,13 +34,25 @@ import AdminBroadcastPanel from "../pages/notifications/AdminBroadcastPanel";
 import AdminNotificationsList from "../pages/notifications/AdminNotificationsList";
 import MyNotificationsPage from "../pages/notifications/MyNotificationsPage";
 import OrderDetailPage from "../pages/orders/OrderDetailPage";
- 
-
+import PublicHomeLayout from "../components/layout/PublicHomeLayout";
+const HomePage = lazy(() => import("../pages/homepage/HomeTwo"));
 export default function AppRoutes() {
   return (
     <Routes>
       {/* Public area */}
-      <Route element={<PublicRoute />}>
+      <Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route
+            path="/homepage"
+            element={
+              <Suspense fallback={null}>
+                <HomePage />
+              </Suspense>
+            }
+          />
+        </Route>
+      </Route>
+      <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginForm />} />
       </Route>
 
@@ -49,10 +63,18 @@ export default function AppRoutes() {
           <Route path="/profile" element={<ProfilePage />} />
 
           {/* ✅ Users - daha esnek yetki */}
-          <Route element={<ProtectedRoute anyOf={["USER_READ", "USER_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute
+                anyOf={["USER_READ", "USER_MANAGE", "SYSTEM_ADMIN"]}
+              />
+            }
+          >
             <Route path="/users/list" element={<UsersList />} />
           </Route>
-          <Route element={<ProtectedRoute anyOf={["USER_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={<ProtectedRoute anyOf={["USER_MANAGE", "SYSTEM_ADMIN"]} />}
+          >
             <Route path="/users/register" element={<RegisterUser />} />
           </Route>
 
@@ -65,26 +87,56 @@ export default function AppRoutes() {
           </Route>
 
           {/* ✅ Dealers - daha esnek yetki */}
-          <Route element={<ProtectedRoute anyOf={["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute
+                anyOf={["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"]}
+              />
+            }
+          >
             <Route path="/dealers" element={<DealersList />} />
           </Route>
-          <Route element={<ProtectedRoute anyOf={["DEALER_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute anyOf={["DEALER_MANAGE", "SYSTEM_ADMIN"]} />
+            }
+          >
             <Route path="/dealers-add" element={<DealerCreate />} />
           </Route>
 
           {/* ✅ Categories - daha esnek yetki */}
-          <Route element={<ProtectedRoute anyOf={["CATEGORY_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute anyOf={["CATEGORY_MANAGE", "SYSTEM_ADMIN"]} />
+            }
+          >
             <Route path="/category-add" element={<CategoryCreate />} />
           </Route>
-          <Route element={<ProtectedRoute anyOf={["CATEGORY_READ", "CATEGORY_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute
+                anyOf={["CATEGORY_READ", "CATEGORY_MANAGE", "SYSTEM_ADMIN"]}
+              />
+            }
+          >
             <Route path="/category" element={<CategoriesList />} />
           </Route>
 
           {/* ✅ Products - daha esnek yetki */}
-          <Route element={<ProtectedRoute anyOf={["PRODUCT_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute anyOf={["PRODUCT_MANAGE", "SYSTEM_ADMIN"]} />
+            }
+          >
             <Route path="/product-add" element={<ProductCreate />} />
           </Route>
-          <Route element={<ProtectedRoute anyOf={["PRODUCT_READ", "PRODUCT_MANAGE", "SYSTEM_ADMIN"]} />}>
+          <Route
+            element={
+              <ProtectedRoute
+                anyOf={["PRODUCT_READ", "PRODUCT_MANAGE", "SYSTEM_ADMIN"]}
+              />
+            }
+          >
             <Route path="/product" element={<ProductsList />} />
             <Route path="/products/:id" element={<ProductDetails />} />
           </Route>

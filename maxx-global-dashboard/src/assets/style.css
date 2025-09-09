@@ -8901,9 +8901,10 @@ box-shadow: none !important;
 	font-size: 22px;
 }
 
-.dashboard .sherah-table__main .sherah-table__head tr th, .sherah-table__main .sherah-table__body tr td{
+.dashboard-table .sherah-table__main .sherah-table__head tr th, .sherah-table__main .sherah-table__body tr td{
 	width: 16%;
 }
+
 
 .notifications-header.sherah-dropdown-card {
   box-shadow:

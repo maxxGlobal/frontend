@@ -155,7 +155,7 @@ export const menuItems: MenuItem[] = [
     id: "menu-item__dealers",
     label: "Bayiler",
     iconHtml: DealersIconHTML,
-    anyOf: ["SYSTEM_ADMIN"], 
+    anyOf: ["SYSTEM_ADMIN"],
     children: [
       {
         id: "dealers_add",
@@ -227,7 +227,7 @@ export const menuItems: MenuItem[] = [
         id: "orders_list",
         label: "Sipariş Listesi",
         to: "/orders-list",
-        anyOf: ["SYSTEM_ADMIN", "ORDER_READ", "ORDER_MANAGE"],
+        anyOf: ["SYSTEM_ADMIN"],
       },
     ],
   },
