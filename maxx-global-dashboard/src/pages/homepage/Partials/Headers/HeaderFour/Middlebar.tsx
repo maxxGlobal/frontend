@@ -30,9 +30,7 @@ export default function Middlebar({
                 <img
                   width={152}
                   height={36}
-                  src={`${
-                    import.meta.env.VITE_PUBLIC_URL
-                  }/assets/images/logo-4.svg`}
+                  src={`src/assets/img/logo-max.png`}
                   alt="logo"
                 />
               </Link>
@@ -53,7 +51,7 @@ export default function Middlebar({
                   </span>
                 </Link>
                 {compareCount > 0 && (
-                  <span className="w-[18px] h-[18px] rounded-full bg-qh4-pink absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px] text-qblack">
+                  <span className="w-[18px] h-[18px] rounded-full bg-qh2-green absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px] text-white">
                     {compareCount}
                   </span>
                 )}
@@ -67,7 +65,7 @@ export default function Middlebar({
                   </span>
                 </Link>
                 {wishlistCount > 0 && (
-                  <span className="w-[18px] h-[18px] rounded-full bg-qh4-pink absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px] text-qblack">
+                  <span className="w-[18px] h-[18px] rounded-full bg-qh2-green absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px] text-white">
                     {wishlistCount}
                   </span>
                 )}
@@ -82,7 +80,7 @@ export default function Middlebar({
                     </span>
                   </Link>
                   {cartCount > 0 && (
-                    <span className="w-[18px] h-[18px] rounded-full bg-qh4-pink absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px] text-qblack">
+                    <span className="w-[18px] h-[18px] rounded-full bg-qh2-green absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px] text-white">
                       {cartCount}
                     </span>
                   )}
@@ -93,7 +91,7 @@ export default function Middlebar({
 
               {/* profile */}
               <div>
-                <Link to="/profile">
+                <Link to="/my-profile">
                   <span>
                     <ThinPeople />
                   </span>

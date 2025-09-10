@@ -35,7 +35,10 @@ import AdminNotificationsList from "../pages/notifications/AdminNotificationsLis
 import MyNotificationsPage from "../pages/notifications/MyNotificationsPage";
 import OrderDetailPage from "../pages/orders/OrderDetailPage";
 import PublicHomeLayout from "../components/layout/PublicHomeLayout";
+
 const HomePage = lazy(() => import("../pages/homepage/HomeTwo"));
+const AllProductPage = lazy(() => import("../pages/homepage/AllProductPage"));
+const FlashProduct = lazy(() => import("../pages/homepage/FlashSale"));
 export default function AppRoutes() {
   return (
     <Routes>
@@ -50,6 +53,12 @@ export default function AppRoutes() {
               </Suspense>
             }
           />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/all-product" element={<AllProductPage />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/flash-sale" element={<FlashProduct />} />
         </Route>
       </Route>
       <Route element={<AuthLayout />}>
