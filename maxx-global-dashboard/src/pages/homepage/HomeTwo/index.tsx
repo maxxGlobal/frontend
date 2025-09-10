@@ -32,18 +32,10 @@ export default function HomeTwo() {
       <ViewMoreTitle
         className="my-categories mb-[60px]"
         seeMoreUrl="/all-products"
-        categoryTitle="My Market Category"
+        categoryTitle="Kategoriler"
       >
         <CategoriesSection />
       </ViewMoreTitle>
-
-      <SectionStyleThreeHomeTwo
-        // products={products}
-        showProducts={6}
-        sectionTitle="Featured Products"
-        seeMoreUrl="/all-products"
-        className="new-products mb-[60px]"
-      />
 
       <CampaignCountDown className="mb-[60px]" lastDate="2025-10-04 4:00:00" />
 

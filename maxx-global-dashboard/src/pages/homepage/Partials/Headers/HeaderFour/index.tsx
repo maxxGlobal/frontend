@@ -15,7 +15,6 @@ export default function HeaderFour({
 }: HeaderFourProps) {
   return (
     <header className={`${className || ""} header-section-wrapper relative`}>
-      <TopBar className="quomodo-shop-top-bar" />
       <Middlebar className="quomodo-shop-middle-bar lg:block hidden" />
 
       {/* mobile drawer */}

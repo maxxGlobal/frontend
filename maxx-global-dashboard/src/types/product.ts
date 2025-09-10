@@ -118,3 +118,16 @@ export type LowStockProduct = {
   status: string;
   isFavorite: boolean | null;
 };
+export interface RandomProduct {
+  id: number;
+  name: string;
+  code: string;
+  categoryName: string;
+  primaryImageUrl: string | null;
+  stockQuantity: number;
+  unit: string;
+  isActive: boolean;
+  isInStock: boolean;
+  status: string;
+  isFavorite: boolean;
+}

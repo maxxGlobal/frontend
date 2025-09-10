@@ -4,7 +4,7 @@ export default function ViewMoreTitle({
   categoryTitle = "",
   className,
   children,
-  seeMoreUrl = "",
+  seeMoreUrl = "/all-product",
 }) {
   return (
     <div className={`section-wrapper w-full ${className || ""}`}>
@@ -18,7 +18,7 @@ export default function ViewMoreTitle({
           <div>
             <Link to={seeMoreUrl}>
               <div className="flex space-x-2 items-center">
-                <p className="text-base font-600 text-qblack">View More</p>
+                <p className="text-base font-600 text-qblack">Tümünü Gör</p>
                 <span className="animate-right-dir">
                   <svg
                     width="17"

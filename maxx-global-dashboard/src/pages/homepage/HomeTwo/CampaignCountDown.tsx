@@ -22,9 +22,7 @@ export default function CampaignCountDown({
               data-aos="fade-right"
               className="campaign-countdown h-full w-full mb-5 lg:mb-0"
               style={{
-                background: `url(${
-                  import.meta.env.VITE_PUBLIC_URL
-                }/assets/images/campaign-cover-countdown-2.jpg) no-repeat`,
+                background: `url(src/assets/images/discount.png) no-repeat`,
                 backgroundSize: "cover",
               }}
             >
@@ -39,7 +37,7 @@ export default function CampaignCountDown({
                         </span>
                       </div>
                       <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Days
+                        Gün
                       </p>
                     </div>
                     <div className="countdown-item">
@@ -49,7 +47,7 @@ export default function CampaignCountDown({
                         </span>
                       </div>
                       <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Hours
+                        Saat
                       </p>
                     </div>
                     <div className="countdown-item">
@@ -59,7 +57,7 @@ export default function CampaignCountDown({
                         </span>
                       </div>
                       <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Minutes
+                        Dakika
                       </p>
                     </div>
                     <div className="countdown-item">
@@ -69,7 +67,7 @@ export default function CampaignCountDown({
                         </span>
                       </div>
                       <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Seconds
+                        Saniye
                       </p>
                     </div>
                   </div>
@@ -77,11 +75,11 @@ export default function CampaignCountDown({
                   {/* title */}
                   <div className="countdown-title mb-4">
                     <h1 className="text-[44px] text-qblack font-600">
-                      WOO! Flash Sale
+                      İndirimli Ürünler
                     </h1>
                     <p className="text-[18px] text-qblack leading-7">
-                      You get into the 2k+ best Products in Flash offer with
-                      <br /> a special-shaped sofa for sale.
+                      İndirimdeki Ürünlere Göz Atın
+                      <br /> Fırsatları Kaçırmayın
                     </p>
                   </div>
 
@@ -89,7 +87,7 @@ export default function CampaignCountDown({
                   <div className="w-[119px] h-10">
                     <div className="yellow-btn inline-flex space-x-2 items-center">
                       <span className="text-sm font-600 tracking-wide leading-7">
-                        Shop Now
+                        Alışveriş Yap
                       </span>
                       <span>
                         <svg
