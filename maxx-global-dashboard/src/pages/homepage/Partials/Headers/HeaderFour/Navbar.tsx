@@ -225,106 +225,21 @@ export default function Navbar({ className }: { className?: string }) {
               {/* === NAV MENÜLER === */}
               <div className="nav">
                 <ul className="nav-wrapper flex xl:space-x-10 space-x-5">
-                  {" "}
-                  <li className="relative">
-                    {" "}
-                    <Link to="/homepage">
-                      {" "}
-                      <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
-                        {" "}
-                        <span>Anasayfa</span>{" "}
-                        <span className="ml-1.5 ">
-                          {" "}
-                          <Arrow className="fill-current" />{" "}
-                        </span>{" "}
-                      </span>{" "}
-                    </Link>{" "}
-                    <div className="sub-menu w-[220px] absolute left-0 top-[60px]">
-                      {" "}
-                      <div
-                        className="w-full bg-white flex justify-between items-center "
-                        style={{
-                          boxShadow: "0px 15px 50px 0px rgba(0, 0, 0, 0.14)",
-                        }}
-                      >
-                        {" "}
-                        <div className="categories-wrapper w-full h-full p-5">
-                          {" "}
-                          <div>
-                            {" "}
-                            <div className="category-items">
-                              {" "}
-                              <ul className="flex flex-col space-y-2">
-                                {" "}
-                                <li>
-                                  {" "}
-                                  <Link to="/">
-                                    {" "}
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:text-qyellow hover:border-qyellow">
-                                      {" "}
-                                      Home One{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
-                                <li>
-                                  {" "}
-                                  <Link to="/home-two">
-                                    {" "}
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:text-qyellow hover:border-qyellow ">
-                                      {" "}
-                                      Home Two{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
-                                <li>
-                                  {" "}
-                                  <Link to="/home-three">
-                                    {" "}
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:text-qyellow hover:border-qyellow">
-                                      {" "}
-                                      Home Three{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
-                                <li>
-                                  {" "}
-                                  <Link to="/home-four">
-                                    {" "}
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:text-qyellow hover:border-qyellow">
-                                      {" "}
-                                      Home Four{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
-                                <li>
-                                  {" "}
-                                  <Link to="/home-five">
-                                    {" "}
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:text-qyellow hover:border-qyellow">
-                                      {" "}
-                                      Home Five{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
-                              </ul>{" "}
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </div>{" "}
-                    </div>{" "}
-                  </li>{" "}
                   <li>
-                    {" "}
+                    <Link to="/homepage">
+                      <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
+                        <span>Anasayfa</span>
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
                     <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
-                      {" "}
-                      <span>Ürünlerimiz</span>{" "}
+                      <span>Ürünlerimiz</span>
                       <span className="ml-1.5 ">
-                        {" "}
-                        <Arrow className="fill-current" />{" "}
-                      </span>{" "}
-                    </span>{" "}
+                        <Arrow className="fill-current" />
+                      </span>
+                    </span>
                     <div className="sub-menu w-full absolute left-0 top-[60px]">
-                      {" "}
                       <div
                         className="mega-menu-wrapper w-full bg-white p-[30px] flex justify-between items-center "
                         style={{
@@ -332,277 +247,198 @@ export default function Navbar({ className }: { className?: string }) {
                           boxShadow: "0px 15px 50px 0px rgba(0, 0, 0, 0.14)",
                         }}
                       >
-                        {" "}
                         <div className="categories-wrapper flex-1 h-full flex justify-around -ml-[70px]">
-                          {" "}
                           <div>
-                            {" "}
                             <div className="category">
-                              {" "}
                               <h1 className="text-[13px] font-700 text-qblack uppercase mb-[13px]">
-                                {" "}
-                                Shop List{" "}
-                              </h1>{" "}
-                            </div>{" "}
+                                Shop List
+                              </h1>
+                            </div>
                             <div className="category-items">
-                              {" "}
                               <ul className="flex flex-col space-y-2">
-                                {" "}
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Shop Sidebar{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Shop Sidebar
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Shop Fullwidth{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Shop Fullwidth
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Shop Category Icon{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Shop Category Icon
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Shop Category Icon{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Shop Category Icon
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Shop List View{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
-                              </ul>{" "}
-                            </div>{" "}
-                          </div>{" "}
+                                      Shop List View
+                                    </span>
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
                           <div>
-                            {" "}
                             <div className="category">
-                              {" "}
                               <h1 className="text-[13px] font-700 text-qblack uppercase mb-[13px]">
-                                {" "}
-                                Product Layouts{" "}
-                              </h1>{" "}
-                            </div>{" "}
+                                Product Layouts
+                              </h1>
+                            </div>
                             <div className="category-items">
-                              {" "}
                               <ul className="flex flex-col space-y-2">
-                                {" "}
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Horizonral Thumbnail{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Horizonral Thumbnail
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Vertical Thumbnail{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Vertical Thumbnail
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Gallery Thumbnail{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Gallery Thumbnail
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Sticky Summary{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
-                              </ul>{" "}
-                            </div>{" "}
-                          </div>{" "}
+                                      Sticky Summary
+                                    </span>
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
                           <div>
-                            {" "}
                             <div className="category">
-                              {" "}
                               <h1 className="text-[13px] font-700 text-qblack uppercase mb-[13px]">
-                                {" "}
-                                Polular Category{" "}
-                              </h1>{" "}
-                            </div>{" "}
+                                Polular Category
+                              </h1>
+                            </div>
                             <div className="category-items">
-                              {" "}
                               <ul className="flex flex-col space-y-2">
-                                {" "}
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Phone & Tablet{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Phone & Tablet
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Gaming & Sports{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Gaming & Sports
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Home Appliance{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
+                                      Home Appliance
+                                    </span>
+                                  </a>
+                                </li>
                                 <li>
-                                  {" "}
                                   <a href="#">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Fashion Clothes{" "}
-                                    </span>{" "}
-                                  </a>{" "}
-                                </li>{" "}
-                              </ul>{" "}
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
+                                      Fashion Clothes
+                                    </span>
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
                         <div className="thumbnil w-[348px] h-full">
-                          {" "}
                           <div className="w-full h-[235px]">
-                            {" "}
                             <img
                               width=""
                               src={"/assets/images/mega-menu-thumb.jpg"}
                               alt=""
                               className="w-full h-full object-contain"
-                            />{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </div>{" "}
-                    </div>{" "}
-                  </li>{" "}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
                   <li className="relative">
-                    {" "}
                     <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
-                      {" "}
-                      <span>Kurumsal</span>{" "}
+                      <span>Kurumsal</span>
                       <span className="ml-1.5 ">
-                        {" "}
-                        <Arrow className="fill-current" />{" "}
-                      </span>{" "}
-                    </span>{" "}
+                        <Arrow className="fill-current" />
+                      </span>
+                    </span>
                     <div className="sub-menu w-[220px] absolute left-0 top-[60px]">
-                      {" "}
                       <div
                         className="w-full bg-white flex justify-between items-center "
                         style={{
                           boxShadow: "0px 15px 50px 0px rgba(0, 0, 0, 0.14)",
                         }}
                       >
-                        {" "}
                         <div className="categories-wrapper w-full h-full p-5">
-                          {" "}
                           <div>
-                            {" "}
                             <div className="category-items">
-                              {" "}
                               <ul className="flex flex-col space-y-2">
-                                {" "}
                                 <li>
-                                  {" "}
                                   <Link to="/privacy-policy">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      KVKK{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
+                                      KVKK
+                                    </span>
+                                  </Link>
+                                </li>
                                 <li>
-                                  {" "}
                                   <Link to="/terms-condition">
-                                    {" "}
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      {" "}
-                                      Kalite Politikamız{" "}
-                                    </span>{" "}
-                                  </Link>{" "}
-                                </li>{" "}
-                              </ul>{" "}
-                            </div>{" "}
-                          </div>{" "}
-                        </div>{" "}
-                      </div>{" "}
-                    </div>{" "}
-                  </li>{" "}
+                                      Kalite Politikamız
+                                    </span>
+                                  </Link>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
                   <li>
-                    {" "}
-                    <Link to="/about">
-                      {" "}
+                    <Link to="/homepage/about">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
-                        {" "}
-                        <span>Hakkımızda</span>{" "}
-                      </span>{" "}
-                    </Link>{" "}
-                  </li>{" "}
+                        <span>Hakkımızda</span>
+                      </span>
+                    </Link>
+                  </li>
                   <li>
-                    {" "}
-                    <Link to="/contact">
-                      {" "}
+                    <Link to="/homepage/contact">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
-                        {" "}
-                        <span>İletişim</span>{" "}
-                      </span>{" "}
-                    </Link>{" "}
-                  </li>{" "}
+                        <span>İletişim</span>
+                      </span>
+                    </Link>
+                  </li>
                 </ul>
               </div>
             </div>

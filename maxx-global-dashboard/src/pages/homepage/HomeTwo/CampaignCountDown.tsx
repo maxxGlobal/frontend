@@ -26,7 +26,7 @@ export default function CampaignCountDown({
                 backgroundSize: "cover",
               }}
             >
-              <Link to="/flash-sale">
+              <Link to="/homepage/flash-sale">
                 <div className="w-full xl:p-12 p-5">
                   {/* countdown */}
                   <div className="countdown-wrapper w-full flex space-x-[23px] mb-10">

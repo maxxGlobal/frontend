@@ -30,7 +30,6 @@ export default function LayoutHomeTwo({
           {children}
         </main>
 
-        <DiscountBanner />
         <Footer />
       </div>
     </>

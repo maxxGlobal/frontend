@@ -3,11 +3,15 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import ProductGallery from "../products/components/ProductGallery";
 import { getProductById } from "../../services/products/getById";
+import { useTranslation } from "react-i18next";
 
 import type { ProductDetail } from "../../services/products/getById";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
 const FALLBACK_IMG = "src/assets/img/resim-yok.jpg";
+function capitalize(str: string = ""): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function absolutify(url?: string | null): string {
   if (!url) return FALLBACK_IMG;
@@ -17,6 +21,7 @@ function absolutify(url?: string | null): string {
 }
 
 export default function ProductDetails() {
+  const { t } = useTranslation();
   const { id: idParam } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -240,8 +245,15 @@ export default function ProductDetails() {
                         <td>{product!.diameter || "-"}</td>
                       </tr>
                       <tr>
-                        <td>Renk</td>
-                        <td>{(product as any).color || "-"}</td>
+                        <td>Renk </td>
+                        <td>
+                          {t(
+                            `colors.${(product as any).color?.toLowerCase()}`,
+                            {
+                              defaultValue: capitalize((product as any).color),
+                            }
+                          )}
+                        </td>
                       </tr>
                       <tr>
                         <td>Yüzey İşlemi</td>
