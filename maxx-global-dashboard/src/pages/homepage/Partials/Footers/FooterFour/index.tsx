@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Facebook from "../../../Helpers/icons/Facebook";
 import Instagram from "../../../Helpers/icons/Instagram";
 import Youtube from "../../../Helpers/icons/Youtube";
+import Logo from "../../../../../assets/img/logo-max.png";
 
 export default function FooterFour() {
   return (
@@ -19,14 +20,7 @@ export default function FooterFour() {
             {/* logo area */}
             <div className="mb-14">
               <Link to="/">
-                <img
-                  width="152"
-                  height="36"
-                  src={`${
-                    import.meta.env.VITE_PUBLIC_URL
-                  }/assets/images/logo-4.svg`}
-                  alt="logo"
-                />
+                <img width="152" height="36" src={Logo} alt="logo" />
               </Link>
             </div>
             <div>
@@ -57,7 +51,7 @@ export default function FooterFour() {
           </div>
           <div className="lg:w-2/10 w-full mb-10 lg:mb-0">
             <div className="mb-5">
-              <h6 className="text-[18] font-500 text-[#2F2F2F]">About us</h6>
+              <h6 className="text-[18] font-500 text-[#2F2F2F]">Hakkımızda</h6>
             </div>
             <div>
               <ul className="flex flex-col space-y-5 ">

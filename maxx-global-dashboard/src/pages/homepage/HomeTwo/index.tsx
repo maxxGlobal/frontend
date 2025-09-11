@@ -56,14 +56,6 @@ export default function HomeTwo() {
         className="feature-products mb-[60px]"
       />
 
-      <ViewMoreTitle
-        className="top-selling-product mb-[60px]"
-        seeMoreUrl="/all-products"
-        categoryTitle="Top Selling Products"
-      >
-        {/* <SectionStyleTwo products={products.slice(3, products.length)} /> */}
-      </ViewMoreTitle>
-
       {/* <ProductsAds
         ads={[
           `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.3.png`,
@@ -71,13 +63,13 @@ export default function HomeTwo() {
         className="products-ads-section mb-[60px]"
       /> */}
 
-      <SectionStyleThreeHomeTwo
+      {/* <SectionStyleThreeHomeTwo
         // products={[...products].reverse().slice(0, 10)}
         showProducts={9}
         sectionTitle="New Arrivals"
         seeMoreUrl="/all-products"
         className="new-arrivals mb-[60px]"
-      />
+      /> */}
 
       {/* <ProductsAds
         sectionHeight="164"
@@ -87,12 +79,12 @@ export default function HomeTwo() {
         className="products-ads-section mb-[60px]"
       /> */}
 
-      <SectionStyleFour
+      {/* <SectionStyleFour
         // products={products}
         sectionTitle="Popular Sales"
         seeMoreUrl="/all-products"
         className="category-products mb-[60px]"
-      />
+      /> */}
     </LayoutHomeTwo>
   );
 }

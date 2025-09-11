@@ -1,5 +1,5 @@
+import "./i18n";
 import AppRoutes from "./routes/AppRoutes";
-
 import { useEffect } from "react";
 import { initMain } from "./assets/js/main";
 import AOS from "aos";

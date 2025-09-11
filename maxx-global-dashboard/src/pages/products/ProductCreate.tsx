@@ -458,7 +458,10 @@ export default function ProductCreate() {
                   <div className="col-lg-6 col-md-6 col-12">
                     <div className="form-group">
                       <label className="sherah-wc__form-label">
-                        Renk <small className="text-muted">(örn. Gümüş)</small>
+                        Renk
+                        <small className="text-muted">
+                          (örn:red,silver,white..)
+                        </small>
                       </label>
                       <div className="form-group__input">
                         <input

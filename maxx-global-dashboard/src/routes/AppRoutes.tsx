@@ -39,6 +39,9 @@ import PublicHomeLayout from "../components/layout/PublicHomeLayout";
 const HomePage = lazy(() => import("../pages/homepage/HomeTwo"));
 const AllProductPage = lazy(() => import("../pages/homepage/AllProductPage"));
 const FlashProduct = lazy(() => import("../pages/homepage/FlashSale"));
+const Contact = lazy(() => import("../pages/homepage/Contact"));
+const About = lazy(() => import("../pages/homepage/About"));
+const ProductDetail = lazy(() => import("../pages/homepage/SingleProductPage"));
 export default function AppRoutes() {
   return (
     <Routes>
@@ -59,6 +62,15 @@ export default function AppRoutes() {
         </Route>
         <Route element={<PublicHomeLayout />}>
           <Route path="/homepage/flash-sale" element={<FlashProduct />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/contact" element={<Contact />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/about" element={<About />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/product/:id" element={<ProductDetail />} />
         </Route>
       </Route>
       <Route element={<AuthLayout />}>

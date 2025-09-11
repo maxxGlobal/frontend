@@ -1,8 +1,11 @@
-import { useState, ReactNode } from "react";
+import { useState } from "react";
+import type { ReactNode } from "react";
 import DiscountBanner from "../HomeTwo/DiscountBanner";
 import Drawer from "../Mobile/Drawer";
-import Footer from "./Footers/Footer";
+import Footer from "./Footers/FooterTwo";
 import Header from "./Headers/HeaderFour";
+
+import FooterFour from "./Footers/FooterFour/index";
 
 type LayoutProps = {
   children: ReactNode;

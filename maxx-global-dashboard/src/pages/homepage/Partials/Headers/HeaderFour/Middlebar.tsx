@@ -5,6 +5,7 @@ import ThinBag from "../../../Helpers/icons/ThinBag";
 import ThinLove from "../../../Helpers/icons/ThinLove";
 import ThinPeople from "../../../Helpers/icons/ThinPeople";
 import SearchBox from "../../../Helpers/SearchBox";
+import Logo from "../../../../../assets/img/logo-max.png";
 
 type MiddlebarProps = {
   className?: string;
@@ -26,13 +27,8 @@ export default function Middlebar({
           <div className="flex justify-between items-center h-full">
             {/* logo */}
             <div>
-              <Link to="/">
-                <img
-                  width={152}
-                  height={36}
-                  src={`src/assets/img/logo-max.png`}
-                  alt="logo"
-                />
+              <Link to="/homepage">
+                <img width={152} height={36} src={Logo} alt="logo" />
               </Link>
             </div>
 

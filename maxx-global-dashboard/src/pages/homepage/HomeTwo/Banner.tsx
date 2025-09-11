@@ -67,7 +67,7 @@ export default function Banner({ className }: BannerProps) {
                       Stok: {products[0].stockQuantity} {products[0].unit}
                     </p>
                     <Link
-                      to={`/single-product/${products[0].id}`}
+                      to={`/homepage/product/${products[0].id}`}
                       className="inline-block bg-qyellow text-white px-5 py-2 rounded hover:bg-qh2-green transition w-fit"
                     >
                       Detaya Git
@@ -104,7 +104,7 @@ export default function Banner({ className }: BannerProps) {
                           Stok: {p.stockQuantity} {p.unit}
                         </p>
                         <Link
-                          to={`/single-product/${p.id}`}
+                          to={`/homepage/product/${p.id}`}
                           className="inline-block bg-qh2-green text-white px-4 py-2 rounded hover:bg-qyellow transition w-fit"
                         >
                           Detaya Git
