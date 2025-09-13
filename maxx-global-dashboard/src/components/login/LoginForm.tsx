@@ -47,7 +47,7 @@ export default function LoginForm() {
             >
               <div className="sherah-wc__logo">
                 <a href="/">
-                  <img src="../src/assets/img/logo-max.svg" alt="logo" />
+                  <img src="../src/assets/img/medintera-logo.png" alt="logo" />
                 </a>
               </div>
               <div className="sherah-wc__middle">

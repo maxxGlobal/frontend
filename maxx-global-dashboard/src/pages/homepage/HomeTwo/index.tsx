@@ -1,12 +1,7 @@
 import React from "react";
 import LayoutHomeTwo from "../Partials/LayoutHomeTwo";
-
-import datas from "../../../data/productsTwo.json";
-import SectionStyleFour from "../Helpers/SectionStyleFour";
 import SectionStyleThreeHomeTwo from "../Helpers/SectionStyleThreeHomeTwo";
-import SectionStyleTwo from "../Helpers/SectionStyleTwoHomeTwo";
 import ViewMoreTitle from "../Helpers/ViewMoreTitle";
-
 import Banner from "./Banner";
 import CampaignCountDown from "./CampaignCountDown";
 import CategoriesSection from "./CategoriesSection";

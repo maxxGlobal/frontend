@@ -6,6 +6,11 @@ export interface ProductImage {
   isPrimary: boolean;
 }
 export type ProductStatus = "AKTİF" | "SİLİNDİ";
+export interface ProductPrice {
+  productPriceId: number;
+  currency: string;
+  amount: number;
+}
 
 export interface ProductRow {
   id: number;
@@ -19,9 +24,10 @@ export interface ProductRow {
   unit?: string | null;
   isActive?: boolean | null;
   isInStock?: boolean | null;
-  price?: number;
   stock?: number;
   status?: ProductStatus;
+  isFavorite?: boolean;
+  prices?: ProductPrice[];
 }
 
 export interface Product extends ProductRow {
@@ -117,6 +123,7 @@ export type LowStockProduct = {
   isInStock: boolean;
   status: string;
   isFavorite: boolean | null;
+  prices?: ProductPrice[];
 };
 export interface RandomProduct {
   id: number;
@@ -130,4 +137,5 @@ export interface RandomProduct {
   isInStock: boolean;
   status: string;
   isFavorite: boolean;
+  prices?: ProductPrice[];
 }

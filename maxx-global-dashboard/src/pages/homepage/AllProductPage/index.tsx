@@ -14,10 +14,8 @@ import { listProductsByCategory } from "../../../services/products/listByCategor
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
-type Product = ProductRow;
-
 export default function AllProductPage() {
-  const [products, setProducts] = useState<Product[] | null>(null);
+  const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +34,7 @@ export default function AllProductPage() {
       try {
         const req: PageRequest = {
           page: 0,
-          size: 60,
+          size: 99990,
           sortBy: "name",
           sortDirection: "asc",
         };
@@ -101,9 +99,7 @@ export default function AllProductPage() {
                     <span className="text-qgray">Gösteriliyor</span>{" "}
                     {loading || products === null
                       ? "…"
-                      : `1–${Math.min(16, visibleProducts.length)} of ${
-                          visibleProducts.length
-                        }`}{" "}
+                      : ` ${visibleProducts.length} `}
                     adet
                   </p>
                 </div>
@@ -134,11 +130,10 @@ export default function AllProductPage() {
               {/* GRID */}
               {products !== null && visibleProducts.length > 0 && (
                 <div className="grid xl:grid-cols-3 sm:grid-cols-2 grid-cols-1 xl:gap-[30px] gap-5 mb-[40px]">
-                  {visibleProducts.map((product) => (
-                    <div data-aos="fade-up" key={product.id}>
-                      <ProductCardStyleOne datas={product as any} />
-                    </div>
-                  ))}
+                  {visibleProducts.map((p) => {
+                    console.log("Visible product:", p);
+                    return <ProductCardStyleOne key={p.id} datas={p} />;
+                  })}
                 </div>
               )}
 

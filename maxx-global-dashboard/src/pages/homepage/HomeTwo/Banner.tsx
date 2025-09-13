@@ -78,7 +78,7 @@ export default function Banner({ className }: BannerProps) {
                 {/* Sağ taraf (2 ürün) */}
                 <div
                   data-aos="fade-left"
-                  className="w-1/2 flex xl:flex-col flex-row bg-white rounded-xl xl:space-y-[30px] h-[600px] xl:h-auto space-x-4 xl:space-x-0"
+                  className="xl:w-1/2 w-full h-[600px] bg-white rounded-xl relative rounded-md overflow-hidden lg:mt-0 mt-5"
                 >
                   {products.slice(1, 3).map((p, idx) => (
                     <div
