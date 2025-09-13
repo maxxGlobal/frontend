@@ -59,6 +59,13 @@ const DealersIconHTML = `
 											</g>
 										</svg>
 `;
+const StockIconHTML = `
+<svg class="sherah-svg-icon" xmlns="http://www.w3.org/2000/svg" width="19.527" height="19.582" viewBox="0 0 19.527 19.582">
+  <g id="Icon" transform="translate(-115.401 35.25)">
+    <path id="Path_1026" data-name="Path 1026" d="M133.432-15.668h-13.28c-.137-.024-.274-.048-.412-.071a5.177,5.177,0,0,1-4.285-4.372,5.176,5.176,0,0,1,2.84-5.353,5.455,5.455,0,0,1,1.7-.5V-26.2q0-3.631,0-7.263a1.665,1.665,0,0,1,.776-1.489,4.105,4.105,0,0,1,.717-.295h9.185a5.733,5.733,0,0,1,.452.369c1.18,1.172,2.353,2.351,3.533,3.523a.846.846,0,0,1,.267.645q-.008,3.918,0,7.835c0,1.815,0,3.631,0,5.446a1.68,1.68,0,0,1-1.056,1.627A3.581,3.581,0,0,1,133.432-15.668ZM129.949-34.1h-8.134a.591.591,0,0,0-.669.669q0,3.633,0,7.265v.2a5.282,5.282,0,0,1,2.534,1.006.59.59,0,0,0,.326.107q3.75.009,7.5,0c.064,0,.128,0,.191,0a.579.579,0,0,1,.546.541.579.579,0,0,1-.484.6,1.439,1.439,0,0,1-.229.008h-6.663a5.29,5.29,0,0,1,.841,2.295h.32q2.784,0,5.567,0a.591.591,0,0,1,.6.353.574.574,0,0,1-.583.8q-2.841,0-5.682,0h-.223a5.257,5.257,0,0,1-1.884,3.442h9.254c.485,0,.7-.213.7-.7q0-6.271,0-12.542v-.22H130.6a.585.585,0,0,1-.654-.646c0-.452,0-.9,0-1.357Zm-5.358,13.269a4.023,4.023,0,0,0-4.016-4.013,4.023,4.023,0,0,0-4.021,4.008,4.024,4.024,0,0,0,4.025,4.023A4.024,4.024,0,0,0,124.591-20.834Zm8.268-10.6-1.747-1.748v1.748Z" transform="translate(0 0)"></path>
+  </g>
+</svg>
+`;
 const CategoriesIconHTML = `
 <svg class="sherah-svg-icon" xmlns="http://www.w3.org/2000/svg" width="18.075" height="18.075" viewBox="0 0 18.075 18.075">
 											<g id="Icon" transform="translate(0 0)">
@@ -248,6 +255,34 @@ export const menuItems: MenuItem[] = [
         label: "İndirim Listesi",
         to: "/discounts-list",
         anyOf: ["SYSTEM_ADMIN"],
+      },
+    ],
+  },
+  // menuItems array'inin sonuna, discounts'tan sonra ekle:
+
+  {
+    id: "menu-item__stock",
+    label: "Stok İşlemleri",
+    iconHtml: StockIconHTML,
+    anyOf: ["SYSTEM_ADMIN", "PRODUCT_READ"],
+    children: [
+      {
+        id: "stock_movements_by_product",
+        label: "Ürün Bazlı Hareketler",
+        to: "/stock/movements-by-product",
+        anyOf: ["SYSTEM_ADMIN", "PRODUCT_READ"],
+      },
+      {
+        id: "stock_daily_summary",
+        label: "Günlük Özet",
+        to: "/stock/daily-summary",
+        anyOf: ["SYSTEM_ADMIN", "PRODUCT_READ"],
+      },
+      {
+        id: "stock_top_movements",
+        label: "En Çok Hareket Eden Ürünler",
+        to: "/stock/top-movements",
+        anyOf: ["SYSTEM_ADMIN", "PRODUCT_READ"],
       },
     ],
   },
