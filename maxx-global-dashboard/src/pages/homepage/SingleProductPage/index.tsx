@@ -8,6 +8,7 @@ import {
   getProductById,
   type ProductDetail,
 } from "../../../services/products/getById";
+import { addToCart, updateQty, getCart } from "../../../services/cart/storage";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
@@ -18,22 +19,20 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const increment = () => {
-    setQuantity((prev) => prev + 1);
-  };
-  const decrement = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
+
+  const increment = () => setQuantity((prev) => prev + 1);
+  const decrement = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val) && val >= 1) setQuantity(val);
   };
 
+  // Ürün detayı fetch
   useEffect(() => {
     const controller = new AbortController();
-
     (async () => {
       setLoading(true);
       setErr(null);
-
       const idNum = Number(idParam);
       if (!Number.isFinite(idNum) || idNum <= 0) {
         setErr("Geçersiz ürün numarası.");
@@ -44,17 +43,29 @@ export default function ProductPage() {
       try {
         const p = await getProductById(idNum, { signal: controller.signal });
         setProduct(p);
+
+        // Eğer ürün zaten sepetteyse, var olan quantity’i getir
+        const cartItem = getCart().find((c) => c.id === idNum);
+        if (cartItem) setQuantity(cartItem.qty);
       } catch (e: any) {
-        if (e?.name === "CanceledError" || e?.name === "AbortError") return;
-        console.error("getProductById error:", e);
-        setErr("Ürün detayı yüklenemedi.");
+        if (e?.name !== "CanceledError" && e?.name !== "AbortError") {
+          console.error("getProductById error:", e);
+          setErr("Ürün detayı yüklenemedi.");
+        }
       } finally {
         setLoading(false);
       }
     })();
-
     return () => controller.abort();
   }, [idParam]);
+
+  // Sepete ekleme
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart(product.id, quantity);
+    updateQty(product.id, quantity); // var ise qty güncelle
+    alert(`Ürün sepete eklendi (ID: ${product.id}, Adet: ${quantity})`);
+  };
 
   const statusBadge = useMemo(() => {
     if (!product) return null;
@@ -77,7 +88,6 @@ export default function ProductPage() {
       </Layout>
     );
   }
-
   if (err) {
     return (
       <Layout>
@@ -87,7 +97,6 @@ export default function ProductPage() {
       </Layout>
     );
   }
-
   if (!product) return null;
 
   return (
@@ -129,19 +138,16 @@ export default function ProductPage() {
                 {/* Sağ kısım: detaylar */}
                 <div className="flex-1">
                   <div className="product-details w-full mt-10 lg:mt-0">
-                    <p className="text-xl font-medium text-qblack mb-4 aos-init aos-animate">
-                      {product.name}
+                    <p className="text-xl font-medium text-qblack mb-4">
+                      {product.name} {statusBadge}
                     </p>
-                    <p
-                      data-aos="fade-up"
-                      className="text-qgray text-sm text-normal mb-[30px] leading-7 aos-init aos-animate"
-                    >
+
+                    <p className="text-qgray text-sm mb-[30px] leading-7">
                       {product.description || "Ürün açıklaması mevcut değil."}
                     </p>
 
                     <p
-                      data-aos="fade-up"
-                      className={`text-xl font-medium text-qblack mb-4 aos-init aos-animate ${
+                      className={`text-xl font-medium mb-4 ${
                         product.isInStock ? "sherah-color3" : "text-danger"
                       }`}
                     >
@@ -150,29 +156,8 @@ export default function ProductPage() {
                         : "Stok yok"}
                     </p>
 
-                    <div data-aos="fade-up" className="colors mb-[30px]">
-                      <span className="text-sm font-normal uppercase text-qgray mb-[14px] inline-block">
-                        Renk
-                      </span>
-
-                      <div className="flex space-x-4 items-center">
-                        <div>
-                          <button
-                            type="button"
-                            className="w-[20px] h-[20px]  rounded-full focus:ring-2  ring-offset-2 flex justify-center items-center"
-                          >
-                            <span
-                              style={{ background: `${product.color}` }}
-                              className="w-[20px] h-[20px] block rounded-full border"
-                            ></span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      data-aos="fade-up"
-                      className="quantity-card-wrapper w-full flex items-center h-[50px] space-x-[10px] mb-[30px]"
-                    >
+                    {/* Adet ve Sepete Ekle */}
+                    <div className="quantity-card-wrapper w-full flex items-center h-[50px] space-x-[10px] mb-[30px]">
                       <div className="w-[120px] h-full px-[26px] flex items-center border border-qgray-border">
                         <div className="flex justify-between items-center w-full">
                           <button
@@ -180,9 +165,15 @@ export default function ProductPage() {
                             type="button"
                             className="text-base text-qgray"
                           >
-                            -
+                            –
                           </button>
-                          <span className="text-qblack">{quantity}</span>
+                          <input
+                            type="number"
+                            min={1}
+                            value={quantity}
+                            onChange={handleManualChange}
+                            className="w-14 text-center border-none outline-none text-qblack"
+                          />
                           <button
                             onClick={increment}
                             type="button"
@@ -192,36 +183,18 @@ export default function ProductPage() {
                           </button>
                         </div>
                       </div>
-                      <div className="w-[60px] h-full flex justify-center items-center border border-qgray-border">
-                        <button type="button">
-                          <span>
-                            <svg
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M17 1C14.9 1 13.1 2.1 12 3.7C10.9 2.1 9.1 1 7 1C3.7 1 1 3.7 1 7C1 13 12 22 12 22C12 22 23 13 23 7C23 3.7 20.3 1 17 1Z"
-                                stroke="#D5D5D5"
-                                strokeWidth="2"
-                                strokeMiterlimit="10"
-                                strokeLinecap="square"
-                              />
-                            </svg>
-                          </span>
-                        </button>
-                      </div>
                       <div className="flex-1 h-full">
                         <button
                           type="button"
+                          onClick={handleAddToCart}
                           className="cursor-pointer black-btn text-sm font-semibold w-full h-full"
                         >
                           Sepete Ekle
                         </button>
                       </div>
                     </div>
+
+                    {/* Diğer ürün bilgileri */}
                     <div
                       data-aos="fade-up"
                       className="mb-[20px] aos-init aos-animate"
@@ -239,6 +212,15 @@ export default function ProductPage() {
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">Lot No :</span>
+                        <span className="ms-2">{product.lotNumber || "-"}</span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">Birim :</span>
+                        <span className="ms-2">{product.unit || "-"}</span>
+                      </p>
+
+                      <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">Materyal :</span>
                         <span className="ms-2">{product.material || "-"}</span>
                       </p>
@@ -251,11 +233,13 @@ export default function ProductPage() {
                         <span className="ms-2">{product.diameter || "-"}</span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">
-                          Yüzey İşlemi :
-                        </span>
+                        <span className="text-qblack font-600">Açı :</span>
+                        <span className="ms-2">{product.angle || "-"}</span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">Ağırlık :</span>
                         <span className="ms-2">
-                          {product.surfaceTreatment || "-"}
+                          {product.weightGrams || "-"} gr
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
@@ -280,6 +264,64 @@ export default function ProductPage() {
                         </span>
                         <span className="ms-2">
                           {product.manufacturingDate || "-"}
+                        </span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">Steril :</span>
+                        <span className="ms-2">
+                          {product.sterile === true
+                            ? "Evet"
+                            : product.sterile === false
+                            ? "Hayır"
+                            : "-"}
+                        </span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">
+                          Tek Kullanımlık :
+                        </span>
+                        <span className="ms-2">
+                          {product.singleUse === true
+                            ? "Evet"
+                            : product.singleUse === false
+                            ? "Hayır"
+                            : "-"}
+                        </span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">
+                          İmplante Edilebilir :
+                        </span>
+                        <span className="ms-2">
+                          {product.implantable === true
+                            ? "Evet"
+                            : product.implantable === false
+                            ? "Hayır"
+                            : "-"}
+                        </span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">
+                          CE İşareti :
+                        </span>
+                        <span className="ms-2">
+                          {product.ceMarking === true
+                            ? "Evet"
+                            : product.ceMarking === false
+                            ? "Hayır"
+                            : "-"}
+                        </span>
+                      </p>
+                      <p className="text-[13px] text-qgray leading-7">
+                        <span className="text-qblack font-600">
+                          FDA Onaylı :
+                        </span>
+                        <span className="ms-2">
+                          {product.fdaApproved === true
+                            ? "Evet"
+                            : product.fdaApproved === false
+                            ? "Hayır"
+                            : "-"}
                         </span>
                       </p>
                     </div>

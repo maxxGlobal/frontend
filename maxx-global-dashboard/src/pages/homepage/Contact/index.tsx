@@ -34,7 +34,7 @@ export default function Contact() {
   }, []);
   const mapUrl = dealer?.address
     ? `https://www.google.com/maps?q=${encodeURIComponent(
-        dealer.address
+        "Ehlibeyt Mah. Tekstilciler Cd. 35 / 7 Çankaya, Ankara – Türkiye"
       )}&output=embed`
     : "";
 
@@ -46,7 +46,7 @@ export default function Contact() {
           <div className="main-wrapper w-full lg:flex lg:space-x-[30px]">
             <div className="w-full">
               <h1 className="text-[22px] font-semibold text-qblack leading-[30px] mb-1">
-                {dealer?.name ?? "—"} İletişim Bilgileri
+                İletişim Bilgileri
               </h1>
               <p className="text-[15px] text-qgraytwo leading-[30px] mb-5">
                 Bize Aşağıdaki Bilgilerden Ulaşabilrsiniz
@@ -62,10 +62,7 @@ export default function Contact() {
                     Telefon
                   </p>
                   <p className="text-[15px] text-black text-center">
-                    {dealer?.fixedPhone ?? "—"}
-                  </p>
-                  <p className="text-[15px] text-black text-center">
-                    {dealer?.mobilePhone ?? "—"}
+                    <a href="tel:+90 507 916 42 73">+90 507 916 42 73</a>
                   </p>
                 </div>
 
@@ -77,7 +74,9 @@ export default function Contact() {
                     Eposta
                   </p>
                   <p className="text-[15px] text-black text-center">
-                    {dealer?.email ?? "—"}
+                    <a href="mailto:bilgi@medintera.com.tr">
+                      bilgi@medintera.com.tr
+                    </a>
                   </p>
                 </div>
               </div>
@@ -93,7 +92,9 @@ export default function Contact() {
                       Adres
                     </p>
                     <p className="text-[15px] text-black text-center">
-                      {dealer?.address ?? "No address available"}
+                      MEDİNTERA MİMARLIK TASARIM MEDİKAL SAN. VE TİC. LTD. ŞTİ.
+                      Ehlibeyt Mah. Tekstilciler Cd. 35 / 7 Çankaya, Ankara –
+                      Türkiye
                     </p>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import type {
   Product,
   ProductImage,
   ProductStatus,
+  ProductPrice,
 } from "../../types/product";
 
 export type ApiProductListItem = {
@@ -15,8 +16,22 @@ export type ApiProductListItem = {
   unit?: string | null;
   isActive?: boolean | null;
   isInStock?: boolean | null;
+  isFavorite?: boolean | null;
+  prices?: ProductPrice[];
 };
+function normalizePrices(raw: any): ProductPrice[] {
+  const arr = Array.isArray(raw?.prices)
+    ? raw.prices
+    : Array.isArray(raw?.productPrices)
+    ? raw.productPrices
+    : [];
 
+  return arr.map((p: any) => ({
+    productPriceId: Number(p?.productPriceId ?? p?.id ?? 0),
+    currency: String(p?.currency ?? p?.currencyCode ?? "TRY"),
+    amount: Number(p?.amount ?? p?.price ?? p?.value ?? 0),
+  }));
+}
 export function normalizeProductList(rows: any[]): ProductRow[] {
   return (rows ?? []).map((r) => {
     const status: ProductStatus = r?.status === "SİLİNDİ" ? "SİLİNDİ" : "AKTİF";
@@ -33,6 +48,8 @@ export function normalizeProductList(rows: any[]): ProductRow[] {
       status,
       isActive: status === "AKTİF",
       isInStock: !!r?.isInStock,
+      isFavorite: !!r?.isFavorite,
+      prices: normalizePrices(r),
     } as ProductRow;
   });
 }
@@ -87,5 +104,7 @@ export function normalizeProductDetail(raw: any): Product {
     createdDate: raw?.createdDate ?? null,
     updatedDate: raw?.updatedDate ?? null,
     status: raw?.status ?? null,
+
+    prices: normalizePrices(raw),
   };
 }

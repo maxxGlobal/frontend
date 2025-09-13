@@ -42,6 +42,10 @@ const FlashProduct = lazy(() => import("../pages/homepage/FlashSale"));
 const Contact = lazy(() => import("../pages/homepage/Contact"));
 const About = lazy(() => import("../pages/homepage/About"));
 const ProductDetail = lazy(() => import("../pages/homepage/SingleProductPage"));
+const BasketDetail = lazy(() => import("../pages/homepage/BasketDetail"));
+const FavoriteProduct = lazy(
+  () => import("../pages/homepage/FavoritesProductPage")
+);
 export default function AppRoutes() {
   return (
     <Routes>
@@ -71,6 +75,12 @@ export default function AppRoutes() {
         </Route>
         <Route element={<PublicHomeLayout />}>
           <Route path="/homepage/product/:id" element={<ProductDetail />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/favorites" element={<FavoriteProduct />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/basket" element={<BasketDetail />} />
         </Route>
       </Route>
       <Route element={<AuthLayout />}>

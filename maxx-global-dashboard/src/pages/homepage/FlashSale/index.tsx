@@ -1,171 +1,190 @@
-import { useEffect, useState } from "react";
+// src/pages/FlashSale/index.tsx
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import CountDown from "../Helpers/CountDown";
 import Layout from "../Partials/Layout";
-import { listDiscounts } from "../../../services/discounts/list";
-import type { Discount, PageResponse } from "../../../types/discount";
+import { listDiscountsByDealer } from "../../../services/discounts/list-by-dealer";
+import { listProductImages } from "../../../services/products/images/list";
+import type { Discount, DiscountProduct } from "../../../types/discount";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
 export default function FlashSale() {
-  const { showDate, showHour, showMinute, showSecound } =
-    CountDown("2023-03-04 4:00:00");
-
-  const [products, setProducts] = useState<Discount[]>([]);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dealerCurrency, setDealerCurrency] = useState<string | undefined>();
+
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   useEffect(() => {
-    const controller = new AbortController();
     (async () => {
       try {
         setLoading(true);
         setError(null);
-        const cacheRaw = localStorage.getItem("gbFeaturesCache");
-        let dealerId: number | undefined = undefined;
 
-        if (cacheRaw) {
-          try {
-            const cache = JSON.parse(cacheRaw);
-            // Burada senin screenshot'taki gibi "dealer" objesi var
-            dealerId = cache?.dealer?.id;
-            console.log(dealerId);
-          } catch (e) {
-            console.warn("Cache parse edilemedi:", e);
-          }
+        const userRaw = localStorage.getItem("user");
+        const dealerId = userRaw ? JSON.parse(userRaw)?.dealer?.id : undefined;
+        const currency = userRaw
+          ? JSON.parse(userRaw)?.dealer?.preferredCurrency
+          : undefined;
+
+        // 🔹 state’e kaydet
+        setDealerCurrency(currency);
+        if (!dealerId) {
+          setError("Bayi bilgisi bulunamadı");
+          return;
         }
-        const pageRes: PageResponse<Discount> = await listDiscounts(dealerId);
-        console.log(pageRes);
-        setProducts(pageRes?.content ?? [dealerId]);
+
+        const res = await listDiscountsByDealer(dealerId);
+
+        // Resimleri tamamla
+        const completed = await Promise.all(
+          res.map(async (d) => {
+            const prods = await Promise.all(
+              d.applicableProducts.map(async (p) => {
+                if (!p.primaryImageUrl) {
+                  const imgs = await listProductImages(p.id);
+                  const firstImg = imgs.find((i) => i.isPrimary) ?? imgs[0];
+                  return { ...p, primaryImageUrl: firstImg?.imageUrl ?? null };
+                }
+                return p;
+              })
+            );
+            return { ...d, applicableProducts: prods };
+          })
+        );
+
+        setDiscounts(completed);
       } catch (e: any) {
         console.error(e);
-        setError("İndirimli ürünler yüklenemedi");
+        setError("İndirimli ürünler getirilemedi");
       } finally {
         setLoading(false);
       }
     })();
-
-    return () => controller.abort();
   }, []);
+
+  // tüm ürünleri tek satır listesine çevir
+  const rows: {
+    discount: Discount;
+    product: DiscountProduct;
+  }[] = useMemo(() => {
+    const out: { discount: Discount; product: DiscountProduct }[] = [];
+    discounts.forEach((d) =>
+      d.applicableProducts.forEach((p) => out.push({ discount: d, product: p }))
+    );
+    return out;
+  }, [discounts]);
+
+  // toplam sayfa
+  const totalPages = Math.ceil(rows.length / pageSize);
+
+  // aktif sayfanın satırları
+  const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <Layout>
-      <div className="flashsale-wrapper w-full">
-        <div className="container-x mx-auto">
-          <div className="w-full">
-            {/* Banner + Countdown */}
-            <div
-              style={{
-                background: `url(${
-                  import.meta.env.VITE_PUBLIC_URL
-                }/assets/images/flash-sale-ads.png) no-repeat`,
-                backgroundSize: "cover",
-              }}
-              data-aos="fade-right"
-              className="flash-ad w-full h-[400px] flex sm:justify-end justify-center items-center mb-10"
-            >
-              <div className="sm:mr-[75px]">
-                <div className="countdown-wrapper w-full flex sm:space-x-6 space-x-3 sm:justify-between justify-evenly">
-                  <div className="countdown-item">
-                    <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                      <span className="font-700 sm:text-[30px] text-base text-[#EB5757]">
-                        {showDate}
-                      </span>
-                    </div>
-                    <p className="sm:text-[18px] text-xs font-500 text-center leading-8 text-white">
-                      Days
-                    </p>
-                  </div>
-                  <div className="countdown-item">
-                    <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                      <span className="font-700 sm:text-[30px] text-base text-[#2F80ED]">
-                        {showHour}
-                      </span>
-                    </div>
-                    <p className="sm:text-[18px] text-xs font-500 text-center leading-8 text-white">
-                      Hours
-                    </p>
-                  </div>
-                  <div className="countdown-item">
-                    <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                      <span className="font-700 sm:text-[30px] text-base text-[#219653]">
-                        {showMinute}
-                      </span>
-                    </div>
-                    <p className="sm:text-[18px] text-xs font-500 text-center leading-8 text-white">
-                      Minutes
-                    </p>
-                  </div>
-                  <div className="countdown-item">
-                    <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                      <span className="font-700 sm:text-[30px] text-base text-[#EF5DA8]">
-                        {showSecound}
-                      </span>
-                    </div>
-                    <p className="sm:text-[18px] text-xs font-500 text-center leading-8 text-white">
-                      Seconds
-                    </p>
-                  </div>
-                </div>
-              </div>
+      <div className="container-x mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">
+          Bayiye Uygulanabilir İndirimler
+        </h1>
+
+        {loading && <p>Yükleniyor…</p>}
+        {error && <p className="text-red-500">{error}</p>}
+
+        {!loading && !error && rows.length > 0 && (
+          <>
+            <div className="overflow-x-auto border border-[#EDEDED] rounded-md">
+              <table className="w-full text-sm text-left text-gray-700">
+                <thead>
+                  <tr className="bg-[#F6F6F6] text-[13px] font-semibold uppercase border-b">
+                    <th className="py-4 pl-6">İndirim Kodu</th>
+                    <th className="py-4 pl-6">İndirim Mİktarı</th>
+                    <th className="py-4 text-center">Resim</th>
+                    <th className="py-4 text-center">Ürün Adı</th>
+                    <th className="py-4 text-center">Kategori</th>
+                    <th className="py-4 text-center">Stok</th>
+                    <th className="py-4 text-center">Başlangıç</th>
+                    <th className="py-4 text-center">Bitiş</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagedRows.map(({ discount: d, product: p }) => (
+                    <tr
+                      key={`${d.id}-${p.id}`}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <td className="pl-6 py-3 font-medium">{d.name}</td>
+                      <td className="pl-6 py-3 font-medium">
+                        {d.discountType === "PERCENTAGE"
+                          ? `% ${d.discountValue}`
+                          : `${d.discountValue} ${dealerCurrency ?? ""}`}
+                      </td>
+                      <td className="text-center py-3">
+                        <img
+                          src={
+                            p.primaryImageUrl ||
+                            `${
+                              import.meta.env.VITE_PUBLIC_URL
+                            }src/assets/images/resim-yok.jpg`
+                          }
+                          alt={p.name}
+                          className="w-16 h-16 object-contain mx-auto border"
+                        />
+                      </td>
+                      <td className="text-center py-3">
+                        <Link
+                          to={`/homepage/product/${p.id}`}
+                          className="hover:text-blue-600"
+                        >
+                          {p.name}
+                        </Link>
+                      </td>
+                      <td className="text-center py-3">{p.categoryName}</td>
+                      <td className="text-center py-3">
+                        {p.stockQuantity} {p.unit}
+                      </td>
+                      <td className="text-center py-3">
+                        {new Date(d.startDate).toLocaleDateString("tr-TR")}
+                      </td>
+                      <td className="text-center py-3">
+                        {new Date(d.endDate).toLocaleDateString("tr-TR")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Products Grid */}
-            {loading && <p className="text-center">Yükleniyor…</p>}
-            {error && (
-              <p className="text-center text-red-500 text-sm">{error}</p>
-            )}
-            {!loading && !error && (
-              <div className="products grid xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 xl:gap-[30px] gap-5">
-                {products.map((p) => (
-                  <div data-aos="fade-up" key={p.id} className="item">
-                    <div
-                      className="product-card-style-one-two w-full h-full bg-white relative group overflow-hidden"
-                      style={{
-                        boxShadow: "0px 15px 64px 0px rgba(0, 0, 0, 0.05)",
-                      }}
-                    >
-                      <div
-                        className="product-card-img w-full h-[322px] mt-4"
-                        style={{
-                          background: `url(${
-                            import.meta.env.VITE_PUBLIC_URL
-                          }/assets/images/) no-repeat center`,
-                        }}
-                      ></div>
+            {/* 🔹 Sayfalama Kontrolleri */}
+            <div className="flex justify-center items-center space-x-4 mt-6">
+              <button
+                className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Önceki
+              </button>
+              <span>
+                Sayfa {page} / {totalPages}
+              </span>
+              <button
+                className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Sonraki
+              </button>
+            </div>
+          </>
+        )}
 
-                      <div className="product-card-details flex justify-center h-[102px] items-center relative">
-                        {/* add to cart button */}
-                        <div className="absolute w-[204px] h-[54px] left-[80px] -bottom-20 group-hover:bottom-[65px] transition-all duration-300 ease-in-out">
-                          <button type="button" className="yellow-btn">
-                            <div>
-                              <span>Add To Cart</span>
-                            </div>
-                          </button>
-                        </div>
-                        <div>
-                          <Link to="/single-product">
-                            <p className="title mb-2.5 text-[20px] font-600 text-center text-qblack leading-[24px] line-clamp-2 hover:text-blue-600"></p>
-                          </Link>
-                          <div className="flex justify-center">
-                            <div className="price">
-                              <span className="offer-price text-center text-qred font-600 text-[18px] mr-1 inline-block">
-                                {p.applicableProducts.map((x) => x.name)}
-                              </span>
-                              <span className="main-price text-qgray line-through font-600 text-center text-[18px]"></span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* quick-access-btns */}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        {!loading && !error && rows.length === 0 && (
+          <p className="text-center mt-6 text-gray-500">
+            Bu bayi için indirim bulunamadı.
+          </p>
+        )}
       </div>
     </Layout>
   );
