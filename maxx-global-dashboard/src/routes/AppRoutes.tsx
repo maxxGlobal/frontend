@@ -35,7 +35,9 @@ import AdminNotificationsList from "../pages/notifications/AdminNotificationsLis
 import MyNotificationsPage from "../pages/notifications/MyNotificationsPage";
 import OrderDetailPage from "../pages/orders/OrderDetailPage";
 import PublicHomeLayout from "../components/layout/PublicHomeLayout";
-
+import MovementsByProduct from "../pages/stock/MovementsByProduct";
+import DailySummary from "../pages/stock/DailySummary";
+import TopMovements from "../pages/stock/TopMovements";
 const HomePage = lazy(() => import("../pages/homepage/HomeTwo"));
 const AllProductPage = lazy(() => import("../pages/homepage/AllProductPage"));
 const FlashProduct = lazy(() => import("../pages/homepage/FlashSale"));
@@ -204,6 +206,18 @@ export default function AppRoutes() {
           />
           <Route path="/notifications" element={<AdminNotificationsList />} />
           <Route path="/my-notifications" element={<MyNotificationsPage />} />
+          {/* Stok İşlemleri - DashboardLayout içinde, diğer protected route'larla birlikte */}
+<Route
+  element={
+    <ProtectedRoute
+      anyOf={["PRODUCT_READ", "PRODUCT_MANAGE", "SYSTEM_ADMIN"]}
+    />
+  }
+>
+  <Route path="/stock/movements-by-product" element={<MovementsByProduct />} />
+  <Route path="/stock/daily-summary" element={<DailySummary />} />
+  <Route path="/stock/top-movements" element={<TopMovements />} />
+</Route>
         </Route>
       </Route>
 
