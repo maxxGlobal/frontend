@@ -182,12 +182,12 @@ export default function DiscountsList() {
             >
               <i className="fa fa-plus me-1"></i> Yeni İndirim
             </button>
-            <button
+            {/* <button
               className="btn btn-outline-primary"
               onClick={() => navigate("/discounts/calculate")}
             >
               <i className="fa fa-calculator me-1"></i> Hesapla
-            </button>
+            </button> */}
             <button
               className="btn btn-outline-primary"
               onClick={() => navigate("/discounts/upcoming")}
