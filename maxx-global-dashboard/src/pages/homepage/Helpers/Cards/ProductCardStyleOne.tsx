@@ -1,28 +1,58 @@
+// src/pages/Helpers/Cards/ProductCardStyleOne.tsx
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
-
 import ThinLove from "../icons/ThinLove";
-import QuickViewIco from "../icons/QuickViewIco";
-import Compair from "../icons/Compair";
 import { addFavorite } from "../../../../services/favorites/add";
 import { removeFavorite } from "../../../../services/favorites/remove";
-import type { ProductRow } from "../../../../types/product";
+import type { Product, ProductRow } from "../../../../types/product";
 import { addToCart } from "../../../../services/cart/storage";
 
-type Props = { datas: ProductRow };
+type Props = {
+  datas: Product;
+  /** Üst sayfadan gelen seçili malzemeler */
+  filterMaterials?: string[];
+};
 
 const PUBLIC_FALLBACK = `${
   import.meta.env.VITE_PUBLIC_URL ?? ""
 }/assets/images/placeholder.png`;
-
 function buildImageUrl(u?: string | null) {
   if (!u || u.trim() === "") return PUBLIC_FALLBACK;
   return u;
 }
 
-export default function ProductCardStyleOne({ datas }: Props) {
+/** Ürün seçili malzemelerden en az biriyle eşleşiyor mu? */
+function matchesMaterials(prod: Product, selected: string[] = []) {
+  if (!selected.length) return true; // malzeme seçilmediyse tüm ürünler geçsin
+
+  // Üründeki malzeme bilgisini olabildiğince esnek yakala:
+  //  - prod.materials: string[]
+  //  - prod.material: string
+  //  - prod.attributes?.materials: string[]
+  const rawList =
+    (prod as any)?.materials ??
+    (prod as any)?.attributes?.materials ??
+    (typeof (prod as any)?.material === "string"
+      ? [(prod as any).material]
+      : []);
+
+  const list: string[] = Array.isArray(rawList) ? rawList : [];
+  if (!list.length) return false;
+
+  const norm = (s: string) => s.trim().toLowerCase();
+  const prodSet = new Set(list.map(norm));
+
+  return selected.some((m) => prodSet.has(norm(m)));
+}
+
+export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
+  // 1) Status kontrolü
+  if (datas.status !== "AKTİF") return null;
+
+  if (!matchesMaterials(datas, filterMaterials)) return null;
+
   const qc = useQueryClient();
   const d = datas;
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
@@ -69,7 +99,7 @@ export default function ProductCardStyleOne({ datas }: Props) {
 
   return (
     <div
-      className="product-card-one w-full h-full bg-white relative group overflow-hidden"
+      className="product-card-one w-full h-full bg-white relative group overflow-hidden rounded-[8px]"
       style={{ boxShadow: "0px 15px 64px rgba(0,0,0,0.05)" }}
     >
       <div
@@ -88,6 +118,12 @@ export default function ProductCardStyleOne({ datas }: Props) {
         {d.categoryName && (
           <p className="text-[12px] text-qgray mb-2">
             Kategori: {d.categoryName}
+          </p>
+        )}
+
+        {d.material !== undefined && d.material !== null && (
+          <p className="text-[12px] text-qgray mb-2">
+            Materyal: {d.material || "—"}
           </p>
         )}
 
@@ -148,19 +184,13 @@ export default function ProductCardStyleOne({ datas }: Props) {
       </div>
 
       {/* Hızlı Erişim Butonları */}
-      <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-20 transition-all duration-300">
-        <button className="w-10 h-10 flex justify-center items-center bg-primarygray rounded">
-          <QuickViewIco />
-        </button>
+      <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
         <button
           type="button"
           onClick={handleFavorite}
           className="w-10 h-10 flex justify-center items-center bg-primarygray rounded"
         >
           <ThinLove fillColor={isFav ? "red" : "white"} />
-        </button>
-        <button className="w-10 h-10 flex justify-center items-center bg-primarygray rounded">
-          <Compair />
         </button>
       </div>
     </div>

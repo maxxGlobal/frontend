@@ -1,9 +1,6 @@
 // src/pages/CartPage/index.tsx
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import Layout from "../Partials/Layout";
-import BreadcrumbCom from "../BreadcrumbCom";
-
 import PageTitle from "../Helpers/PageTitle";
 import {
   getCart,
@@ -18,6 +15,8 @@ import { listDiscountsByDealer } from "../../../services/discounts/list-by-deale
 import { validateDiscountForOrder } from "../../../services/discounts/validate-for-order";
 import type { ProductRow } from "../../../types/product";
 import type { Discount } from "../../../types/discount";
+import Swal from "sweetalert2";
+import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
@@ -33,20 +32,21 @@ function fmt(amount: number, currency?: string | null) {
 }
 
 export default function CartPage() {
-  const [loading, setLoading] = useState(true);
+  /** Tüm sayfa yükleme durumu: ürünler + kuponlar birlikte bitene kadar true */
+  const [initLoading, setInitLoading] = useState(true);
+
   const [items, setItems] = useState<{ product: ProductRow; qty: number }[]>(
     []
   );
-  const [error, setError] = useState<string | null>(null);
-
-  // İndirimler
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [selectedDiscountId, setSelectedDiscountId] = useState<number | null>(
     null
   );
   const [discountedTotal, setDiscountedTotal] = useState<number | null>(null);
 
-  // Bayi bilgisi
+  /** Sadece indirim hesaplanırken kullanılan local loader */
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+
   const { dealerId, dealerCurrency } = (() => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -59,32 +59,49 @@ export default function CartPage() {
     }
   })();
 
-  // Sepet ve indirimleri çek
+  /** Ürünler + kuponlar birlikte yüklensin; bitince initLoading kapansın */
   useEffect(() => {
     const controller = new AbortController();
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const cart = getCart();
-        const ids = cart.map((c) => c.id);
-        const products = ids.length
-          ? await fetchProductsByIds(ids, { signal: controller.signal })
-          : [];
-        const qtyMap = new Map(cart.map((c) => [c.id, c.qty]));
-        setItems(
-          products.map((p) => ({ product: p, qty: qtyMap.get(p.id) ?? 1 }))
-        );
 
-        if (dealerId) {
-          const dRes = await listDiscountsByDealer(dealerId);
-          setDiscounts(dRes);
+    async function loadAll() {
+      setInitLoading(true);
+
+      const cart = getCart();
+      const ids = cart.map((c) => c.id);
+
+      const pProducts = (async () => {
+        try {
+          const products = ids.length
+            ? await fetchProductsByIds(ids, { signal: controller.signal })
+            : [];
+          const qtyMap = new Map(cart.map((c) => [c.id, c.qty]));
+          setItems(
+            products.map((p) => ({ product: p, qty: qtyMap.get(p.id) ?? 1 }))
+          );
+        } catch (e) {
+          console.error("Ürünler alınırken hata:", e);
+          setItems([]);
         }
-      } catch (e: any) {
-      } finally {
-        setLoading(false);
-      }
-    })();
+      })();
+
+      const pDiscounts = (async () => {
+        try {
+          if (dealerId) {
+            const dRes = await listDiscountsByDealer(dealerId);
+            setDiscounts(dRes);
+          } else {
+            setDiscounts([]);
+          }
+        } catch (e) {
+          console.error("İndirimler alınırken hata:", e);
+          setDiscounts([]);
+        }
+      })();
+      await Promise.allSettled([pProducts, pDiscounts]);
+      setInitLoading(false);
+    }
+
+    loadAll();
     return () => controller.abort();
   }, [dealerId]);
 
@@ -97,7 +114,6 @@ export default function CartPage() {
     [items]
   );
 
-  // Adet değiştir
   const handleQtyChange = (id: number, next: number) => {
     const q = Math.max(1, next);
     setItems((prev) =>
@@ -113,20 +129,20 @@ export default function CartPage() {
     setDiscountedTotal(null);
   };
 
-  const handleClear = () => {
-    setItems([]);
-    clearCart();
-    setDiscountedTotal(null);
-    setSelectedDiscountId(null);
-  };
-
-  // İndirim uygula
   const handleApplyDiscount = async () => {
+    if (!dealerId || !items.length || !selectedDiscountId) {
+      Swal.fire({
+        icon: "info",
+        title: "Lütfen Bir İndirim Seçiniz",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
     try {
-      if (!dealerId || !items.length || !selectedDiscountId) {
-        alert("Lütfen bir indirim seçin.");
-        return;
-      }
+      setApplyingDiscount(true);
+
       const validation = await validateDiscountForOrder(
         String(selectedDiscountId),
         dealerId,
@@ -134,7 +150,12 @@ export default function CartPage() {
         subtotal
       );
       if (!validation.ok) {
-        alert(validation.reason);
+        Swal.fire({
+          icon: "error",
+          title: validation.reason,
+          timer: 1400,
+          showConfirmButton: false,
+        });
         return;
       }
 
@@ -155,15 +176,26 @@ export default function CartPage() {
       setSelectedDiscountId(validation.id);
     } catch (e) {
       console.error(e);
-      alert("İndirim hesaplanırken hata oluştu.");
+      Swal.fire({
+        icon: "error",
+        title: "İndirim hesaplanırken hata oluştu.",
+        timer: 1400,
+        showConfirmButton: false,
+      });
+    } finally {
+      setApplyingDiscount(false);
     }
   };
 
-  // Sipariş oluştur
   const handleCreateOrder = async () => {
     try {
       if (!dealerId || !items.length) {
-        alert("Sepet veya bayi bilgisi eksik.");
+        Swal.fire({
+          icon: "error",
+          title: "Sepet veya bayi bilgisi eksik.",
+          timer: 1200,
+          showConfirmButton: false,
+        });
         return;
       }
 
@@ -176,37 +208,50 @@ export default function CartPage() {
         })
         .filter(Boolean) as { productPriceId: number; quantity: number }[];
 
-      const order = await createOrder({
+      await createOrder({
         dealerId,
         products: productsPayload,
         discountId: selectedDiscountId ?? undefined,
         notes: "Web sepetinden sipariş",
       });
 
-      alert("Sipariş başarıyla oluşturuldu!");
+      Swal.fire({
+        icon: "success",
+        title: "Sipariş başarıyla oluşturuldu!",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
       clearCart();
       setItems([]);
       setSelectedDiscountId(null);
       setDiscountedTotal(null);
     } catch (e) {
       console.error(e);
-      alert("Sipariş oluşturulurken hata oluştu.");
+      Swal.fire({
+        icon: "error",
+        title: "Sipariş oluşturulurken hata oluştu.",
+        timer: 1200,
+        showConfirmButton: false,
+      });
     }
   };
 
-  // ---------- RENDER ----------
-  if (!items.length && !loading) {
+  if (initLoading) {
     return (
       <Layout>
-        <div className="cart-page-wrapper w-full">
-          <div className="container-x mx-auto">
-            <BreadcrumbCom
-              paths={[
-                { name: "home", path: "/homepage" },
-                { name: "homepage", path: "/homepage" },
-              ]}
-            />
-          </div>
+        <div className="flex justify-center items-center h-[70vh]">
+          <LoaderStyleOne />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!items.length) {
+    return (
+      <Layout>
+        <div className="container-x mx-auto py-10 text-center">
+          <p className="text-lg font-medium">Sepetiniz boş.</p>
         </div>
       </Layout>
     );
@@ -225,35 +270,20 @@ export default function CartPage() {
           />
         </div>
 
-        {loading && <div className="p-4 bg-gray-50 rounded">Yükleniyor…</div>}
-        {error && <div className="p-4 bg-red-50 text-red-600">{error}</div>}
-
         <div className="w-full mt-[23px]">
           <div className="container-x mx-auto">
-            {/* Ürün Tablosu */}
+            {/* Ürün tablosu */}
             <div className="w-full mb-[30px]">
               <div className="relative w-full overflow-x-auto border border-[#EDEDED]">
-                <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <table className="w-full text-sm text-left text-gray-500">
                   <tbody>
-                    <tr className="text-[13px] font-medium text-black bg-[#F6F6F6] whitespace-nowrap px-2 default-border-bottom uppercase">
-                      <td className="py-4 pl-10 block whitespace-nowrap min-w-[300px]">
-                        Ürün
-                      </td>
-                      <td className="py-4 whitespace-nowrap text-center">
-                        Ürün Kodu
-                      </td>
-                      <td className="py-4 whitespace-nowrap text-center">
-                        Fiyat
-                      </td>
-                      <td className="py-4 whitespace-nowrap text-center">
-                        Adet
-                      </td>
-                      <td className="py-4 whitespace-nowrap text-center">
-                        Tutar
-                      </td>
-                      <td className="py-4 whitespace-nowrap text-center">
-                        İşlem
-                      </td>
+                    <tr className="text-[13px] font-medium text-black bg-[#F6F6F6] whitespace-nowrap px-2 uppercase">
+                      <td className="py-4 pl-10 min-w-[300px]">Ürün</td>
+                      <td className="py-4 text-center">Ürün Kodu</td>
+                      <td className="py-4 text-center">Fiyat</td>
+                      <td className="py-4 text-center">Adet</td>
+                      <td className="py-4 text-center">Tutar</td>
+                      <td className="py-4 text-center">İşlem</td>
                     </tr>
                     {items.map(({ product, qty }) => {
                       const price = product.prices?.[0];
@@ -276,29 +306,18 @@ export default function CartPage() {
                                   className="w-16 h-16 object-cover rounded"
                                 />
                               </div>
-                              <div className="flex-1 flex flex-col">
+                              <div className="flex-1">
                                 <p className="font-medium text-[15px] text-qblack">
                                   {product.name}
                                 </p>
                               </div>
                             </div>
                           </td>
-
-                          <td className="text-center py-4 px-2">
-                            {product.code}
+                          <td className="text-center py-4">{product.code}</td>
+                          <td className="text-center py-4">
+                            {price ? fmt(price.amount, price.currency) : "—"}
                           </td>
-
-                          <td className="text-center py-4 px-2">
-                            <div className="flex space-x-1 items-center justify-center">
-                              <span className="text-[15px] font-normal">
-                                {price
-                                  ? fmt(price.amount, price.currency)
-                                  : "—"}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="text-center py-4 px-2">
+                          <td className="text-center py-4">
                             <input
                               type="number"
                               min={1}
@@ -312,12 +331,10 @@ export default function CartPage() {
                               className="w-20 border rounded px-2 py-1 text-center"
                             />
                           </td>
-
-                          <td className="text-center py-4 px-2">
+                          <td className="text-center py-4">
                             {price ? fmt(line, price.currency) : "-"}
                           </td>
-
-                          <td className="text-center py-4 px-2">
+                          <td className="text-center py-4">
                             <button
                               onClick={() => handleRemove(product.id)}
                               className="text-red-600"
@@ -333,46 +350,72 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* İndirim Kartları */}
+            {/* İndirimler */}
             {discounts.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 relative">
                 <h2 className="text-lg font-semibold mb-3">
                   Uygulanabilir İndirimler
                 </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                {applyingDiscount && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10 rounded">
+                    <LoaderStyleOne />
+                  </div>
+                )}
+
+                <div
+                  className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-4 ${
+                    applyingDiscount ? "opacity-50 pointer-events-none" : ""
+                  }`}
+                >
                   {discounts.map((d) => (
                     <div
                       key={d.id}
                       onClick={() => {
-                        setSelectedDiscountId((prev) =>
-                          prev === d.id ? null : d.id
-                        );
-                        setDiscountedTotal(null);
+                        if (!applyingDiscount) {
+                          setSelectedDiscountId((prev) =>
+                            prev === d.id ? null : d.id
+                          );
+                          setDiscountedTotal(null);
+                        }
                       }}
-                      className={`cursor-pointer border rounded p-4 shadow-sm hover:shadow-md transition ${
+                      className={`cursor-pointer border-2 coupon__wrap transition ${
                         selectedDiscountId === d.id
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200"
+                          ? "border-yellow-500 bg-yellow-50 active"
+                          : "border-qh2-green bg-green-50 pasif"
                       }`}
                     >
-                      <h3 className="font-bold text-qblack mb-1">{d.name}</h3>
-                      <p className="text-sm text-gray-600">
-                        {d.description || "Açıklama yok"}
-                      </p>
+                      <div className="coupon__title font-bold text-qh2-green mb-1 pe-3 border-r border-dashed border-qh2-green">
+                        <div className="bg-qh2-green rounded text-xs mb-2 text-green-50 px-2 py-1">
+                          İndirim Kodu
+                        </div>
+                        <div className="text-sm text-center">{d.name}</div>
+                      </div>
+                      <div className="coupon__detail text-sm text-gray-600">
+                        <div className="coupon__price text-qh2-green">
+                          {d.discountValue}{" "}
+                          {d.discountType === "PERCENTAGE"
+                            ? "%"
+                            : dealerCurrency}
+                        </div>
+                        <div className="coupon__info text-qh2-green">
+                          {d.description || "Açıklama yok"}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 <button
                   onClick={handleApplyDiscount}
-                  className="mt-4 px-4 py-2 black-btn text-white rounded"
+                  disabled={applyingDiscount || !selectedDiscountId}
+                  className="mt-4 px-4 py-2 bg-qh2-green text-white rounded cursor-pointer transition hover:bg-qh2-green disabled:opacity-50"
                 >
-                  İndirimi Uygula
+                  {applyingDiscount ? "Hesaplanıyor..." : "İndirimi Uygula"}
                 </button>
               </div>
             )}
 
-            {/* Toplam ve Sipariş */}
             <div className="w-full mt-[30px] flex sm:justify-end">
               <div className="sm:w-[370px] w-full border border-[#EDEDED] px-[30px] py-[26px]">
                 <div className="flex justify-between mb-6">
@@ -384,7 +427,6 @@ export default function CartPage() {
                   </p>
                 </div>
                 <div className="w-full h-[1px] bg-[#EDEDED] mb-6" />
-
                 {discountedTotal !== null && (
                   <div className="flex justify-between mb-6">
                     <p className="text-[15px] font-medium text-qblack">
@@ -395,10 +437,9 @@ export default function CartPage() {
                     </p>
                   </div>
                 )}
-
                 <button
                   onClick={handleCreateOrder}
-                  className="w-full h-[50px] black-btn flex justify-center items-center"
+                  className="w-full h-[50px] rounded-sm flex justify-center cursor-pointer items-center bg-qh2-green opacity-90 transition hover:opacity-100"
                 >
                   <span className="text-sm font-semibold text-white">
                     Sepeti Onayla

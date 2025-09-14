@@ -74,7 +74,7 @@ export default function CampaignCountDown({
 
                   {/* title */}
                   <div className="countdown-title mb-4">
-                    <h1 className="text-[44px] text-qblack font-600">
+                    <h1 className="text-[44px] text-qyellow font-600">
                       İndirimli Ürünler
                     </h1>
                     <p className="text-[18px] text-qblack leading-7">
@@ -84,9 +84,9 @@ export default function CampaignCountDown({
                   </div>
 
                   {/* button */}
-                  <div className="w-[119px] h-10">
-                    <div className="yellow-btn inline-flex space-x-2 items-center">
-                      <span className="text-sm font-600 tracking-wide leading-7">
+                  <div className="h-10 w-max">
+                    <div className="yellow-btn  space-x-2 items-center px-4 transition hover:text-white">
+                      <span className="text-sm font-600 tracking-wide leading-7 ">
                         Alışveriş Yap
                       </span>
                       <span>

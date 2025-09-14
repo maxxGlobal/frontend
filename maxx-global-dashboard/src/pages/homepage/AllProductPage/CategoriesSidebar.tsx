@@ -7,7 +7,6 @@ import {
   type CatNode,
 } from "../../../services/categories/buildTree";
 
-// seçilen nodun tüm altlarını topla (kendisi dahil)
 function collectDescendantsIds(node: CatNode): number[] {
   const out: number[] = [node.id];
   if (node.children?.length) {
@@ -19,32 +18,43 @@ function collectDescendantsIds(node: CatNode): number[] {
 function NodeItem({
   node,
   onPick,
-  active,
+  selectedId,
 }: {
   node: CatNode;
   onPick: (node: CatNode) => void;
-  active: boolean;
+  selectedId: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const hasChildren = !!node.children?.length;
+
+  // seçiliyse veya seçilen kategori bu node’un altındaysa highlight
+  const isActive = selectedId === node.id;
 
   return (
     <li>
       <button
         type="button"
-        className={`w-full flex justify-between items-center px-3 h-9 text-left hover:bg-gray-100 rounded ${
-          active ? "bg-gray-100 font-semibold" : ""
-        }`}
+        aria-expanded={open}
+        aria-haspopup={hasChildren ? "true" : undefined}
         onClick={() => {
           onPick(node);
           if (hasChildren) setOpen((v) => !v);
         }}
-        aria-expanded={open}
-        aria-haspopup={hasChildren ? "true" : undefined}
+        className={`w-full flex justify-between items-center px-3 h-9 text-left rounded transition-colors
+          ${
+            isActive
+              ? "bg-blue-100 font-semibold text-blue-700"
+              : "hover:bg-gray-100"
+          }
+          ${open && !isActive ? "bg-gray-50" : ""}`}
       >
         <span className="truncate text-sm">{node.name}</span>
         {hasChildren && (
-          <span className={`transition-transform ${open ? "rotate-90" : ""}`}>
+          <span
+            className={`transition-transform duration-200 ${
+              open ? "rotate-90" : ""
+            }`}
+          >
             <svg
               width="8"
               height="8"
@@ -78,7 +88,7 @@ function NodeItem({
               key={ch.id}
               node={ch}
               onPick={onPick}
-              active={active && false}
+              selectedId={selectedId}
             />
           ))}
         </ul>
@@ -92,7 +102,6 @@ export default function CategoriesSidebar() {
   const navigate = useNavigate();
   const [sp] = useSearchParams();
 
-  // aktiflik için tekil cat (UI highlight)
   const catParam = sp.get("cat");
   const selectedCatId = catParam && catParam !== "0" ? Number(catParam) : null;
 
@@ -103,23 +112,18 @@ export default function CategoriesSidebar() {
         const flat = await listAllCategories({ signal: controller.signal });
         setTree(buildCategoryTree(flat));
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error("Kategori listesi getirilemedi", e);
+        console.error(e);
       }
     })();
     return () => controller.abort();
   }, []);
 
   const handlePick = (node: CatNode) => {
-    // ana + tüm alt kırılımlar
     const ids = collectDescendantsIds(node);
-
-    // mevcut diğer query'leri koru; cat ve cats'i set et
     const params = new URLSearchParams(sp.toString());
     params.set("cat", String(node.id));
     params.set("cats", ids.join(","));
     navigate(`/homepage/all-product?${params.toString()}`);
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -131,16 +135,19 @@ export default function CategoriesSidebar() {
   };
 
   return (
-    <div className="bg-white p-3 rounded-md mb-4">
+    <div className="bg-white p-3 rounded-md mb-4 shadow-sm">
       <h4 className="text-sm font-semibold mb-2">Kategoriler</h4>
       <ul className="space-y-1">
         <li>
           <button
             type="button"
             onClick={clearAll}
-            className={`w-full text-left px-3 h-9 rounded hover:bg-gray-100 ${
-              selectedCatId == null ? "bg-gray-100 font-semibold" : ""
-            }`}
+            className={`w-full text-left px-3 h-9 rounded transition-colors 
+              ${
+                selectedCatId == null
+                  ? "bg-blue-100 font-semibold text-blue-700"
+                  : "hover:bg-gray-100"
+              }`}
           >
             Tümü
           </button>
@@ -151,7 +158,7 @@ export default function CategoriesSidebar() {
             key={root.id}
             node={root}
             onPick={handlePick}
-            active={selectedCatId === root.id}
+            selectedId={selectedCatId}
           />
         ))}
       </ul>

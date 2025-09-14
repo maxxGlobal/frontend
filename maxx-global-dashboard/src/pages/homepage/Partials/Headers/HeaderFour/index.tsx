@@ -3,6 +3,9 @@ import ThinBag from "../../../Helpers/icons/ThinBag";
 import Middlebar from "./Middlebar";
 import Navbar from "./Navbar";
 import TopBar from "./TopBar";
+import { useEffect, useState } from "react";
+import Logo from "../../../../../assets/img/medintera-logo.png";
+import { getCart } from "../../../../../services/cart/storage";
 
 type HeaderFourProps = {
   className?: string;
@@ -13,6 +16,19 @@ export default function HeaderFour({
   className,
   drawerAction,
 }: HeaderFourProps) {
+  const [cartCount, setCartCount] = useState<number>(() => getCart().length);
+
+  useEffect(() => {
+    const update = () => setCartCount(getCart().length);
+
+    update(); // ilk yükleme
+    window.addEventListener("storage", update); // başka sekme
+    window.addEventListener("cart:changed", update); // aynı sekme
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener("cart:changed", update);
+    };
+  }, []);
   return (
     <header className={`${className || ""} header-section-wrapper relative`}>
       <Middlebar className="quomodo-shop-middle-bar lg:block hidden" />
@@ -38,27 +54,22 @@ export default function HeaderFour({
           </div>
 
           <div>
-            <Link to="/">
-              <img
-                width={152}
-                height={36}
-                src={`${
-                  import.meta.env.VITE_PUBLIC_URL
-                }./assets/images/logo-4.svg`}
-                alt="logo"
-              />
+            <Link to="/homepage">
+              <img width={140} height={36} src={Logo} alt="logo" />
             </Link>
           </div>
 
           <div className="cart relative cursor-pointer">
-            <Link to="/cart">
+            <Link to="/homepage/basket">
               <span>
                 <ThinBag />
               </span>
             </Link>
-            <span className="w-[18px] h-[18px] text-qblack rounded-full bg-qh4-pink absolute -top-2.5 -right-2.5 flex justify-center items-center text-[9px]">
-              15
-            </span>
+            {cartCount > 0 && (
+              <span className="w-[18px] h-[18px] text-white rounded-full bg-qh2-green absolute -top-2.5 -right-2.5 flex justify-center items-center text-[10px]">
+                {cartCount}
+              </span>
+            )}
           </div>
         </div>
       </div>

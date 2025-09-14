@@ -149,18 +149,9 @@ export default function Cart({ className, type }: CartProps) {
                 </span>
               </div>
               <div className="space-y-2">
-                <Link to="/cart">
-                  <div className="gray-btn w-full h-[45px] flex items-center justify-center rounded-md">
+                <Link to="/homepage/basket">
+                  <div className="bg-yellow-500 text-white w-full h-[45px] flex items-center justify-center rounded-md">
                     <span>Sepeti Görüntüle</span>
-                  </div>
-                </Link>
-                <Link to="/checkout">
-                  <div
-                    className={`w-full h-[45px] flex items-center justify-center rounded-md text-white ${
-                      type === 3 ? "bg-blue-600" : "bg-yellow-500"
-                    }`}
-                  >
-                    <span className="text-sm font-medium">Ödeme Sayfası</span>
                   </div>
                 </Link>
               </div>
@@ -168,8 +159,8 @@ export default function Cart({ className, type }: CartProps) {
 
             <div className="px-4 mt-4 border-t border-gray-200 py-3 text-center">
               <p className="text-[13px] font-medium text-qgray">
-                <span className="text-qblack">30 gün</span> içinde iade hakkınız
-                var
+                <span className="text-qblack">Sipariş Detayınız</span> için
+                Sepeti Görüntüle butonuna tıklayınız.
               </p>
             </div>
           </>

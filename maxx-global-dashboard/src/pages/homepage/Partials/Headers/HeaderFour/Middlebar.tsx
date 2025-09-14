@@ -69,7 +69,7 @@ export default function Middlebar({ className }: MiddlebarProps) {
               {/* cart */}
               <div className="cart-wrapper group relative py-4">
                 <div className="cart relative cursor-pointer">
-                  <Link to="/cart">
+                  <Link to="/homepage/basket">
                     <ThinBag />
                   </Link>
                   {cartCount > 0 && (
