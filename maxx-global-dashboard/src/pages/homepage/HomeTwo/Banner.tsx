@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ProductCardStyleOne from "../Helpers/Cards/ProductCardStyleOne";
 import { listRandomProducts } from "../../../services/products/random";
 import type { ProductRow } from "../../../types/product";
+import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 
 type BannerProps = {
   className?: string;
@@ -34,7 +35,9 @@ export default function Banner({ className }: BannerProps) {
         <div className="main-wrapper w-full">
           <div className="banner-card xl:flex xl:space-x-[30px] xl:h-[600px] mb-[30px]">
             {loading && (
-              <div className="w-full text-center py-10">Yükleniyor...</div>
+              <div className="w-full text-center py-10">
+                <LoaderStyleOne />
+              </div>
             )}
             {error && (
               <div className="w-full text-center py-10 text-red-500">

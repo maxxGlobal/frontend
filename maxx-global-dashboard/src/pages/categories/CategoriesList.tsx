@@ -14,6 +14,7 @@ import FilterPanel from "./components/FilterPanel";
 import CategoriesTable from "./components/Table";
 import DeleteCategoryModal from "./components/DeleteCategoryModal";
 import EditCategoryModal from "./components/EditCategoryModal";
+import LoaderStyleOne from "../homepage/Helpers/Loaders/LoaderStyleOne";
 
 type Page<T> = PageResponse<T>;
 const DEFAULT_PAGE = 0;
@@ -217,7 +218,9 @@ export default function CategoriesList() {
         {loading || !data ? (
           <div className="text-center">
             <div className="spinner-border" role="status">
-              <span className="visually-hidden">Yükleniyor</span>
+              <span className="visually-hidden">
+                <LoaderStyleOne />
+              </span>
             </div>
           </div>
         ) : (

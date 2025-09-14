@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import type { Dealer, DealerUserLite } from "../../types/dealer";
 import api from "../../lib/api";
 import EditDealerUserModal from "../dealers/components/EditDealerUserModal";
+import LoaderStyleOne from "../homepage/Helpers/Loaders/LoaderStyleOne";
 
 export default function DealerDetail() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,9 @@ export default function DealerDetail() {
     return (
       <div className="text-center my-4">
         <div className="spinner-border" role="status">
-          <span className="visually-hidden">Yükleniyor</span>
+          <span className="visually-hidden">
+            <LoaderStyleOne />
+          </span>
         </div>
       </div>
     );

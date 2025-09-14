@@ -7,6 +7,7 @@ import type { ProductRow } from "../../../types/product";
 import { listProducts } from "../../../services/products/list";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
+import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 
 export default function FavoritesProductPage() {
   const [products, setProducts] = useState<ProductRow[] | null>(null);
@@ -60,7 +61,7 @@ export default function FavoritesProductPage() {
 
           {loading && !error && (
             <div className="mb-6 p-4 rounded bg-gray-50 text-gray-600 text-sm">
-              Favoriler yükleniyor…
+              <LoaderStyleOne />
             </div>
           )}
 

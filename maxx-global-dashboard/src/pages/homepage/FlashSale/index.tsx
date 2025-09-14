@@ -7,6 +7,7 @@ import { listProductImages } from "../../../services/products/images/list";
 import type { Discount, DiscountProduct } from "../../../types/discount";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
+import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 
 export default function FlashSale() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -90,7 +91,7 @@ export default function FlashSale() {
           Bayiye Uygulanabilir İndirimler
         </h1>
 
-        {loading && <p>Yükleniyor…</p>}
+        {loading && <LoaderStyleOne />}
         {error && <p className="text-red-500">{error}</p>}
 
         {!loading && !error && rows.length > 0 && (

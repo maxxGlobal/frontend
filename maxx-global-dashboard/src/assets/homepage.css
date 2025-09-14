@@ -358,3 +358,125 @@ html {
 }
 
 /* TODO: ===============RESPONSIVE END */
+
+
+/*CUSTOM STYLE*/
+
+.coupon__wrap {
+    display: flex;
+    flex-flow: row;
+    width: 100%;
+    border-radius: 10px;
+}
+.coupon__wrap  .coupon__title {
+      position: relative;
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 35%;
+      padding: 10px;
+}
+@media (max-width: 991px) {
+  .coupon__wrap  .coupon__title{
+    width: 30%;
+ }
+}
+.coupon__title::before{
+   content: "";
+   position: absolute;
+   top: -10px;
+   right: -8px;
+   width: 15px;
+   height: 15px;
+   background-color: #fff;
+   border-radius: 100%;
+   border: 1px solid #2D6F6D;
+   border-width: 2px;
+}
+.coupon__wrap.active .coupon__title::before{
+  border: 1px solid #f0b100;
+}
+ .coupon__title::after{
+  content: "";
+  position: absolute;
+  top: -11px;
+  right: -10px;
+  width: 20px;
+  height: 9px;
+  background-color: #ffffff;  
+}
+
+.couple__category {
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.coupon__max {
+   font-size: 11px;
+}
+.coupon__detail {
+      position: relative;
+      display: flex;
+      flex-flow: column;
+      align-items: flex-start;
+      flex: 0 0 auto;
+      width: 65%;
+      padding: 20px 10px 10px 15px;
+}
+@media (max-width: 991px) {
+  .coupon__detail{
+    width: 70%;
+  }     
+}
+.coupon__detail::before{
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: -8px;
+        width: 15px;
+        height: 15px;
+        background-color: #fff;
+        border-radius: 100%;
+        border: 1px solid #2D6F6D;
+        border-width: 2px;
+}
+.coupon__wrap.active .coupon__detail::before{
+  border: 1px solid #f0b100;
+}
+.coupon__detail::after{
+        content: "";
+        position: absolute;
+        bottom: -11px;
+        left: -10px;
+        width: 20px;
+        height: 9px;
+        background-color: #ffffff;
+        
+}
+.coupon__price {
+  margin-bottom: 5px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px
+}
+.coupon__wrap.active .coupon__title{
+  border-color: #f0b100 !important;
+}
+ @media (max-width: 991px) {
+  .coupon__price{
+     font-size: 14px;
+  }
+}
+.coupon__info {
+  display: flex;
+  flex-flow: column;
+  align-items: flex-start;
+}
+.coupon__info span {
+  margin-bottom: 5px;
+  font-size: 11px;
+  text-align: left;
+}
+      

@@ -227,167 +227,20 @@ export default function Navbar({ className }: { className?: string }) {
                 <ul className="nav-wrapper flex xl:space-x-10 space-x-5">
                   <li>
                     <Link to="/homepage">
-                      <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
+                      <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
                         <span>Anasayfa</span>
                       </span>
                     </Link>
                   </li>
                   <li>
-                    <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
-                      <span>Ürünlerimiz</span>
-                      <span className="ml-1.5 ">
-                        <Arrow className="fill-current" />
+                    <Link to="/homepage/all-product">
+                      <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
+                        <span>Ürünlerimiz</span>
                       </span>
-                    </span>
-                    <div className="sub-menu w-full absolute left-0 top-[60px]">
-                      <div
-                        className="mega-menu-wrapper w-full bg-white p-[30px] flex justify-between items-center "
-                        style={{
-                          minHeight: "295px",
-                          boxShadow: "0px 15px 50px 0px rgba(0, 0, 0, 0.14)",
-                        }}
-                      >
-                        <div className="categories-wrapper flex-1 h-full flex justify-around -ml-[70px]">
-                          <div>
-                            <div className="category">
-                              <h1 className="text-[13px] font-700 text-qblack uppercase mb-[13px]">
-                                Shop List
-                              </h1>
-                            </div>
-                            <div className="category-items">
-                              <ul className="flex flex-col space-y-2">
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Shop Sidebar
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Shop Fullwidth
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Shop Category Icon
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Shop Category Icon
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Shop List View
-                                    </span>
-                                  </a>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="category">
-                              <h1 className="text-[13px] font-700 text-qblack uppercase mb-[13px]">
-                                Product Layouts
-                              </h1>
-                            </div>
-                            <div className="category-items">
-                              <ul className="flex flex-col space-y-2">
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Horizonral Thumbnail
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Vertical Thumbnail
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Gallery Thumbnail
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Sticky Summary
-                                    </span>
-                                  </a>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="category">
-                              <h1 className="text-[13px] font-700 text-qblack uppercase mb-[13px]">
-                                Polular Category
-                              </h1>
-                            </div>
-                            <div className="category-items">
-                              <ul className="flex flex-col space-y-2">
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Phone & Tablet
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Gaming & Sports
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Home Appliance
-                                    </span>
-                                  </a>
-                                </li>
-                                <li>
-                                  <a href="#">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Fashion Clothes
-                                    </span>
-                                  </a>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="thumbnil w-[348px] h-full">
-                          <div className="w-full h-[235px]">
-                            <img
-                              width=""
-                              src={"/assets/images/mega-menu-thumb.jpg"}
-                              alt=""
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    </Link>
                   </li>
                   <li className="relative">
-                    <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
+                    <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
                       <span>Kurumsal</span>
                       <span className="ml-1.5 ">
                         <Arrow className="fill-current" />
@@ -427,14 +280,14 @@ export default function Navbar({ className }: { className?: string }) {
                   </li>
                   <li>
                     <Link to="/homepage/about">
-                      <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
+                      <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
                         <span>Hakkımızda</span>
                       </span>
                     </Link>
                   </li>
                   <li>
                     <Link to="/homepage/contact">
-                      <span className="flex items-center text-sm text-white font-600 cursor-pointer ">
+                      <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
                         <span>İletişim</span>
                       </span>
                     </Link>
@@ -442,14 +295,11 @@ export default function Navbar({ className }: { className?: string }) {
                 </ul>
               </div>
             </div>
-
-            {/* === BAYİLİK BUTTON === */}
             <div className="become-seller-btn w-[161px] h-[40px]">
-              <Link to="/become-saller">
-                <div className="yellow-btn flex justify-center items-center cursor-pointer h-full">
+              <Link to="/homepage/basket">
+                <div className="yellow-btn flex justify-center items-center cursor-pointer h-full rounded-sm">
                   <div className="flex space-x-2 items-center">
-                    <span className="text-sm font-600">Bayilik</span>
-                    <Arrow className="fill-current w-2 h-3" />
+                    <span className="text-sm font-600 text-white">Sepetim</span>
                   </div>
                 </div>
               </Link>
