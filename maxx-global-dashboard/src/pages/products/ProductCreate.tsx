@@ -18,7 +18,7 @@ import {
 } from "../../services/products/excel";
 
 export default function ProductCreate() {
-  if (!hasPermission({ required: "PRODUCT_MANAGE" })) {
+  if (!hasPermission({ anyOf: ["PRODUCT_MANAGE", "SYSTEM_ADMIN"]  })) {
     return (
       <div className="alert alert-danger m-3">
         Bu sayfaya erişim yetkiniz yok (PRODUCT_MANAGE gerekli).
