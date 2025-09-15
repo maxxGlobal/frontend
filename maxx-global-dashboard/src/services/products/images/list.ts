@@ -6,5 +6,8 @@ export async function listProductImages(
   opts?: { signal?: AbortSignal }
 ): Promise<ProductImage[]> {
   const p = await getProductById(productId, opts);
-  return p.images ?? [];
+  return (p.images ?? []).map((img) => ({
+    ...img,
+    isPrimary: img.isPrimary ?? false,
+  }));
 }

@@ -1,6 +1,6 @@
 // src/components/header/Header.tsx
 import { useEffect, useRef, useState } from "react";
-import profilePic from "../../assets/img/profile-pic.png";
+import profilePic from "../../assets/img/users-profile.svg";
 import { useNavigate } from "react-router-dom";
 import HeaderBell from "../../pages/notifications/HeaderBell";
 
@@ -48,29 +48,10 @@ export default function Header() {
                 <div className="sherah__sicon close-icon d-xl-none">
                   {/* ... */}
                 </div>
-
                 <div className="sherah-header__left">
-                  <div className="sherah-header__form">
-                    <form
-                      className="sherah-header__form-inner"
-                      onSubmit={(e) => e.preventDefault()}
-                    >
-                      <button className="search-btn" type="submit">
-                        {/* icon */}
-                      </button>
-                      <input
-                        name="s"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        type="text"
-                        placeholder="Search"
-                      />
-                    </form>
-                  </div>
+                  <div className="sherah-header__form"></div>
                 </div>
-
-                <div className="sherah-header__right">
-                  {/* Mesajlar */}
+                <div className="sherah-header__right gap-4">
                   <div
                     ref={msgRef}
                     role="button"
@@ -90,22 +71,46 @@ export default function Header() {
                       </ul>
                     </div>
                   </div>
-
-                  {/* Bildirimler */}
                   <HeaderBell />
-
-                  {/* Profil */}
                   <div
                     ref={profileRef}
                     role="button"
                     tabIndex={0}
-                    className={`sherah-header__author sherah-flex__center--top ${
+                    className={`sherah-header__author p-1 border-primary border-2 rounded-2 sherah-flex__center--top ${
                       openProfile ? "is-open" : ""
                     }`}
                     onClick={() => setOpenProfile((v) => !v)}
                   >
                     <div className="sherah-header__author-img">
-                      <img src={profilePic} alt="profile" />
+                      <div className="sherah-dropdown-card__img sherah-color1__bg bg-secondary">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18.192"
+                          height="21.5"
+                          viewBox="0 0 18.192 21.5"
+                        >
+                          <g
+                            id="user_account_people_man"
+                            data-name="user, account, people, man"
+                            transform="translate(-5 -3)"
+                          >
+                            <path
+                              id="Path_1272"
+                              data-name="Path 1272"
+                              d="M20.494,16.131a.827.827,0,1,0-1.163,1.176,7.391,7.391,0,0,1,2.207,5.29c0,1.011-2.9,2.481-7.442,2.481S6.654,23.607,6.654,22.6a7.391,7.391,0,0,1,2.179-5.261.827.827,0,1,0-1.169-1.169A9.036,9.036,0,0,0,5,22.6c0,2.686,4.686,4.135,9.1,4.135s9.1-1.449,9.1-4.135a9.03,9.03,0,0,0-2.7-6.466Z"
+                              transform="translate(0 -2.231)"
+                              fill="#fff"
+                            ></path>
+                            <path
+                              id="Path_1273"
+                              data-name="Path 1273"
+                              d="M14.788,14.577A5.788,5.788,0,1,0,9,8.788,5.788,5.788,0,0,0,14.788,14.577Zm0-9.923a4.135,4.135,0,1,1-4.135,4.135,4.135,4.135,0,0,1,4.135-4.135Z"
+                              transform="translate(-0.692)"
+                              fill="#fff"
+                            ></path>
+                          </g>
+                        </svg>
+                      </div>
                     </div>
                     <div className="sherah-header__author--info sherah-dflex sherah-dflex__base">
                       <h4 className="sherah-header__author--title sherah-dflex sherah-dflex__column">

@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import ThinBag from "../../../Helpers/icons/ThinBag";
 import Middlebar from "./Middlebar";
 import Navbar from "./Navbar";
-import TopBar from "./TopBar";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Logo from "../../../../../assets/img/medintera-logo.png";
 import { getCart } from "../../../../../services/cart/storage";
 
@@ -17,7 +17,11 @@ export default function HeaderFour({
   drawerAction,
 }: HeaderFourProps) {
   const [cartCount, setCartCount] = useState<number>(() => getCart().length);
+  const navigate = useNavigate();
 
+  const handleSearch = (query: string) => {
+    navigate(`/homepage/all-products?search=${encodeURIComponent(query)}`);
+  };
   useEffect(() => {
     const update = () => setCartCount(getCart().length);
 

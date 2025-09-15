@@ -76,55 +76,6 @@ export default function ProfilePage() {
                   Kullanıcı Bilgileri
                 </span>
               </a>
-              <a
-                className="list-group-item"
-                data-bs-toggle="list"
-                href="#id2"
-                role="tab"
-              >
-                <span className="sherah-psidebar__icon" />
-                <span className="sherah-psidebar__title">Payment Method</span>
-              </a>
-              <a
-                className="list-group-item"
-                data-bs-toggle="list"
-                href="#id3"
-                role="tab"
-              >
-                <span className="sherah-psidebar__icon" />
-                <span className="sherah-psidebar__title">
-                  Notification Setting
-                </span>
-              </a>
-              <a
-                className="list-group-item"
-                data-bs-toggle="list"
-                href="#id4"
-                role="tab"
-              >
-                <span className="sherah-psidebar__icon" />
-                <span className="sherah-psidebar__title">Login Activity</span>
-              </a>
-              <a
-                className="list-group-item"
-                data-bs-toggle="list"
-                href="#id5"
-                role="tab"
-              >
-                <span className="sherah-psidebar__icon" />
-                <span className="sherah-psidebar__title">Change Password</span>
-              </a>
-              <a
-                className="list-group-item"
-                data-bs-toggle="list"
-                href="#id6"
-                role="tab"
-              >
-                <span className="sherah-psidebar__icon" />
-                <span className="sherah-psidebar__title">
-                  Connect With Social
-                </span>
-              </a>
             </div>
           </div>
         </div>

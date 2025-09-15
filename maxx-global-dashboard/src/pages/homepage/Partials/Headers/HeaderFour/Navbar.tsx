@@ -296,10 +296,12 @@ export default function Navbar({ className }: { className?: string }) {
               </div>
             </div>
             <div className="become-seller-btn w-[161px] h-[40px]">
-              <Link to="/homepage/basket">
+              <Link to="/homepage/my-orders">
                 <div className="yellow-btn flex justify-center items-center cursor-pointer h-full rounded-sm">
                   <div className="flex space-x-2 items-center">
-                    <span className="text-sm font-600 text-white">Sepetim</span>
+                    <span className="text-sm font-600 text-white">
+                      Sipariş Geçmişi
+                    </span>
                   </div>
                 </div>
               </Link>

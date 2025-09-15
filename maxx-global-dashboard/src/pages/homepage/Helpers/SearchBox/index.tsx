@@ -1,66 +1,40 @@
+// src/components/SearchBox.tsx
+import { useState } from "react";
+
 type SearchBoxProps = {
   className?: string;
-  type?: number;
+  onSearch: (query: string) => void;
 };
 
-export default function SearchBox({ className, type }: SearchBoxProps) {
+export default function SearchBox({ className, onSearch }: SearchBoxProps) {
+  const [q, setQ] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(q.trim());
+  };
+
   return (
     <div
-      className={`w-full h-full flex items-center border border-qgray-border bg-white ${
+      className={`w-full h-full flex items-center border border-qgray-border bg-white rounded ${
         className || ""
       }`}
     >
-      <div className="flex-1 bg-red-white h-full">
-        <form action="#" className="h-full">
-          <input type="text" className="search-input" placeholder="Ara..." />
-        </form>
-      </div>
-
-      <div className="w-[1px] h-[22px] bg-qgray-border"></div>
-
-      {/* <div className="flex-1 flex items-center px-4">
+      <form onSubmit={handleSubmit} className="flex-1 flex items-center h-full">
+        <input
+          type="text"
+          className="flex-1 px-3 py-2 outline-none"
+          placeholder="Ürün Ara..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
         <button
-          type="button"
-          className="w-full text-xs font-500 text-qgray flex justify-between items-center"
+          type="submit"
+          className="px-4 py-2 me-1 bg-qh2-green text-white text-sm rounded"
         >
-          <span>All Categories</span>
-          <span>
-            <svg
-              width="10"
-              height="5"
-              viewBox="0 0 10 5"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="9.18359"
-                y="0.90918"
-                width="5.78538"
-                height="1.28564"
-                transform="rotate(135 9.18359 0.90918)"
-                fill="#8E8E8E"
-              />
-              <rect
-                x="5.08984"
-                y="5"
-                width="5.78538"
-                height="1.28564"
-                transform="rotate(-135 5.08984 5)"
-                fill="#8E8E8E"
-              />
-            </svg>
-          </span>
+          Ara
         </button>
-      </div>
-
-      <button
-        className={`w-[93px] h-full text-sm font-600 ${
-          type === 3 ? "bg-qh3-blue text-white" : "search-btn"
-        }`}
-        type="button"
-      >
-        Search
-      </button> */}
+      </form>
     </div>
   );
 }

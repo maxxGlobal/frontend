@@ -7,9 +7,12 @@ export async function setPrimaryImage(
   productId: number,
   imageId: number
 ): Promise<Product> {
-  const res = await api.put<ApiEnvelope<any> | any>(
+  // API çağrısı
+  const res = await api.put<ApiEnvelope<Product>>(
     `/products/${productId}/images/${imageId}/primary`
   );
-  const payload = (res as any).data?.data ?? (res as any).data;
+
+  // Gelen yanıtı normalize et
+  const payload = res.data?.data ?? res.data;
   return normalizeProductDetail(payload);
 }

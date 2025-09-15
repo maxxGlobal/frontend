@@ -163,13 +163,13 @@ export default function HeaderBell() {
       {/* Zil butonu — SVG'ye dokunmuyoruz */}
       <button
         type="button"
-        className="btn p-0 border-0 bg-transparent shadow-none"
+        className="btn p-0 border-0 bg-transparent shadow-none mt-2"
         aria-expanded={open}
         aria-label="Bildirimler"
         onClick={() => setOpen((s) => !s)}
       >
         <svg
-          className="sherah-offset__fill"
+          className=""
           id="Icon"
           xmlns="http://www.w3.org/2000/svg"
           width="22.875"
@@ -254,7 +254,7 @@ export default function HeaderBell() {
                       role={n.actionUrl ? "button" : undefined}
                       style={{ cursor: n.actionUrl ? "pointer" : "default" }}
                     >
-                      <div className="d-flex gap-3">
+                      <div className="d-flex align-items-center gap-3">
                         <div
                           className="notif-avatar"
                           style={{ backgroundColor: colorFor(n) }}

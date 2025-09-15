@@ -5,11 +5,6 @@ import {
   type NotificationsListResponse,
 } from "../../types/notifications";
 
-/**
- * Admin tarafından gönderilmiş bildirimleri listeleme
- * GET /notifications/admin/sent-notifications
- * (axios baseURL büyük ihtimalle '/api')
- */
 export async function listSentNotifications(
   req: NotificationsListRequest,
   opts?: { signal?: AbortSignal }
@@ -22,12 +17,10 @@ export async function listSentNotifications(
   if (req.type) params.type = req.type;
 
   const res = await api.get<ApiEnvelope<NotificationsListResponse>>(
-    // DİKKAT: Başında / var ve içinde /api YOK
     "/notifications/admin/sent-notifications",
     { params, signal: opts?.signal }
   );
 
-  // envelope / raw farkına dayanıklı okuma
   const payload = (res as any).data?.data ?? (res as any).data ?? (res as any);
 
   if (Array.isArray(payload)) {
@@ -41,4 +34,16 @@ export async function listSentNotifications(
   }
 
   return payload as NotificationsListResponse;
+}
+
+export async function listNotifications(opts?: {
+  signal?: AbortSignal;
+}): Promise<NotificationsListResponse> {
+  const res = await api.get<{ data: NotificationsListResponse }>(
+    "/notifications",
+    {
+      signal: opts?.signal,
+    }
+  );
+  return res.data.data;
 }
