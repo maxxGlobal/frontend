@@ -3,7 +3,7 @@
 export interface ProductImage {
   id: number;
   imageUrl: string;
-  isPrimary: boolean;
+  isPrimary?: boolean;
 }
 export type ProductStatus = "AKTİF" | "SİLİNDİ";
 export interface ProductPrice {

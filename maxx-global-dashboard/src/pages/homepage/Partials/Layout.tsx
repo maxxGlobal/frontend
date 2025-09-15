@@ -20,11 +20,7 @@ export default function Layout({ children, childrenClasses }: LayoutProps) {
       <Drawer open={drawer} action={() => setDrawer(!drawer)} />
       <div className="w-full overflow-x-hidden flex flex-col min-h-screen">
         <Header drawerAction={() => setDrawer(!drawer)} />
-        <main
-          className={`flex-1 w-full ${
-            childrenClasses || "pt-[30px] pb-[60px]"
-          }`}
-        >
+        <main className={`flex-1 w-full ${childrenClasses || " pb-[60px]"}`}>
           {children}
         </main>
         <DiscountBanner />

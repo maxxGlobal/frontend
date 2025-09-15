@@ -18,10 +18,10 @@ export default function Footer() {
             </div>
             <div>
               <p className="text-[#9A9A9A] text-[15px] w-[300px] leading-[28px]">
-                Maxx Global olarak, savunma ve medikal sektörlerinde en
-                yenilikçi ve güvenilir üretim ortağı olmayı, teknolojiyi en üst
-                düzeyde kullanarak global ölçekte tanınan bir marka haline
-                gelmeyi hedefliyoruz.
+                Medintera olarak, savunma ve medikal sektörlerinde en yenilikçi
+                ve güvenilir üretim ortağı olmayı, teknolojiyi en üst düzeyde
+                kullanarak global ölçekte tanınan bir marka haline gelmeyi
+                hedefliyoruz.
               </p>
             </div>
           </div>
@@ -78,30 +78,9 @@ export default function Footer() {
             <div>
               <ul className="flex flex-col space-y-5 ">
                 <li>
-                  <Link to="/">
+                  <Link to="/homepage/all-product">
                     <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                      Secure Payment
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/">
-                    <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                      Privacy Policy
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/">
-                    <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                      Terms of Use
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/">
-                    <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                      Archived Products
+                      Ürünlerimiz
                     </span>
                   </Link>
                 </li>
@@ -130,7 +109,7 @@ export default function Footer() {
                 rel="noreferrer"
                 className="font-500 text-qblack mx-1"
               >
-                Maxx Global
+                Medintera
               </a>
               Her hakkı saklıdır
             </div>

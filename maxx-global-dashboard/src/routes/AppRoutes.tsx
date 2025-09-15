@@ -44,7 +44,11 @@ const FlashProduct = lazy(() => import("../pages/homepage/FlashSale"));
 const Contact = lazy(() => import("../pages/homepage/Contact"));
 const About = lazy(() => import("../pages/homepage/About"));
 const ProductDetail = lazy(() => import("../pages/homepage/SingleProductPage"));
-const BasketDetail = lazy(() => import("../pages/homepage/BasketDetail"));
+const BasketDetail = lazy(() => import("../pages/homepage/BasketDetail/index"));
+const MyOrders = lazy(() => import("../pages/homepage/BasketDetail/my-orders"));
+const NotificationDetail = lazy(
+  () => import("../pages/homepage/Notifications/Detail")
+);
 const FavoriteProduct = lazy(
   () => import("../pages/homepage/FavoritesProductPage")
 );
@@ -83,6 +87,15 @@ export default function AppRoutes() {
         </Route>
         <Route element={<PublicHomeLayout />}>
           <Route path="/homepage/basket" element={<BasketDetail />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route
+            path="/homepage/notifications"
+            element={<NotificationDetail />}
+          />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/my-orders" element={<MyOrders />} />
         </Route>
       </Route>
       <Route element={<AuthLayout />}>
@@ -217,17 +230,20 @@ export default function AppRoutes() {
           <Route path="/notifications" element={<AdminNotificationsList />} />
           <Route path="/my-notifications" element={<MyNotificationsPage />} />
           {/* Stok İşlemleri - DashboardLayout içinde, diğer protected route'larla birlikte */}
-<Route
-  element={
-    <ProtectedRoute
-      anyOf={["PRODUCT_READ", "PRODUCT_MANAGE", "SYSTEM_ADMIN"]}
-    />
-  }
->
-  <Route path="/stock/movements-by-product" element={<MovementsByProduct />} />
-  <Route path="/stock/daily-summary" element={<DailySummary />} />
-  <Route path="/stock/top-movements" element={<TopMovements />} />
-</Route>
+          <Route
+            element={
+              <ProtectedRoute
+                anyOf={["PRODUCT_READ", "PRODUCT_MANAGE", "SYSTEM_ADMIN"]}
+              />
+            }
+          >
+            <Route
+              path="/stock/movements-by-product"
+              element={<MovementsByProduct />}
+            />
+            <Route path="/stock/daily-summary" element={<DailySummary />} />
+            <Route path="/stock/top-movements" element={<TopMovements />} />
+          </Route>
         </Route>
       </Route>
 

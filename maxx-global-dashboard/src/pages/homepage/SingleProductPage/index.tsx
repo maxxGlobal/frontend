@@ -19,12 +19,28 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-
-  const increment = () => setQuantity((prev) => prev + 1);
-  const decrement = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const [inputValue, setInputValue] = useState<string>("1");
+  const increment = () => {
+    setQuantity((prev) => {
+      const next = prev + 1;
+      setInputValue(String(next));
+      return next;
+    });
+  };
+  const decrement = () => {
+    setQuantity((prev) => {
+      const next = prev > 1 ? prev - 1 : 1;
+      setInputValue(String(next));
+      return next;
+    });
+  };
   const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value, 10);
-    if (!isNaN(val) && val >= 1) setQuantity(val);
+    const val = e.target.value;
+    setInputValue(val); // her tuş vuruşunda ekrana yansır
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 1) {
+      setQuantity(num); // sadece geçerli sayı ise güncelle
+    }
   };
 
   // Ürün detayı fetch
@@ -170,7 +186,7 @@ export default function ProductPage() {
                           <input
                             type="number"
                             min={1}
-                            value={quantity}
+                            value={inputValue}
                             onChange={handleManualChange}
                             className="w-14 text-center border-none outline-none text-qblack"
                           />

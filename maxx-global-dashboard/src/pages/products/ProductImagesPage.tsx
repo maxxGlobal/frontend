@@ -19,20 +19,32 @@ export default function ProductImagesPage() {
     const n = Number(raw);
     return Number.isFinite(n) ? n : null;
   }, [params]);
+
   const [files, setFiles] = useState<File[]>([]);
   const [images, setImages] = useState<ProductImage[]>([]);
   const [busy, setBusy] = useState(false);
 
+  /** Listeyi yeniler: yalnızca tek bir kapak kalır */
   async function refresh() {
     if (productId == null) return;
     const list = await listProductImages(productId);
-    setImages(list);
+
+    // UI güvenliği: sadece ilk kapak kalsın
+    let primaryFound = false;
+    const normalized = list.map((img) => {
+      const isPrimary = !!img.isPrimary && !primaryFound;
+      if (isPrimary) primaryFound = true;
+      return { ...img, isPrimary };
+    });
+
+    setImages(normalized);
   }
 
   useEffect(() => {
     refresh();
   }, [productId]);
 
+  /** Yeni resim yükleme */
   async function handleUpload() {
     if (productId == null) {
       MySwal.fire({
@@ -43,11 +55,15 @@ export default function ProductImagesPage() {
       return;
     }
     if (!files.length) return;
+
     try {
       setBusy(true);
       await uploadProductImages(productId, files);
       setFiles([]);
+
+      // Güncel listeyi kapak kontrolü ile al
       await refresh();
+
       MySwal.fire({
         icon: "success",
         title: "Yükleme Başarılı!",
@@ -69,23 +85,21 @@ export default function ProductImagesPage() {
   if (productId == null) {
     return <div className="alert alert-danger m-3">Geçersiz ürün ID.</div>;
   }
-  const pid = productId as number;
+  const pid = productId;
 
   return (
     <div className="product-form-box sherah-border">
       <h3 className="sherah-card__title py-3">Ürün Resimleri</h3>
 
+      {/* Yükleme Alanı */}
       <div className="mb-3">
-        <label className="form-label ">Yeni Resim Yükle</label>
+        <label className="form-label">Yeni Resim Yükle</label>
         <input
           type="file"
           accept="image/*"
           multiple
           className="form-control w-50 h-auto"
-          onChange={(e) => {
-            const list = Array.from(e.target.files ?? []);
-            setFiles(list);
-          }}
+          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
         />
         <button
           className="sherah-btn sherah-btn__primary bg-primary mt-3"
@@ -96,6 +110,7 @@ export default function ProductImagesPage() {
         </button>
       </div>
 
+      {/* Resim Listesi */}
       {images.length === 0 ? (
         <div className="text-muted">Henüz resim yok.</div>
       ) : (
@@ -103,13 +118,13 @@ export default function ProductImagesPage() {
           <div className="image-upload-group flex-wrap">
             {images.map((img) => (
               <div
-                className="image-upload-group__single border p-3 rounded-3 col-lg-4 col-md-12 col-12"
                 key={img.id}
+                className="image-upload-group__single border p-3 rounded-3 col-lg-4 col-md-12 col-12"
               >
                 <div className="d-grid">
-                  <img src={img.imageUrl} className="card-img-top" />
+                  <img src={img.imageUrl} alt="" className="card-img-top" />
                   <div className="card-body d-flex flex-column gap-2">
-                    {img.isPrimary === true ? (
+                    {img.isPrimary ? (
                       <button
                         className="btn btn-sm btn-outline-success"
                         disabled
@@ -133,12 +148,11 @@ export default function ProductImagesPage() {
                         Kapak Resmi Yap
                       </button>
                     )}
-
                     <button
                       className="btn btn-sm btn-outline-danger"
                       onClick={async () => {
                         await deleteProductImage(pid, img.id);
-                        refresh();
+                        await refresh();
                         MySwal.fire({
                           icon: "success",
                           title: "Silindi",

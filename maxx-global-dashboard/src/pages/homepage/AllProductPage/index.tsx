@@ -1,18 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-
 import ProductCardStyleOne from "../Helpers/Cards/ProductCardStyleOne";
 import Layout from "../Partials/Layout";
 import CategoriesSidebar from "./CategoriesSidebar";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
-
 import type { PageRequest, PageResponse } from "../../../types/paging";
 import type { Product } from "../../../types/product";
-
 import { listProducts } from "../../../services/products/list";
 import { listProductsByCategory } from "../../../services/products/listByCategory";
 import { listMaterials } from "../../../services/products/listMaterials";
-
+import { listProductsBySearch } from "../../../services/products/search";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
@@ -30,9 +27,9 @@ export default function AllProductPage() {
 
   const [sp] = useSearchParams();
   const catParam = sp.get("cat");
+  const searchQuery = sp.get("search");
   const selectedCatId = catParam && catParam !== "0" ? Number(catParam) : null;
 
-  /** Malzeme listesini çek */
   useEffect(() => {
     const c = new AbortController();
     (async () => {
@@ -66,12 +63,19 @@ export default function AllProductPage() {
         };
 
         let pageRes: PageResponse<Product>;
-        if (selectedCatId) {
+        if (searchQuery && searchQuery.trim() !== "") {
+          // 🔎 Arama yapılmışsa search endpointini kullan
+          pageRes = await listProductsBySearch(searchQuery, req, {
+            signal: controller.signal,
+          });
+        } else if (selectedCatId) {
+          // Kategori seçilmişse kategoriye göre listele
           pageRes = await listProductsByCategory(selectedCatId, {
             ...req,
             signal: controller.signal,
           });
         } else {
+          // Normal tüm ürünler
           pageRes = await listProducts(req, { signal: controller.signal });
         }
 
@@ -88,16 +92,17 @@ export default function AllProductPage() {
       }
     })();
     return () => controller.abort();
-  }, [selectedCatId, page]);
+  }, [selectedCatId, page, searchQuery]);
 
-  /** Seçilen malzemelere göre filtreleme (frontend) */
+  /** Filtreleme */
   const visibleProducts = useMemo(() => {
     const base = (products ?? []).filter((p) => p.status === "AKTİF");
     if (!selectedMaterials.length) return base;
-
     return base.filter((p) => {
       const mat = (p.material ?? "").toLowerCase();
-      return selectedMaterials.some((m) => mat.includes(m.toLowerCase()));
+      return selectedMaterials.some((m) =>
+        mat.toLowerCase().includes(m.toLowerCase())
+      );
     });
   }, [products, selectedMaterials]);
 
@@ -120,44 +125,10 @@ export default function AllProductPage() {
       <div className="products-page-wrapper w-full">
         <div className="container-x mx-auto">
           <div className="w-full lg:flex lg:space-x-[30px]">
-            {/* Sol Sidebar + Filtreler */}
             <div className="lg:w-[270px]">
               <CategoriesSidebar />
-
-              {/* Malzeme Checkboxları */}
-              {materials.length > 0 && (
-                <div className="bg-white p-3 rounded-md mb-4 mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Malzemeler</h4>
-                  <ul className="space-y-1 max-h-[250px] overflow-auto">
-                    {materials.map((m) => (
-                      <li key={m}>
-                        <label className="flex items-center space-x-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={selectedMaterials.includes(m)}
-                            onChange={() => toggleMaterial(m)}
-                            className="accent-qh2-green"
-                          />
-                          <span>{m}</span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="w-full hidden lg:block h-[295px] mt-4">
-                <img
-                  src={`${
-                    import.meta.env.VITE_PUBLIC_URL
-                  }/assets/images/bannera-5.png`}
-                  alt="banner"
-                  className="w-full h-full object-contain"
-                />
-              </div>
             </div>
 
-            {/* Sağ İçerik */}
             <div className="flex-1">
               <div className="products-sorting w-full bg-white md:h-[70px] flex md:flex-row flex-col md:justify-between md:items-center p-[30px] mb-[40px]">
                 <div>
@@ -175,13 +146,11 @@ export default function AllProductPage() {
                   {error}
                 </div>
               )}
-
-              {loading && !error && (
+              {(loading || products === null) && !error && (
                 <div className="flex justify-center py-10">
                   <LoaderStyleOne />
                 </div>
               )}
-
               {!loading &&
                 products !== null &&
                 !error &&

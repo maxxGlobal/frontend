@@ -32,7 +32,6 @@ function fmt(amount: number, currency?: string | null) {
 }
 
 export default function CartPage() {
-  /** Tüm sayfa yükleme durumu: ürünler + kuponlar birlikte bitene kadar true */
   const [initLoading, setInitLoading] = useState(true);
 
   const [items, setItems] = useState<{ product: ProductRow; qty: number }[]>(

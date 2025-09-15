@@ -1,45 +1,45 @@
 // src/pages/FlashSale/index.tsx
 import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
 import Layout from "../Partials/Layout";
 import { listDiscountsByDealer } from "../../../services/discounts/list-by-dealer";
 import { listProductImages } from "../../../services/products/images/list";
-import type { Discount, DiscountProduct } from "../../../types/discount";
+import type { Discount } from "../../../types/discount";
+import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
+import PopoverBadge from "./PopoverBadge";
+import PageTitle from "../Helpers/PageTitle";
+import type { Crumb } from "../Helpers/PageTitle";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
-import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 
+const crumbs: Crumb[] = [
+  { name: "home", path: "/homepage" },
+  { name: "İndirimler", path: "/homepage/flash-sale" },
+];
 export default function FlashSale() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dealerCurrency, setDealerCurrency] = useState<string | undefined>();
 
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-
   useEffect(() => {
+    const controller = new AbortController();
+    const MIN_LOADER_TIME = 1000;
+    const start = Date.now();
+
     (async () => {
       try {
-        setLoading(true);
-        setError(null);
-
         const userRaw = localStorage.getItem("user");
         const dealerId = userRaw ? JSON.parse(userRaw)?.dealer?.id : undefined;
         const currency = userRaw
           ? JSON.parse(userRaw)?.dealer?.preferredCurrency
           : undefined;
 
-        // 🔹 state’e kaydet
         setDealerCurrency(currency);
         if (!dealerId) {
           setError("Bayi bilgisi bulunamadı");
           return;
         }
-
         const res = await listDiscountsByDealer(dealerId);
-
-        // Resimleri tamamla
         const completed = await Promise.all(
           res.map(async (d) => {
             const prods = await Promise.all(
@@ -58,134 +58,112 @@ export default function FlashSale() {
 
         setDiscounts(completed);
       } catch (e: any) {
-        console.error(e);
-        setError("İndirimli ürünler getirilemedi");
+        if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
+          console.error(e);
+          setError("İndirimli ürünler getirilemedi");
+        }
       } finally {
-        setLoading(false);
+        const elapsed = Date.now() - start;
+        const remaining = Math.max(0, MIN_LOADER_TIME - elapsed);
+        setTimeout(() => setLoading(false), remaining);
       }
     })();
-  }, []);
 
-  // tüm ürünleri tek satır listesine çevir
-  const rows: {
-    discount: Discount;
-    product: DiscountProduct;
-  }[] = useMemo(() => {
-    const out: { discount: Discount; product: DiscountProduct }[] = [];
-    discounts.forEach((d) =>
-      d.applicableProducts.forEach((p) => out.push({ discount: d, product: p }))
-    );
-    return out;
+    return () => controller.abort();
+  }, []);
+  const grouped = useMemo(() => {
+    const map = new Map<string, Discount[]>();
+    discounts.forEach((d) => {
+      if (!map.has(d.name)) map.set(d.name, []);
+      map.get(d.name)!.push(d);
+    });
+
+    return Array.from(map.entries()).map(([name, list]) => {
+      const base = list[0];
+      return {
+        ...base,
+        allProducts: list.flatMap((x) => x.applicableProducts),
+        allDealers: list.flatMap((x) => x.applicableDealers ?? []),
+      };
+    });
   }, [discounts]);
 
-  // toplam sayfa
-  const totalPages = Math.ceil(rows.length / pageSize);
-
-  // aktif sayfanın satırları
-  const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize);
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center w-full h-[70vh]">
+          <LoaderStyleOne />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <Layout>
-      <div className="container-x mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">
-          Bayiye Uygulanabilir İndirimler
-        </h1>
+    <Layout childrenClasses="pt-0 pb-0">
+      <div className="w-full">
+        <div className="title-area w-full">
+          <PageTitle title="Bayi İndirimleri" breadcrumb={crumbs} />
+        </div>
 
-        {loading && <LoaderStyleOne />}
-        {error && <p className="text-red-500">{error}</p>}
-
-        {!loading && !error && rows.length > 0 && (
-          <>
+        <div className="container-x mx-auto py-8">
+          {error && <p className="text-red-500">{error}</p>}
+          {!error && grouped.length > 0 && (
             <div className="overflow-x-auto border border-[#EDEDED] rounded-md">
-              <table className="w-full text-sm text-left text-gray-700">
+              <table className="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead>
-                  <tr className="bg-[#F6F6F6] text-[13px] font-semibold uppercase border-b">
-                    <th className="py-4 pl-6">İndirim Kodu</th>
-                    <th className="py-4 pl-6">İndirim Mİktarı</th>
-                    <th className="py-4 text-center">Resim</th>
-                    <th className="py-4 text-center">Ürün Adı</th>
-                    <th className="py-4 text-center">Kategori</th>
-                    <th className="py-4 text-center">Stok</th>
-                    <th className="py-4 text-center">Başlangıç</th>
-                    <th className="py-4 text-center">Bitiş</th>
+                  <tr className="bg-[#F6F6F6] text-[13px] font-medium uppercase border-b border-[#e5e7eb]">
+                    <th className="py-6 pl-6">Ad</th>
+                    <th className="py-6 pl-6">Açıklama</th>
+                    <th className="py-6 text-center">Değer</th>
+                    <th className="py-6 text-center">Ürünler</th>
+                    <th className="py-6 text-center">Bayiler</th>
+                    <th className="py-6 text-center">Başlangıç</th>
+                    <th className="py-6 text-center">Bitiş</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {pagedRows.map(({ discount: d, product: p }) => (
+                  {grouped.map((d) => (
                     <tr
-                      key={`${d.id}-${p.id}`}
-                      className="border-b hover:bg-gray-50"
+                      key={d.id}
+                      className="bg-white border-b border-[#e5e7eb] hover:bg-gray-50"
                     >
-                      <td className="pl-6 py-3 font-medium">{d.name}</td>
-                      <td className="pl-6 py-3 font-medium">
+                      <td className="pl-6 py-8 w-[200px]">{d.name}</td>
+                      <td className="pl-6 py-8 w-[200px]">
+                        {d.description || "-"}
+                      </td>
+                      <td className="text-center py-3">
                         {d.discountType === "PERCENTAGE"
-                          ? `% ${d.discountValue}`
+                          ? `%${d.discountValue}`
                           : `${d.discountValue} ${dealerCurrency ?? ""}`}
                       </td>
-                      <td className="text-center py-3">
-                        <img
-                          src={
-                            p.primaryImageUrl ||
-                            `${
-                              import.meta.env.VITE_PUBLIC_URL
-                            }src/assets/images/resim-yok.jpg`
-                          }
-                          alt={p.name}
-                          className="w-16 h-16 object-contain mx-auto border"
-                        />
+
+                      <td className="text-center py-8">
+                        <PopoverBadge products={d.allProducts} dealers={[]} />
                       </td>
-                      <td className="text-center py-3">
-                        <Link
-                          to={`/homepage/product/${p.id}`}
-                          className="hover:text-blue-600"
-                        >
-                          {p.name}
-                        </Link>
+                      <td className="text-center py-8">
+                        <PopoverBadge products={[]} dealers={d.allDealers} />
                       </td>
-                      <td className="text-center py-3">{p.categoryName}</td>
-                      <td className="text-center py-3">
-                        {p.stockQuantity} {p.unit}
+
+                      <td className="text-center py-8">
+                        {new Date(d.startDate).toLocaleString("tr-TR")}
                       </td>
-                      <td className="text-center py-3">
-                        {new Date(d.startDate).toLocaleDateString("tr-TR")}
-                      </td>
-                      <td className="text-center py-3">
-                        {new Date(d.endDate).toLocaleDateString("tr-TR")}
+                      <td className="text-center py-8">
+                        {new Date(d.endDate).toLocaleString("tr-TR")}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+          )}
 
-            {/* 🔹 Sayfalama Kontrolleri */}
-            <div className="flex justify-center items-center space-x-4 mt-6">
-              <button
-                className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-              >
-                Önceki
-              </button>
-              <span>
-                Sayfa {page} / {totalPages}
-              </span>
-              <button
-                className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-              >
-                Sonraki
-              </button>
-            </div>
-          </>
-        )}
-
-        {!loading && !error && rows.length === 0 && (
-          <p className="text-center mt-6 text-gray-500">
-            Bu bayi için indirim bulunamadı.
-          </p>
-        )}
+          {!error && grouped.length === 0 && (
+            <p className="text-center mt-6 text-gray-500">
+              Bu bayi için indirim bulunamadı.
+            </p>
+          )}
+        </div>
       </div>
     </Layout>
   );

@@ -22,11 +22,7 @@ export default function LayoutHomeTwo({
       <div className="w-full overflow-x-hidden flex flex-col min-h-screen">
         <HeaderFour drawerAction={() => setDrawer(!drawer)} />
 
-        <main
-          className={`flex-1 w-full ${
-            childrenClasses || "pt-[30px] pb-[60px]"
-          }`}
-        >
+        <main className={`flex-1 w-full ${childrenClasses || "pb-[60px]"}`}>
           {children}
         </main>
 

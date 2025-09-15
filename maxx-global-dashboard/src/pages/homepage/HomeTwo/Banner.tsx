@@ -32,7 +32,7 @@ export default function Banner({ className }: BannerProps) {
   return (
     <div className={`w-full ${className || ""}`}>
       <div className="container-x mx-auto">
-        <div className="main-wrapper w-full">
+        <div className="main-wrapper w-full pt-[30px]">
           <div className="banner-card xl:flex xl:space-x-[30px] xl:h-[600px] mb-[30px]">
             {loading && (
               <div className="w-full text-center py-10">

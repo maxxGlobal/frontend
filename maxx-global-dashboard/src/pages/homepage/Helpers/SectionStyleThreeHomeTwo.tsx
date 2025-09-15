@@ -1,12 +1,9 @@
-// src/pages/Helpers/SectionStyleThreeHomeTwo.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 
 import ViewMoreTitle from "./ViewMoreTitle";
-import Compair from "./icons/Compair";
-import QuickViewIco from "./icons/QuickViewIco";
 import ThinLove from "./icons/ThinLove";
 
 import { listProducts } from "../../../services/products/list";
@@ -22,7 +19,9 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** ✅ her ürün için miktar ve input metni ayrı tutulur */
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [inputValues, setInputValues] = useState<Record<number, string>>({});
   const [favorites, setFavorites] = useState<Record<number, boolean>>({});
   const qc = useQueryClient();
 
@@ -30,28 +29,28 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
     (async () => {
       try {
         setLoading(true);
-
-        // ✅ 3 aktif ürünü id’ye göre azalan sırayla çek
         const res = await listProducts({
           page: 0,
           size: 3,
           sortBy: "id",
-          sortDirection: "desc", // küçük harf kullan
+          sortDirection: "desc",
           isActive: true,
         });
 
-        // PageResponse tipinizde 'content' varsa burayı kullanın
-        const data: ProductRow[] = res.content ?? []; // 🔑 düzeltme
+        const data: ProductRow[] = res.content ?? [];
         setProducts(data);
 
-        const initialQty: Record<number, number> = {};
-        const initialFav: Record<number, boolean> = {};
+        const q: Record<number, number> = {};
+        const iv: Record<number, string> = {};
+        const fav: Record<number, boolean> = {};
         data.forEach((p) => {
-          initialQty[p.id] = 1;
-          initialFav[p.id] = !!p.isFavorite;
+          q[p.id] = 1;
+          iv[p.id] = "1";
+          fav[p.id] = !!p.isFavorite;
         });
-        setQuantities(initialQty);
-        setFavorites(initialFav);
+        setQuantities(q);
+        setInputValues(iv);
+        setFavorites(fav);
       } catch (e) {
         console.error(e);
         setError("Ürünler getirilemedi");
@@ -62,19 +61,41 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
   }, []);
 
   const increment = (id: number) =>
-    setQuantities((prev) => ({ ...prev, [id]: (prev[id] || 1) + 1 }));
+    setQuantities((prev) => {
+      const n = (prev[id] || 1) + 1;
+      setInputValues((iv) => ({ ...iv, [id]: String(n) }));
+      return { ...prev, [id]: n };
+    });
 
   const decrement = (id: number) =>
-    setQuantities((prev) => ({
-      ...prev,
-      [id]: prev[id] > 1 ? prev[id] - 1 : 1,
-    }));
+    setQuantities((prev) => {
+      const n = Math.max(1, (prev[id] || 1) - 1);
+      setInputValues((iv) => ({ ...iv, [id]: String(n) }));
+      return { ...prev, [id]: n };
+    });
 
   const handleManualChange = (id: number, value: string) => {
-    const val = parseInt(value, 10);
-    if (!isNaN(val) && val >= 1) {
-      setQuantities((prev) => ({ ...prev, [id]: val }));
+    setInputValues((prev) => ({ ...prev, [id]: value }));
+    const num = parseInt(value, 10);
+    if (!isNaN(num) && num >= 1) {
+      setQuantities((prev) => ({ ...prev, [id]: num }));
     }
+  };
+
+  // 👇 focus ile tüm metni seç ve eğer 1 ise temizle
+  const handleFocus = (id: number) => {
+    if (inputValues[id] === "1") {
+      setInputValues((prev) => ({ ...prev, [id]: "" }));
+    }
+  };
+
+  // 👇 blur ile boşsa tekrar geçerli sayı yap
+  const handleBlur = (id: number) => {
+    const val = inputValues[id];
+    const num = parseInt(val, 10);
+    const safe = !isNaN(num) && num >= 1 ? num : 1;
+    setQuantities((prev) => ({ ...prev, [id]: safe }));
+    setInputValues((prev) => ({ ...prev, [id]: String(safe) }));
   };
 
   const handleAddToCart = (id: number) => {
@@ -114,9 +135,10 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
   return (
     <div className={`section-style-one ${className || ""}`}>
       <ViewMoreTitle categoryTitle="Popüler Ürünler">
-        <div className="products-section w-full mt-5">
+        <div className="products-section w-full mt-10">
           {loading && <p className="text-center py-6">Yükleniyor…</p>}
           {error && <p className="text-center py-6 text-red-500">{error}</p>}
+
           {!loading && !error && products.length > 0 && (
             <div className="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-10">
               {products.map((p) => (
@@ -153,10 +175,12 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
                             <input
                               type="number"
                               min={1}
-                              value={quantities[p.id] || 1}
+                              value={inputValues[p.id] ?? "1"}
                               onChange={(e) =>
                                 handleManualChange(p.id, e.target.value)
                               }
+                              onFocus={() => handleFocus(p.id)}
+                              onBlur={() => handleBlur(p.id)}
                               className="w-14 text-center border-none outline-none"
                             />
                             <button
@@ -187,6 +211,7 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
                         )}
                       </div>
                     </div>
+
                     <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-[8px] -right-[50px] top-2 transition-all duration-300 ease-in-out">
                       <button
                         type="button"

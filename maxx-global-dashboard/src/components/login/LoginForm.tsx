@@ -59,7 +59,7 @@ export default function LoginForm() {
                 </a>
               </div>
               <h2 className="sherah-wc__title">
-                Maxx Global Medikal <br /> Admin Panel'e Hoşgeldiniz
+                Medintera <br /> Admin Panel'e Hoşgeldiniz
               </h2>
             </div>
           </div>

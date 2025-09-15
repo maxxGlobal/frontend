@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import ThinLove from "../icons/ThinLove";
 import { addFavorite } from "../../../../services/favorites/add";
 import { removeFavorite } from "../../../../services/favorites/remove";
-import type { Product, ProductRow } from "../../../../types/product";
+import type { Product } from "../../../../types/product";
 import { addToCart } from "../../../../services/cart/storage";
 
 type Props = {
@@ -25,12 +25,8 @@ function buildImageUrl(u?: string | null) {
 
 /** Ürün seçili malzemelerden en az biriyle eşleşiyor mu? */
 function matchesMaterials(prod: Product, selected: string[] = []) {
-  if (!selected.length) return true; // malzeme seçilmediyse tüm ürünler geçsin
+  if (!selected.length) return true;
 
-  // Üründeki malzeme bilgisini olabildiğince esnek yakala:
-  //  - prod.materials: string[]
-  //  - prod.material: string
-  //  - prod.attributes?.materials: string[]
   const rawList =
     (prod as any)?.materials ??
     (prod as any)?.attributes?.materials ??
@@ -43,26 +39,67 @@ function matchesMaterials(prod: Product, selected: string[] = []) {
 
   const norm = (s: string) => s.trim().toLowerCase();
   const prodSet = new Set(list.map(norm));
-
   return selected.some((m) => prodSet.has(norm(m)));
 }
 
 export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
-  // 1) Status kontrolü
   if (datas.status !== "AKTİF") return null;
-
   if (!matchesMaterials(datas, filterMaterials)) return null;
 
   const qc = useQueryClient();
   const d = datas;
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
-  const [quantity, setQuantity] = useState<number>(0);
 
-  const increment = () => setQuantity((p) => p + 1);
-  const decrement = () => setQuantity((p) => (p > 1 ? p - 1 : 1));
+  /** ✅ Input gösterimi ve gerçek miktar ayrı state’ler */
+  const [quantity, setQuantity] = useState<number>(1);
+  const [inputValue, setInputValue] = useState<string>("1");
+
+  const increment = () => {
+    setQuantity((p) => {
+      const n = p + 1;
+      setInputValue(String(n));
+      return n;
+    });
+  };
+
+  const decrement = () => {
+    setQuantity((p) => {
+      const n = Math.max(1, p - 1);
+      setInputValue(String(n));
+      return n;
+    });
+  };
+
   const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value, 10);
-    if (!isNaN(val) && val >= 1) setQuantity(val);
+    const val = e.target.value;
+    setInputValue(val); // her tuş vuruşunu hemen göster
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 1) setQuantity(num);
+  };
+
+  // 👇 Odaklanınca (mobil/safari dahil) tüm metni seç ve varsayılan "1" ise temizle
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Seçimi güvenceye almak için kısa gecikme
+    setTimeout(() => {
+      try {
+        e.target.select();
+      } catch {}
+    }, 0);
+
+    if (inputValue === "1") {
+      setInputValue(""); // direkt yazmaya başlayınca 1 yerine kendi değerin girilsin
+    }
+  };
+
+  // 👇 Boş bırakılırsa güvenli şekilde toparla
+  const handleBlur = () => {
+    if (inputValue.trim() === "") {
+      setInputValue(String(quantity || 1)); // en az 1
+    } else {
+      const n = Math.max(1, parseInt(inputValue, 10) || 1);
+      setQuantity(n);
+      setInputValue(String(n));
+    }
   };
 
   const handleAddToCart = () => {
@@ -120,7 +157,6 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
             Kategori: {d.categoryName}
           </p>
         )}
-
         {d.material !== undefined && d.material !== null && (
           <p className="text-[12px] text-qgray mb-2">
             Materyal: {d.material || "—"}
@@ -146,7 +182,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
           <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
         )}
 
-        {/* Sepet butonu + adet inputu */}
+        {/* Sepete Ekle + Adet Kontrolü */}
         <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 group-hover:bottom-[20px] transition-all">
           <button
             type="button"
@@ -164,13 +200,17 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
               >
                 –
               </button>
+
               <input
                 type="number"
                 min={1}
-                value={quantity}
+                value={inputValue}
                 onChange={handleManualChange}
+                onFocus={handleFocus} // ✅ odakta 1’i seç/temizle
+                onBlur={handleBlur} // ✅ boşsa toparla
                 className="w-14 text-center border-none outline-none text-qblack"
               />
+
               <button
                 onClick={increment}
                 type="button"
@@ -183,7 +223,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
         </div>
       </div>
 
-      {/* Hızlı Erişim Butonları */}
+      {/* Hızlı erişim (favori) */}
       <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
         <button
           type="button"

@@ -16,7 +16,7 @@ export default function About() {
     <Layout childrenClasses="pt-0 pb-0">
       <div className="about-page-wrapper w-full">
         <div className="title-area w-full">
-          <PageTitle title="Hakkımızda" breadcrumb={crumbs} />;
+          <PageTitle title="Hakkımızda" breadcrumb={crumbs} />
         </div>
         <div className="aboutus-wrapper w-full">
           <div className="container-x mx-auto">
@@ -30,7 +30,7 @@ export default function About() {
                   Mükemmeliyet...
                 </h1>
                 <p className="text-[15px] text-qgraytwo leading-7 mb-2.5">
-                  Maxx Global, 2019 yılında kurulmuş olup, kayar otomat
+                  Medintera, 2019 yılında kurulmuş olup, kayar otomat
                   tezgahlarıyla savunma ve medikal sektörlerine yönelik yüksek
                   kaliteli üretim hizmetleri sunmaktadır. Kumlama, taşlama,
                   markalama, montaj, polisaj ve kaplama gibi ek hizmetlerle,
@@ -38,8 +38,8 @@ export default function About() {
                   üretiyoruz. Fason üretimdeki uzmanlığımızın yanı sıra, kendi
                   markamız olan Umay kalemlerinin imalatını da gururla
                   gerçekleştiriyoruz. İleri teknoloji ve deneyimli ekibimizle,
-                  kalite ve güvenilirliği her zaman ön planda tutuyoruz. Maxx
-                  Global olarak, hem sektör liderlerine hem de bireysel
+                  kalite ve güvenilirliği her zaman ön planda tutuyoruz.
+                  Medintera olarak, hem sektör liderlerine hem de bireysel
                   projelere hizmet vererek, sürdürülebilir başarıyı
                   hedefliyoruz.
                 </p>
