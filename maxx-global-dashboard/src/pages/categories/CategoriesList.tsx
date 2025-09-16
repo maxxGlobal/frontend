@@ -189,7 +189,7 @@ export default function CategoriesList() {
           <div className="col-sm-12 col-md-6">
             <h3 className="sherah-card__title py-3">Kategori Listesi</h3>
           </div>
-          <div className="col-sm-12 col-md-6 d-flex justify-content-end">
+          <div className="col-sm-12 col-md-6 d-flex justify-content-end categories-list">
             <FilterPanel
               q={q}
               setQ={(v) => {

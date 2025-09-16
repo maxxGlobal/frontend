@@ -480,3 +480,81 @@ html {
   text-align: left;
 }
       
+/*Logout Button*/
+/* From Uiverse.io by JaydipPrajapati1910 */ 
+.Btn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 45px;
+  height: 45px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: width 0.3s ease, border-radius 0.3s ease, transform 0.1s ease;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  background-color: #2D6F6D;
+}
+ @media (max-width: 991px) {
+  .Btn{
+       width: 32px;
+       height: 32px;
+  }
+}
+
+.sign {
+  flex: 0 0 45px;            
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: padding-left 0.3s ease;
+}
+ @media (max-width: 991px) {
+  .sign{
+   flex: 0 0 35px;         
+  }
+}
+
+.sign svg {
+  width: 17px;
+}
+
+.sign svg path {
+  fill: white;
+}
+
+.text {
+  white-space: nowrap;       
+  opacity: 0;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 4px;          
+  transition: opacity 0.3s ease;
+}
+
+/* Hover effect */
+.Btn:hover {
+  width: 125px;
+  border-radius: 40px;
+}
+ @media (max-width: 991px) {
+  .Btn:hover{
+     width: 115px;   
+  }
+}
+
+.Btn:hover .sign {
+  padding-left: 10px;
+}
+
+.Btn:hover .text {
+  opacity: 1;
+}
+
+/* Click effect */
+.Btn:active {
+  transform: translate(2px, 2px);
+}

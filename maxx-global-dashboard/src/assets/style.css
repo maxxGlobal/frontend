@@ -664,6 +664,15 @@ Version:	1.0.0
 	align-items: center;
 	justify-content: center;
 }
+ @media (max-width: 991px) {
+  .sherah-dropdown-card__img{
+    min-width: 38px;
+	min-height: 38px;
+	width: 38px;
+	height: 38px; 
+  }
+}
+
 .sherah-dropdown-card__img img {
 	max-width: 25px;
 }
@@ -1614,8 +1623,8 @@ Version:	1.0.0
 		cursor: pointer;
 		position: relative;
 		background: #6176FE;
-		width: 30px;
-		height: 30px;
+		width: 35px;
+		height: 33px;
 		line-height: 30px;
 		border-radius: 4px;
 	}
@@ -2562,6 +2571,23 @@ Version:	1.0.0
 	display: flex;
 	gap: 10px;
 }
+ @media (max-width: 991px) {
+  .dataTables_paginate  .pagination,.sherah-pagination ul{
+     flex-wrap: wrap;  
+  }
+}
+ @media (max-width: 991px) {
+  .dataTables_paginate .pagination a, .sherah-pagination li a{
+     	width: 42px;
+	    height: 42px; 
+  }
+}
+ @media (max-width: 991px) {
+  .categories-list{
+     flex-direction: column;
+  }
+ }
+
 .dataTables_paginate .pagination a:hover,.sherah-pagination ul li a:hover,
 .dataTables_paginate .paginate_button.active a,.sherah-pagination ul li.active a{
 	background: #6176FE !important;
