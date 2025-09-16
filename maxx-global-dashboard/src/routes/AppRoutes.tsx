@@ -46,6 +46,10 @@ const About = lazy(() => import("../pages/homepage/About"));
 const ProductDetail = lazy(() => import("../pages/homepage/SingleProductPage"));
 const BasketDetail = lazy(() => import("../pages/homepage/BasketDetail/index"));
 const MyOrders = lazy(() => import("../pages/homepage/BasketDetail/my-orders"));
+const Kvkk = lazy(() => import("../pages/homepage/PrivacyPolicy"));
+const TermsCondition = lazy(
+  () => import("../pages/homepage/TermsCondition/index")
+);
 const NotificationDetail = lazy(
   () => import("../pages/homepage/Notifications/Detail")
 );
@@ -96,6 +100,12 @@ export default function AppRoutes() {
         </Route>
         <Route element={<PublicHomeLayout />}>
           <Route path="/homepage/my-orders" element={<MyOrders />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/quality-policy" element={<TermsCondition />} />
+        </Route>
+        <Route element={<PublicHomeLayout />}>
+          <Route path="/homepage/kvkk" element={<Kvkk />} />
         </Route>
       </Route>
       <Route element={<AuthLayout />}>

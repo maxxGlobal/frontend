@@ -32,16 +32,9 @@ export default function Footer() {
             <div>
               <ul className="flex flex-col space-y-5 ">
                 <li>
-                  <Link to="/">
+                  <Link to="/homepage/about">
                     <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                      Vizyonumuz
-                    </span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/">
-                    <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                      Misyonumuz
+                      Hakkımızda
                     </span>
                   </Link>
                 </li>
@@ -55,14 +48,14 @@ export default function Footer() {
             <div>
               <ul className="flex flex-col space-y-5 ">
                 <li>
-                  <Link to="/">
+                  <Link to="/homepage/kvkk">
                     <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
                       KVKK
                     </span>
                   </Link>
                 </li>
                 <li>
-                  <Link to="/">
+                  <Link to="/homepage/quality-policy">
                     <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
                       Kalite Politikamız
                     </span>

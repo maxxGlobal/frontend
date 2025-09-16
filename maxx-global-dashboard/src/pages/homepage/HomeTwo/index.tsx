@@ -26,7 +26,7 @@ export default function HomeTwo() {
 
       <ViewMoreTitle
         className="my-categories mb-[60px]"
-        seeMoreUrl="/all-products"
+        seeMoreUrl="/homepage/all-products"
         categoryTitle="Kategoriler"
       >
         <CategoriesSection />

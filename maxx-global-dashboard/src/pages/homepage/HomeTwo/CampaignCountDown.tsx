@@ -20,7 +20,7 @@ export default function CampaignCountDown({
           <div className="items-center h-full">
             <div
               data-aos="fade-right"
-              className="campaign-countdown h-full w-full mb-5 lg:mb-0"
+              className="campaign-countdown h-full w-full mb-5 lg:mb-0 rounded-xl"
               style={{
                 background: `url(src/assets/images/discount.png) no-repeat`,
                 backgroundSize: "cover",

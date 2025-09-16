@@ -12,7 +12,7 @@ export default function ViewMoreTitle({
   categoryTitle = "",
   className,
   children,
-  seeMoreUrl = "",
+  seeMoreUrl = "/homepage/all-product",
 }: ViewMoreTitleProps) {
   return (
     <div className={`section-wrapper w-full ${className || ""}`}>

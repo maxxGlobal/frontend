@@ -345,7 +345,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   </a>
                   <ul className="submenu-list ml-5">
                     <li className="p-0">
-                      <Link to="/privacy-policy" onClick={action}>
+                      <Link to="/homepage/kvkk" onClick={action}>
                         <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                           <div className="flex items-center space-x-6">
                             <span className="text-sm font-400">Kvkk</span>
@@ -359,7 +359,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                       </Link>
                     </li>
                     <li className="p-0">
-                      <Link to="/faq" onClick={action}>
+                      <Link to="/homepage/quality-policy" onClick={action}>
                         <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                           <div className="flex items-center space-x-6">
                             <span className="text-sm font-400">
