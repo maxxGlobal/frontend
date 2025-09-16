@@ -258,14 +258,14 @@ export default function Navbar({ className }: { className?: string }) {
                             <div className="category-items">
                               <ul className="flex flex-col space-y-2">
                                 <li>
-                                  <Link to="/privacy-policy">
+                                  <Link to="/homepage/kvkk">
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
                                       KVKK
                                     </span>
                                   </Link>
                                 </li>
                                 <li>
-                                  <Link to="/terms-condition">
+                                  <Link to="/homepage/quality-policy">
                                     <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
                                       Kalite Politikamız
                                     </span>

@@ -144,7 +144,7 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
               {products.map((p) => (
                 <div key={p.id} className="item" data-aos="fade-up">
                   <div
-                    className="product-card-style-one-two w-full h-full bg-white relative group overflow-hidden"
+                    className="product-card-style-one-two rounded-xl w-full h-full bg-white relative group overflow-hidden"
                     style={{ boxShadow: "0px 15px 64px 0px rgba(0,0,0,0.05)" }}
                   >
                     <div

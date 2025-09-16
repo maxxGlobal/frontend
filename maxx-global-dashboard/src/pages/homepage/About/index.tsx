@@ -25,29 +25,28 @@ export default function About() {
                 <img src={AboutImage} alt="about" className="w-full h" />
               </div>
               <div className="content flex-1">
-                <h1 className="text-[18px] font-medium text-qblack mb-2.5">
-                  CNC Gücüyle Yüksek Hassasiyet, Kaplama ve Üretimde
-                  Mükemmeliyet...
-                </h1>
                 <p className="text-[15px] text-qgraytwo leading-7 mb-2.5">
-                  Medintera, 2019 yılında kurulmuş olup, kayar otomat
-                  tezgahlarıyla savunma ve medikal sektörlerine yönelik yüksek
-                  kaliteli üretim hizmetleri sunmaktadır. Kumlama, taşlama,
-                  markalama, montaj, polisaj ve kaplama gibi ek hizmetlerle,
-                  müşterilerimizin ihtiyaçlarına tam uyum sağlayan çözümler
-                  üretiyoruz. Fason üretimdeki uzmanlığımızın yanı sıra, kendi
-                  markamız olan Umay kalemlerinin imalatını da gururla
-                  gerçekleştiriyoruz. İleri teknoloji ve deneyimli ekibimizle,
-                  kalite ve güvenilirliği her zaman ön planda tutuyoruz.
-                  Medintera olarak, hem sektör liderlerine hem de bireysel
-                  projelere hizmet vererek, sürdürülebilir başarıyı
-                  hedefliyoruz.
+                  Özellikle kırık tedavilerindeki gelişmeler çok sayıda ürünün
+                  üretilmesini ve hekimlerin kullanımına arz edilmesini
+                  sağlamıştır. Sağlık hizmetlerinde teknolojik cihazların
+                  kullanımı cerrahi işlem ve tedavi sürelerini kısaltmakta,
+                  tedavilerin başarı oranlarını artırmakta ve toplam hasta
+                  memnuniyetini giderek artırmaktadır. Tıbbi cihazların ve
+                  ortopedik implantların kullanıma uygun bir şekilde
+                  üretilmeleri, kalite unsurlarının incelenmesi ve biyolojik
+                  uygunluklarının bulunması gibi aşamaları bulunmaktadır.
+                  Üretilen cihazların CE ve FDA gibi kalite değerlendirme
+                  kuruluşları tarafından denetlenerek insan sağlığı yönünden
+                  etkin ve güvenilir olduğunun belgelenmiş olması gerekir. Gerek
+                  Türkiye gerekse global tıbbi cihaz pazarına firmamız
+                  tarafından sunulan tüm ürünler en yüksek kalite standartları
+                  ve güvenlik gerekliliklerini taşımaktadır. Eksternal Fiksatör
+                  Sistemleri firmamızın uzmanlık alanıdır. Bunlarla hasta
+                  memnuniyetini en üst seviyeye çıkarmayı hedeflemekteyiz.
                 </p>
                 <Link to="/homepage/contact">
                   <div className="w-auto h-10">
-                    <span className="yellow-btn">
-                      Bayinizle İletişime Geçin
-                    </span>
+                    <span className="yellow-btn">İletişime Geçin</span>
                   </div>
                 </Link>
               </div>
