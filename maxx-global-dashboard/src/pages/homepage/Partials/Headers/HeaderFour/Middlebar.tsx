@@ -1,4 +1,3 @@
-// src/components/layout/middlebar/index.tsx
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Cart from "../../../Cart";
@@ -11,12 +10,10 @@ import ThinPeople from "../../../Helpers/icons/ThinPeople";
 import SearchBox from "../../../Helpers/SearchBox";
 import Logo from "../../../../../assets/img/medintera-logo.png";
 import { getFavoriteCount } from "../../../../../services/favorites/count";
+import { getUnreadCount } from "../../../../../services/notifications/header";
 import { getCart } from "../../../../../services/cart/storage";
-import { listNotifications } from "../../../../../services/notifications/list";
 
-type MiddlebarProps = {
-  className?: string;
-};
+type MiddlebarProps = { className?: string };
 
 export default function Middlebar({ className }: MiddlebarProps) {
   const navigate = useNavigate();
@@ -27,14 +24,14 @@ export default function Middlebar({ className }: MiddlebarProps) {
     queryFn: getFavoriteCount,
     refetchInterval: 60_000,
   });
+
+  // 🔑 okunmamış bildirim sayısı
   const { data: notificationCount = 0 } = useQuery({
     queryKey: ["notificationCount"],
-    queryFn: async () => {
-      const res = await listNotifications({});
-      return (res.content ?? []).length;
-    },
+    queryFn: getUnreadCount,
     refetchInterval: 60_000,
   });
+
   const [cartCount, setCartCount] = useState<number>(() => getCart().length);
 
   useEffect(() => {
@@ -48,13 +45,11 @@ export default function Middlebar({ className }: MiddlebarProps) {
     };
   }, []);
 
-  // ---- Search ----
   const handleSearch = (query: string) => {
     if (!query) return;
     navigate(`/homepage/all-product?search=${encodeURIComponent(query)}`);
   };
 
-  // ---- Logout ----
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");

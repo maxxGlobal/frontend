@@ -558,3 +558,9 @@ html {
 .Btn:active {
   transform: translate(2px, 2px);
 }
+
+.categories-btn:hover{
+  svg{
+    fill: #fff;
+  }
+}

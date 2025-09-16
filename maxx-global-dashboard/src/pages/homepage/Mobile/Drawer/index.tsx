@@ -330,7 +330,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   </Link>
                 </li>
 
-                <li className="p-0">
+                {/* <li className="p-0">
                   <a href="#">
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
@@ -375,7 +375,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                       </Link>
                     </li>
                   </ul>
-                </li>
+                </li> */}
 
                 <li className="p-0">
                   <Link to="/homepage/about" onClick={action}>
