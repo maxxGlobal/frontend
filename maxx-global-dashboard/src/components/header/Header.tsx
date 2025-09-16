@@ -1,14 +1,17 @@
-// src/components/header/Header.tsx
+// src/components/header/Header.tsx - Enhanced with useAuth
 import { useEffect, useRef, useState } from "react";
-import profilePic from "../../assets/img/users-profile.svg";
 import { useNavigate } from "react-router-dom";
 import HeaderBell from "../../pages/notifications/HeaderBell";
+import { useAuth } from "../../hooks/useAuth"; // ✅ Hook'u import edin
 
 export default function Header() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [openMsg, setOpenMsg] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
+
+  // ✅ useAuth hook'unu kullanın
+  const { user, logout } = useAuth();
 
   const msgRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -24,19 +27,29 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const user = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "null");
-    } catch {
-      return null;
-    }
-  })();
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login", { replace: true });
+  // ✅ useAuth'dan gelen logout fonksiyonunu kullanın
+  const handleLogout = () => {
+    logout(); // Bu otomatik olarak login sayfasına yönlendirecek
   };
+
+  // ✅ Kullanıcı yoksa loading durumu
+  if (!user) {
+    return (
+      <header className="sherah-header">
+        <div className="container g-0">
+          <div className="row g-0">
+            <div className="col-12">
+              <div className="sherah-header__inner">
+                <div className="d-flex justify-content-center">
+                  <span>Yükleniyor...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sherah-header">
@@ -50,7 +63,7 @@ export default function Header() {
                     fill="#fff"
                     color="#fff"
                     height="28"
-                    stroke-width="1.5"
+                    strokeWidth="1.5"
                     viewBox="0 0 24 24"
                     width="28"
                     xmlns="http://www.w3.org/2000/svg"
@@ -58,20 +71,20 @@ export default function Header() {
                     <path
                       d="M3 5H21"
                       stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M3 12H21"
                       stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M3 19H21"
                       stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -88,17 +101,18 @@ export default function Header() {
                     }`}
                     onClick={() => setOpenMsg((v) => !v)}
                   >
-                    {/* mesaj ikonu */}
                     <div className="sherah-dropdown-card sherah-dropdown-card__alarm sherah-border">
                       <h3 className="sherah-dropdown-card__title sherah-border-btm">
                         Recent Message
                       </h3>
                       <ul className="sherah-dropdown-card_list sherah-chatbox__list sherah-chatbox__list__header">
-                        {/* ... */}
+                        {/* ... mesaj içeriği */}
                       </ul>
                     </div>
                   </div>
+                  
                   <HeaderBell />
+                  
                   <div
                     ref={profileRef}
                     role="button"
@@ -141,9 +155,10 @@ export default function Header() {
                     </div>
                     <div className="sherah-header__author--info sherah-dflex sherah-dflex__base">
                       <h4 className="sherah-header__author--title sherah-dflex sherah-dflex__column">
-                        {user?.firstName ?? "User"}{" "}
+                        {/* ✅ useAuth'dan gelen user bilgisini kullanın */}
+                        {user.firstName} {user.lastName}
                         <span className="sherah-header__author--text">
-                          {user?.country ?? ""}
+                          {user.dealer?.name || "Admin"}
                         </span>
                       </h4>
                     </div>
@@ -161,7 +176,7 @@ export default function Header() {
                           data-name="Path 1271"
                           d="M-15383,7197.438l20.555-20.992,20.555,20.992Z"
                           transform="translate(15384.189 -7175.73)"
-                          stroke-width="1"
+                          strokeWidth="1"
                         ></path>
                       </svg>
                       <h3 className="sherah-dropdown-card__title sherah-border-btm">
@@ -226,7 +241,7 @@ export default function Header() {
                             <h4 className="sherah-dropdown-card-name">
                               <button
                                 style={{ fontSize: 18 }}
-                                onClick={logout}
+                                onClick={handleLogout} // ✅ useAuth'dan gelen logout'u kullanın
                                 className="underline fw-normal border-0 bg-transparent p-0"
                               >
                                 Çıkış Yap

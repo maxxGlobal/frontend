@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useState } from "react";
 import { hasPermission } from "../../utils/permissions";
 import { createProduct } from "../../services/products/create";
@@ -6,19 +7,60 @@ import { getAllCategoryOptions } from "../../services/categories/options";
 import type { CategoryOption } from "../../services/categories/_normalize";
 import { exportProductsToExcel } from "../../services/products/exportExcel";
 import { useNavigate } from "react-router-dom";
+import { setupTurkishValidation, validateFormInTurkish } from "../../utils/validation";
+// ✅ SweetAlert import'larını ekleyin
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
-function numOrUndef(v: any): number | undefined {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
-}
 import {
   downloadProductsExcelTemplate,
   importProductsExcel,
   type ExcelImportResult,
 } from "../../services/products/excel";
 
+// ✅ MySwal'ı tanımlayın
+const MySwal = withReactContent(Swal);
+
+function numOrUndef(v: any): number | undefined {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+// ✅ getFieldDisplayName fonksiyonunu ekleyin
+function getFieldDisplayName(fieldName: string): string {
+  const fieldMap: Record<string, string> = {
+    name: "Ürün Adı",
+    code: "Ürün Kodu", 
+    categoryId: "Kategori",
+    stockQuantity: "Stok Adedi",
+    unit: "Birim",
+    lotNumber: "Lot Numarası",
+    material: "Malzeme",
+    size: "Boyut",
+    diameter: "Çap",
+    angle: "Açı",
+    color: "Renk",
+    surfaceTreatment: "Yüzey İşlemi",
+    weightGrams: "Ağırlık",
+    dimensions: "Boyutlar",
+    serialNumber: "Seri No",
+    manufacturerCode: "Üretici Kodu",
+    manufacturingDate: "Üretim Tarihi",
+    expiryDate: "Son Kullanma Tarihi",
+    shelfLifeMonths: "Raf Ömrü",
+    medicalDeviceClass: "Medikal Cihaz Sınıfı",
+    regulatoryNumber: "Regülasyon No",
+    barcode: "Barkod",
+    minimumOrderQuantity: "Minimum Sipariş",
+    maximumOrderQuantity: "Maksimum Sipariş",
+    description: "Açıklama"
+  };
+  
+  return fieldMap[fieldName] || fieldName;
+}
+
 export default function ProductCreate() {
-  if (!hasPermission({ anyOf: ["PRODUCT_MANAGE", "SYSTEM_ADMIN"]  })) {
+  if (!hasPermission({ anyOf: ["PRODUCT_MANAGE", "SYSTEM_ADMIN"] })) {
     return (
       <div className="alert alert-danger m-3">
         Bu sayfaya erişim yetkiniz yok (PRODUCT_MANAGE gerekli).
@@ -28,7 +70,7 @@ export default function ProductCreate() {
 
   const nav = useNavigate();
 
-  // Tüm create alanları + bool’lar
+  // Tüm create alanları + bool'lar
   const [form, setForm] = useState<
     ProductCreateRequest & {
       sterile: boolean;
@@ -87,6 +129,7 @@ export default function ProductCreate() {
   const [pickedFile, setPickedFile] = useState<File | null>(null);
   const [userConfirmedDownloaded, setUserConfirmedDownloaded] = useState(false);
 
+  // ✅ useEffect'leri düzenleyin - çakışmaları önlemek için
   useEffect(() => {
     (async () => {
       try {
@@ -99,13 +142,27 @@ export default function ProductCreate() {
     })();
   }, []);
 
+  // ✅ Validation setup - sadece bir kez
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setupTurkishValidation();
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [catOpts]); // Categories yüklendikten sonra validation setup et
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const formElement = e.target as HTMLFormElement;
+    if (!validateFormInTurkish(formElement)) {
+      // Validation başarısızsa işlemi durdur
+      return;
+    }
     try {
       setSaving(true);
       setError(null);
 
-      // Basit FE validasyonları
+      // Frontend validasyonları
       if (!form.name.trim()) throw new Error("Ad zorunludur.");
       if (!form.code.trim()) throw new Error("Kod zorunludur.");
       if (!form.categoryId || form.categoryId <= 0)
@@ -122,13 +179,12 @@ export default function ProductCreate() {
         throw new Error("Stok adedi zorunludur.");
       }
 
-      // Temiz payload (trim + cast)
+      // Payload hazırlama
       const payload: ProductCreateRequest = {
         name: form.name.trim(),
         code: form.code.trim(),
         description: form.description?.trim() || "",
         categoryId: Number(form.categoryId),
-
         material: form.material?.trim() || "",
         size: form.size?.trim() || "",
         diameter: form.diameter?.trim() || "",
@@ -142,20 +198,14 @@ export default function ProductCreate() {
         regulatoryNumber: form.regulatoryNumber?.trim() || "",
         unit: form.unit?.trim() || "",
         barcode: form.barcode?.trim() || "",
-        lotNumber: form.lotNumber?.trim(), // zorunlu
-
-        // sayısallar
+        lotNumber: form.lotNumber?.trim(),
         weightGrams: numOrUndef(form.weightGrams),
         shelfLifeMonths: numOrUndef(form.shelfLifeMonths),
-        stockQuantity: Number(form.stockQuantity), // zorunlu
+        stockQuantity: Number(form.stockQuantity),
         minimumOrderQuantity: numOrUndef(form.minimumOrderQuantity),
         maximumOrderQuantity: numOrUndef(form.maximumOrderQuantity),
-
-        // tarihler (YYYY-MM-DD)
         manufacturingDate: form.manufacturingDate || "",
         expiryDate: form.expiryDate || "",
-
-        // bool’lar
         sterile: !!form.sterile,
         singleUse: !!form.singleUse,
         implantable: !!form.implantable,
@@ -164,14 +214,104 @@ export default function ProductCreate() {
       };
 
       const created = await createProduct(payload);
+
+      // Başarı SweetAlert'i
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı!",
+        text: "Ürün başarıyla oluşturuldu. Şimdi resim ekleme sayfasına yönlendiriliyorsunuz.",
+        confirmButtonText: "Tamam",
+        timer: 3000,
+        timerProgressBar: true
+      });
+
       nav(`/products/${created.id}/images`);
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.title ||
-        e?.message ||
-        "Ürün oluşturulamadı.";
-      setError(`Ürün oluşturulurken bir hata oluştu: ${msg}`);
+    } catch (err: any) {
+      console.error("Ürün oluşturma hatası:", err);
+
+      // Frontend validation hatası
+      if (err?.message && !err?.response) {
+        await MySwal.fire({
+          icon: "warning",
+          title: "Eksik Bilgi",
+          text: err.message,
+          confirmButtonText: "Tamam"
+        });
+        return;
+      }
+
+      // Backend hata mesajını işle
+      let errorTitle = "Ürün Oluşturma Hatası";
+      let errorMessage = "Ürün oluşturulurken bilinmeyen bir hata oluştu.";
+      let isHtml = false;
+
+      if (err?.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+
+        if (status === 400) {
+          errorTitle = "Doğrulama Hatası";
+
+          if (typeof data === 'string') {
+            errorMessage = data;
+          } else if (data?.message) {
+            errorMessage = data.message;
+          } else if (data?.title) {
+            errorMessage = data.title;
+          } else if (data?.errors) {
+            if (Array.isArray(data.errors)) {
+              errorMessage = `<ul class="text-start mb-0">
+              ${data.errors.map(error => `<li>${error}</li>`).join('')}
+            </ul>`;
+              isHtml = true;
+            } else if (typeof data.errors === 'object') {
+              const fieldErrors = Object.entries(data.errors)
+                .map(([field, msgs]) => {
+                  const fieldName = getFieldDisplayName(field);
+                  const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+                  return `<li><strong>${fieldName}:</strong> ${message}</li>`;
+                })
+                .join('');
+              errorMessage = `<ul class="text-start mb-0">${fieldErrors}</ul>`;
+              isHtml = true;
+            }
+          }
+        } else if (status === 409) {
+          errorTitle = "Çakışma Hatası";
+          errorMessage = data?.message || data?.title || "Bu ürün kodu zaten kullanılıyor. Lütfen farklı bir kod deneyin.";
+        } else if (status === 422) {
+          errorTitle = "Veri Hatası";
+          errorMessage = data?.message || data?.title || "Gönderilen veriler işlenemedi.";
+        } else if (status === 500) {
+          errorTitle = "Sunucu Hatası";
+          errorMessage = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+        } else if (status === 403) {
+          errorTitle = "Yetki Hatası";
+          errorMessage = "Bu işlemi gerçekleştirmek için yetkiniz bulunmuyor.";
+        } else {
+          errorTitle = `HTTP ${status} Hatası`;
+          errorMessage = data?.message || data?.title || 'Bilinmeyen sunucu hatası';
+        }
+      } else if (err?.code === 'NETWORK_ERROR' || !err?.response) {
+        errorTitle = "Bağlantı Hatası";
+        errorMessage = "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
+      // SweetAlert ile hata göster
+      await MySwal.fire({
+        icon: "error",
+        title: errorTitle,
+        html: isHtml ? errorMessage : undefined,
+        text: isHtml ? undefined : errorMessage,
+        confirmButtonText: "Tamam",
+        width: "500px",
+        customClass: {
+          htmlContainer: 'text-start'
+        }
+      });
+
     } finally {
       setSaving(false);
     }
@@ -182,7 +322,6 @@ export default function ProductCreate() {
       setExcelErr(null);
       setExcelBusy(true);
       await downloadProductsExcelTemplate();
-      // tarayıcı indirmeyi başlattı; akışı yükleme moduna al
       setExcelMode("UPLOAD");
     } catch (e: any) {
       setExcelErr(e?.message || "Şablon indirilemedi.");
@@ -190,11 +329,13 @@ export default function ProductCreate() {
       setExcelBusy(false);
     }
   }
+
   function onPickExcel(e: React.ChangeEvent<HTMLInputElement>) {
     setExcelErr(null);
     setExcelResult(null);
     setPickedFile(e.target.files?.[0] ?? null);
   }
+
   async function handleExcelImport() {
     if (!pickedFile) {
       setExcelErr("Lütfen Excel dosyası seçin.");
@@ -209,32 +350,32 @@ export default function ProductCreate() {
       setExcelBusy(true);
       const res = await importProductsExcel(pickedFile);
       setExcelResult(res);
-      // İstersen burada liste sayfasını yenilemeye yönlendirebilirsin:
-      // navigate("/products");  // veya sayfada kalıp özeti göster
     } catch (e: any) {
       setExcelErr(
         e?.response?.data?.message ||
-          e?.message ||
-          "Excel içe aktarma başarısız."
+        e?.message ||
+        "Excel içe aktarma başarısız."
       );
     } finally {
       setExcelBusy(false);
     }
   }
+
   const handleExportExcel = async () => {
     try {
       const blob = await exportProductsToExcel();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "urunler.xlsx"; // indirilecek dosya adı
+      a.download = "urunler.xlsx";
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Excel export hatası:", err);
       alert("Ürünler Excel'e aktarılamadı!");
     }
-  };
+  }; 
+
   return (
     <div className="col-lg-12 col-md-12 col-12 register-add-form">
       <div className="sherah-wc__form">
@@ -627,8 +768,9 @@ export default function ProductCreate() {
                       <small className="text-muted">(örn. 15.5)</small>
                     </label>
                     <input
-                      step="any"
-                      className="herah-wc__form-input"
+                      step="any" // Bu satırı ekleyin
+                      type="number"
+                      className="sherah-wc__form-input"
                       value={form.weightGrams ?? ""}
                       onChange={(e) =>
                         setForm({
@@ -639,6 +781,8 @@ export default function ProductCreate() {
                               : Number(e.target.value),
                         })
                       }
+                      min={0}
+                      placeholder="14.5"
                     />
                   </div>
                   <div className="col-lg-4 col-md-12 col-12">

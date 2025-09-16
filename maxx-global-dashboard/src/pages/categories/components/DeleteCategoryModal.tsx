@@ -1,6 +1,9 @@
 // src/pages/categories/components/DeleteCategoryModal.tsx
 import type { CategoryRow } from "../../../types/category";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
+const MySwal = withReactContent(Swal);
 type Props = {
   target: CategoryRow | null;
   onCancel: () => void;

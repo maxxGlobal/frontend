@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { updateProduct } from "../../../services/products/update";
 import { getProductById } from "../../../services/products/getById";
 import type { ProductUpdateRequest, Product } from "../../../types/product";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import { setupTurkishValidation, validateFormInTurkish } from "../../../utils/validation";
 
 interface EditProductModalProps {
   productId: number;
@@ -31,9 +34,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [bootLoading, setBootLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const MySwal = withReactContent(Swal);
   // Ürün detayını çek
   useEffect(() => {
+      setupTurkishValidation(); // Sadece modal içinde
+
     const controller = new AbortController();
     (async () => {
       try {
@@ -91,6 +96,15 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     return () => controller.abort();
   }, [productId]);
 
+  useEffect(() => {
+    if (form && !bootLoading) {
+      // Modal içindeki elementler için validation setup'ı
+      setTimeout(() => {
+        setupTurkishValidation('.modal');
+      }, 100); // DOM'un render olmasını bekle
+    }
+  }, [form, bootLoading]);
+
   const numberFields = new Set([
     "weightGrams",
     "shelfLifeMonths",
@@ -123,9 +137,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       setForm((prev) =>
         prev
           ? {
-              ...prev,
-              [name]: value === "" ? undefined : num(value),
-            }
+            ...prev,
+            [name]: value === "" ? undefined : num(value),
+          }
           : prev
       );
       return;
@@ -136,49 +150,150 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
   const onDate =
     (field: "manufacturingDate" | "expiryDate") =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const v = e.target.value;
-      setForm((prev) => (prev ? { ...prev, [field]: v } : prev));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = e.target.value;
+        setForm((prev) => (prev ? { ...prev, [field]: v } : prev));
+      };
+
+      
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form) return;
+    const formElement = e.target as HTMLFormElement;
+    if (!validateFormInTurkish(formElement)) {
+      // Validation başarısızsa işlemi durdur
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const payload: ProductUpdateRequest = {
-        ...form,
-        categoryId: Number(form.categoryId) || 0,
-        weightGrams: num(form.weightGrams),
-        shelfLifeMonths: num(form.shelfLifeMonths),
-        stockQuantity: num(form.stockQuantity),
-        minimumOrderQuantity: num(form.minimumOrderQuantity),
-        maximumOrderQuantity: num(form.maximumOrderQuantity),
-      };
+    const payload: ProductUpdateRequest = {
+      ...form,
+      categoryId: Number(form.categoryId) || 0,
+      weightGrams: num(form.weightGrams),
+      shelfLifeMonths: num(form.shelfLifeMonths),
+      stockQuantity: num(form.stockQuantity),
+      minimumOrderQuantity: num(form.minimumOrderQuantity),
+      maximumOrderQuantity: num(form.maximumOrderQuantity),
+    };
 
-      const updated = await updateProduct(productId, payload);
-      const chosenId = Number(payload.categoryId) || 0;
-      const chosenName =
-        categories.find((c) => c.id === chosenId)?.name ??
-        categories.find((c) => c.id === chosenId)?.label ??
-        updated.categoryName ??
-        null;
+    const updated = await updateProduct(productId, payload);
+    const chosenId = Number(payload.categoryId) || 0;
+    const chosenName =
+      categories.find((c) => c.id === chosenId)?.name ??
+      categories.find((c) => c.id === chosenId)?.label ??
+      updated.categoryName ??
+      null;
 
-      const fixed: Product = {
-        ...updated,
-        categoryId: chosenId,
-        categoryName: chosenName,
-      };
+    const fixed: Product = {
+      ...updated,
+      categoryId: chosenId,
+      categoryName: chosenName,
+    };
 
-      onSaved(fixed);
-    } catch (err) {
-      console.error(err);
-      setError("Ürün güncellenirken bir hata oluştu.");
-    } finally {
-      setLoading(false);
+    // Başarı durumunda SweetAlert
+    await MySwal.fire({
+      icon: "success",
+      title: "Başarılı!",
+      text: "Ürün başarıyla güncellendi.",
+      confirmButtonText: "Tamam",
+      timer: 2000,
+      timerProgressBar: true
+    });
+
+    onSaved(fixed);
+  } catch (err: any) {
+    console.error("Ürün güncelleme hatası:", err);
+    
+    // Backend hata mesajını detaylı şekilde çıkar
+    let errorTitle = "Güncelleme Hatası";
+    let errorMessage = "Ürün güncellenirken bilinmeyen bir hata oluştu.";
+    let isHtml = false;
+    
+    if (err?.response) {
+      const status = err.response.status;
+      const data = err.response.data;
+      
+      if (status === 400) {
+        errorTitle = "Doğrulama Hatası";
+        
+        if (typeof data === 'string') {
+          errorMessage = data;
+        } else if (data?.message) {
+          errorMessage = data.message;
+        } else if (data?.title) {
+          errorMessage = data.title;
+        } else if (data?.errors) {
+          // Birden fazla validation hatası
+          if (Array.isArray(data.errors)) {
+            errorMessage = `<ul class="text-start mb-0">
+              ${data.errors.map(error => `<li>${error}</li>`).join('')}
+            </ul>`;
+            isHtml = true;
+          } else if (typeof data.errors === 'object') {
+            // Field-based validation errors
+            const fieldErrors = Object.entries(data.errors)
+              .map(([field, msgs]) => {
+                const fieldName = getFieldDisplayName(field);
+                const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+                return `<li><strong>${fieldName}:</strong> ${message}</li>`;
+              })
+              .join('');
+            errorMessage = `<ul class="text-start mb-0">${fieldErrors}</ul>`;
+            isHtml = true;
+          }
+        } else {
+          errorMessage = `Geçersiz veri gönderildi: ${JSON.stringify(data)}`;
+        }
+      } else if (status === 409) {
+        errorTitle = "Çakışma Hatası";
+        errorMessage = data?.message || data?.title || "Bu ürün kodu zaten kullanılıyor.";
+      } else if (status === 422) {
+        errorTitle = "Veri Hatası";
+        errorMessage = data?.message || data?.title || "Gönderilen veriler işlenemedi.";
+      } else if (status === 500) {
+        errorTitle = "Sunucu Hatası";
+        errorMessage = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+      } else if (status === 403) {
+        errorTitle = "Yetki Hatası";
+        errorMessage = "Bu işlemi gerçekleştirmek için yetkiniz bulunmuyor.";
+      } else if (status === 404) {
+        errorTitle = "Bulunamadı";
+        errorMessage = "Güncellenmeye çalışılan ürün bulunamadı.";
+      } else {
+        errorTitle = `HTTP ${status} Hatası`;
+        errorMessage = data?.message || data?.title || 'Bilinmeyen sunucu hatası';
+      }
+    } else if (err?.code === 'NETWORK_ERROR' || !err?.response) {
+      errorTitle = "Bağlantı Hatası";
+      errorMessage = "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
+    } else if (err?.message) {
+      errorMessage = err.message;
     }
-  };
+    
+    // SweetAlert ile hata göster
+    await MySwal.fire({
+      icon: "error",
+      title: errorTitle,
+      html: isHtml ? errorMessage : undefined,
+      text: isHtml ? undefined : errorMessage,
+      confirmButtonText: "Tamam",
+      width: "500px",
+      customClass: {
+        htmlContainer: 'text-start'
+      }
+    });
+
+    // Modal'ı kapatma - opsiyonel
+    // onClose();
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   if (bootLoading || !form) {
     return (
@@ -490,10 +605,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                       <input
                         name="weightGrams"
                         type="number"
+                        step="any" // veya step="0.1" 
                         className="sherah-wc__form-input"
                         value={form.weightGrams ?? ""}
                         onChange={onChange}
                         min={0}
+                        placeholder="14.5"
                       />
                     </div>
                   </div>

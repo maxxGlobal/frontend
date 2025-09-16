@@ -1,5 +1,7 @@
-// src/routes/ProtectedRoute.tsx
+// src/routes/ProtectedRoute.tsx - Enhanced version
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { isTokenExpired, performLogout } from "../lib/api";
 
 /** İzin kontrolü için props */
 type Props = {
@@ -37,7 +39,40 @@ export default function ProtectedRoute({
   fallback = "/403",
 }: Props) {
   const location = useLocation();
+  const [isValidating, setIsValidating] = useState(true);
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    // Token validation
+    const validateToken = () => {
+      if (!token) {
+        setIsValidating(false);
+        return;
+      }
+
+      // Token geçerlilik kontrolü
+      if (isTokenExpired(token)) {
+        console.warn("Token expired during route validation");
+        performLogout();
+        return;
+      }
+
+      setIsValidating(false);
+    };
+
+    validateToken();
+  }, [token]);
+
+  // Token validation devam ederken loading göster
+  if (isValidating) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "200px" }}>
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   // 1) Giriş kontrolü
   if (!token) {
@@ -47,6 +82,14 @@ export default function ProtectedRoute({
   // 2) İzin kontrolü (props verilmişse)
   if (required || (anyOf && anyOf.length) || (allOf && allOf.length)) {
     const user = readUserSafe();
+    
+    // Kullanıcı verisi yoksa login'e yönlendir
+    if (!user) {
+      console.warn("User data not found in localStorage");
+      performLogout();
+      return <Navigate to="/login" replace state={{ from: location }} />;
+    }
+
     const perms = collectPermissions(user);
 
     // a) required

@@ -56,32 +56,10 @@ export default function ProfilePage() {
     <div className="sherah-personals">
       <div className="row">
         {/* SOL MENÜ */}
-        <div className="col-lg-3 col-md-2 col-12 sherah-personals__list mg-top-30">
-          <div className="sherah-psidebar sherah-default-bg">
-            <div
-              className="list-group sherah-psidebar__list"
-              id="list-tab"
-              role="tablist"
-            >
-              <a
-                className="list-group-item active"
-                data-bs-toggle="list"
-                href="#id1"
-                role="tab"
-              >
-                <span className="sherah-psidebar__icon">
-                  {/* (ikonları aynen bıraktım) */}
-                </span>
-                <span className="sherah-psidebar__title">
-                  Kullanıcı Bilgileri
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
+        
 
         {/* SAĞ İÇERİK */}
-        <div className="col-lg-9 col-md-10 col-12  sherah-personals__content mg-top-30">
+        <div className="col-lg-12 col-md-10 col-12  sherah-personals__content mg-top-30">
           <div className="sherah-ptabs">
             <div className="sherah-ptabs__inner">
               <div className="tab-content" id="nav-tabContent">
@@ -111,10 +89,7 @@ export default function ProfilePage() {
                                 <div className="sherah-profile-cover__content">
                                   <h3 className="sherah-profile-cover__title">
                                     {fullName || "-"}
-                                  </h3>
-                                  <span className="sherah-profile-cover__text sherah-color1">
-                                    {me.dealer?.name || rolesText || me.email}
-                                  </span>
+                                  </h3> 
                                 </div>
                               </div>
                               {/* Personal Information */}
@@ -146,15 +121,7 @@ export default function ProfilePage() {
                                     <p className="sherah-profile-info__text">
                                       {me.phoneNumber || "-"}
                                     </p>
-                                  </li>
-                                  <li className="sherah-dflex">
-                                    <h4 className="sherah-profile-info__title">
-                                      Bayi :
-                                    </h4>
-                                    <p className="sherah-profile-info__text">
-                                      {me.dealer?.name || "-"}
-                                    </p>
-                                  </li>
+                                  </li> 
                                   <li className="sherah-dflex">
                                     <h4 className="sherah-profile-info__title">
                                       Rol :

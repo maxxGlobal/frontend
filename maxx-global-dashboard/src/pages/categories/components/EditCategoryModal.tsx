@@ -7,6 +7,11 @@ import { updateCategory } from "../../../services/categories/update";
 import { getCategoryById } from "../../../services/categories/getById";
 import { getAllCategoryOptions } from "../../../services/categories/options";
 import type { CategoryOption } from "../../../services/categories/_normalize";
+// ✅ SweetAlert import'ları
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 type Props = {
   category: CategoryRow;
@@ -16,6 +21,17 @@ type Props = {
 
 // Girintiyi temizlemek için yardımcı (— ve boşlukları kırp)
 const stripIndent = (s: string) => s.replace(/^[—\-\s]+/g, "").trim();
+
+// ✅ Türkçe field name mapping
+function getFieldDisplayName(fieldName: string): string {
+  const fieldMap: Record<string, string> = {
+    name: "Kategori Adı",
+    parentId: "Üst Kategori",
+    status: "Durum",
+  };
+  
+  return fieldMap[fieldName] || fieldName;
+}
 
 export default function EditCategoryModal({
   category,
@@ -87,6 +103,18 @@ export default function EditCategoryModal({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Frontend validation
+    if (!form.name?.trim()) {
+      await MySwal.fire({
+        icon: "warning",
+        title: "Eksik Bilgi",
+        text: "Kategori adı zorunludur.",
+        confirmButtonText: "Tamam"
+      });
+      return;
+    }
+    
     try {
       setSaving(true);
       setError(null);
@@ -101,14 +129,99 @@ export default function EditCategoryModal({
         status: form.status,
       });
 
+      // ✅ Başarı SweetAlert'i
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı!",
+        text: "Kategori başarıyla güncellendi.",
+        confirmButtonText: "Tamam",
+        timer: 2000,
+        timerProgressBar: true
+      });
+
       onSaved();
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.title ||
-        e?.message ||
-        "Güncelleme başarısız.";
-      setError(msg);
+    } catch (err: any) {
+      console.error("Kategori güncelleme hatası:", err);
+      
+      // ✅ Backend hata mesajını detaylı işle
+      let errorTitle = "Kategori Güncelleme Hatası";
+      let errorMessage = "Kategori güncellenirken bilinmeyen bir hata oluştu.";
+      let isHtml = false;
+      
+      if (err?.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+        
+        if (status === 400) {
+          errorTitle = "Doğrulama Hatası";
+          
+          if (typeof data === 'string') {
+            errorMessage = data;
+          } else if (data?.message) {
+            errorMessage = data.message;
+          } else if (data?.title) {
+            errorMessage = data.title;
+          } else if (data?.errors) {
+            // Birden fazla validation hatası
+            if (Array.isArray(data.errors)) {
+              errorMessage = `<ul class="text-start mb-0">
+                ${data.errors.map(error => `<li>${error}</li>`).join('')}
+              </ul>`;
+              isHtml = true;
+            } else if (typeof data.errors === 'object') {
+              // Field-based validation errors
+              const fieldErrors = Object.entries(data.errors)
+                .map(([field, msgs]) => {
+                  const fieldName = getFieldDisplayName(field);
+                  const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+                  return `<li><strong>${fieldName}:</strong> ${message}</li>`;
+                })
+                .join('');
+              errorMessage = `<ul class="text-start mb-0">${fieldErrors}</ul>`;
+              isHtml = true;
+            }
+          } else {
+            errorMessage = `Geçersiz veri gönderildi: ${JSON.stringify(data)}`;
+          }
+        } else if (status === 409) {
+          errorTitle = "Çakışma Hatası";
+          errorMessage = data?.message || data?.title || "Bu kategori adı zaten kullanılıyor.";
+        } else if (status === 422) {
+          errorTitle = "Veri Hatası";
+          errorMessage = data?.message || data?.title || "Gönderilen veriler işlenemedi.";
+        } else if (status === 500) {
+          errorTitle = "Sunucu Hatası";
+          errorMessage = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+        } else if (status === 403) {
+          errorTitle = "Yetki Hatası";
+          errorMessage = "Bu işlemi gerçekleştirmek için yetkiniz bulunmuyor.";
+        } else if (status === 404) {
+          errorTitle = "Bulunamadı";
+          errorMessage = "Güncellenmeye çalışılan kategori bulunamadı.";
+        } else {
+          errorTitle = `HTTP ${status} Hatası`;
+          errorMessage = data?.message || data?.title || 'Bilinmeyen sunucu hatası';
+        }
+      } else if (err?.code === 'NETWORK_ERROR' || !err?.response) {
+        errorTitle = "Bağlantı Hatası";
+        errorMessage = "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      // ✅ SweetAlert ile hata göster
+      await MySwal.fire({
+        icon: "error",
+        title: errorTitle,
+        html: isHtml ? errorMessage : undefined,
+        text: isHtml ? undefined : errorMessage,
+        confirmButtonText: "Tamam",
+        width: "500px",
+        customClass: {
+          htmlContainer: 'text-start'
+        }
+      });
+      
     } finally {
       setSaving(false);
     }
@@ -126,22 +239,26 @@ export default function EditCategoryModal({
           className="modal-dialog modal-lg modal-dialog-centered"
           tabIndex={-1}
         >
-          <form className="modal-content" onSubmit={submit}>
+          <form className="modal-content" onSubmit={submit} noValidate>
             <div className="modal-header">
               <h5 className="modal-title">Kategori Düzenle</h5>
               <button type="button" className="btn-close" onClick={onClose} />
             </div>
 
             <div className="modal-body">
+              {/* ✅ Error div'ini backup olarak tutabilirsiniz */}
               {error && <div className="alert alert-danger">{error}</div>}
 
               <div className="mb-3">
                 <label className="form-label">Ad *</label>
                 <input
+                  name="name"
                   className="form-control"
                   value={form.name || ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
+                  title="Kategori adı zorunlu bir alandır"
+                  placeholder="Kategori adını girin"
                 />
               </div>
 
@@ -151,6 +268,7 @@ export default function EditCategoryModal({
                   <div className="form-text">Seçenekler yükleniyor…</div>
                 ) : (
                   <select
+                    name="parentId"
                     className="form-select"
                     // null -> "" : "(Yok)" seçili görünür
                     value={
@@ -165,6 +283,7 @@ export default function EditCategoryModal({
                           e.target.value === "" ? null : Number(e.target.value),
                       })
                     }
+                    title="Üst kategori seçimi"
                   >
                     <option value="">(Yok)</option>
                     {options.map((o) => (

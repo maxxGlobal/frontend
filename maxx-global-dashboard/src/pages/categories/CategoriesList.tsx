@@ -15,6 +15,8 @@ import CategoriesTable from "./components/Table";
 import DeleteCategoryModal from "./components/DeleteCategoryModal";
 import EditCategoryModal from "./components/EditCategoryModal";
 import LoaderStyleOne from "../homepage/Helpers/Loaders/LoaderStyleOne";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 type Page<T> = PageResponse<T>;
 const DEFAULT_PAGE = 0;
@@ -22,9 +24,9 @@ const DEFAULT_SIZE = 10;
 
 export default function CategoriesList() {
   const canRead = hasPermission({
-    anyOf: ["CATEGORY_READ", "CATEGORY_MANAGE"],
+    anyOf: ["CATEGORY_READ", "CATEGORY_MANAGE", "SYSTEM_ADMIN"],
   });
-  const canManage = hasPermission({ required: "CATEGORY_MANAGE" });
+  const canManage = hasPermission({ anyOf: ["CATEGORY_MANAGE", "SYSTEM_ADMIN"]});
 
   if (!canRead) {
     return (
@@ -52,6 +54,7 @@ export default function CategoriesList() {
   const [editTarget, setEditTarget] = useState<CategoryRow | null>(null);
 
   const refresh = () => setRefreshKey((k) => k + 1);
+  const MySwal = withReactContent(Swal);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -153,6 +156,16 @@ export default function CategoriesList() {
     if (!deleteTarget) return;
     try {
       await deleteCategory(deleteTarget.id);
+
+        await MySwal.fire({
+      icon: "success",
+      title: "Başarılı!",
+      text: "Kategori başarıyla silindi.",
+      confirmButtonText: "Tamam",
+      timer: 2000,
+      timerProgressBar: true
+    });
+
       const isLastRowOnPage = (data?.content?.length ?? 0) === 1 && page > 0;
       if (isLastRowOnPage) setPage((p) => Math.max(0, p - 1));
       else refresh();
@@ -171,14 +184,37 @@ export default function CategoriesList() {
   async function handleRestore(row: CategoryRow) {
     try {
       await restoreCategory(row.id);
+        // ✅ Başarı mesajı
+    await MySwal.fire({
+      icon: "success",
+      title: "Başarılı!",
+      text: "Kategori başarıyla geri yüklendi.",
+      confirmButtonText: "Tamam",
+      timer: 2000,
+      timerProgressBar: true
+    });
+    
       refresh();
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.title ||
-        e?.message ||
-        "Kategori geri yüklenemedi.";
-      alert(msg);
+    console.error("Kategori geri yükleme hatası:", err);
+    
+    // ✅ Hata mesajını SweetAlert ile göster
+    let errorMessage = "Kategori geri yüklenemedi.";
+    
+    if (err?.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err?.response?.data?.title) {
+      errorMessage = err.response.data.title;
+    } else if (err?.message) {
+      errorMessage = err.message;
+    }
+    
+    await MySwal.fire({
+      icon: "error",
+      title: "Geri Yükleme Hatası",
+      text: errorMessage,
+      confirmButtonText: "Tamam"
+    });
     }
   }
 

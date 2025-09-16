@@ -2,20 +2,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { hasPermission } from "../../utils/permissions";
 import { createCategory } from "../../services/categories/create";
-
 import { listAllCategories } from "../../services/categories/listAll";
 import {
   buildCategoryTree,
   flattenNodesToOptions,
   type CatNode,
 } from "../../services/categories/buildTree";
-
 import type { CategoryCreateRequest } from "../../types/category";
+// ✅ SweetAlert import'ları
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+
+const MySwal = withReactContent(Swal);
 
 type SelectOption = { value: number | null; label: string };
 
+// ✅ Türkçe field name mapping
+function getFieldDisplayName(fieldName: string): string {
+  const fieldMap: Record<string, string> = {
+    name: "Kategori Adı",
+    parentId: "Üst Kategori",
+  };
+  
+  return fieldMap[fieldName] || fieldName;
+}
+
 export default function CategoryCreate() {
-  if (!hasPermission({ required: "CATEGORY_CREATE" })) {
+  if (!hasPermission({ anyOf: ["CATEGORY_CREATE", "CATEGORY_MANAGE", "SYSTEM_ADMIN"], })) {
     return (
       <div className="alert alert-danger m-3">
         Bu sayfaya erişim yetkiniz yok (CATEGORY_CREATE gerekli).
@@ -35,8 +48,8 @@ export default function CategoryCreate() {
   const [treeErr, setTreeErr] = useState<string | null>(null);
 
   async function loadAll(signal?: AbortSignal) {
-    const flat = await listAllCategories({ signal }); // <— TÜM KATEGORİLER
-    const t = buildCategoryTree(flat); // <— AĞAÇ
+    const flat = await listAllCategories({ signal });
+    const t = buildCategoryTree(flat);
     setTree(t);
   }
 
@@ -69,28 +82,120 @@ export default function CategoryCreate() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Frontend validation
     if (!form.name.trim()) {
-      setError("Kategori adı zorunludur.");
+      await MySwal.fire({
+        icon: "warning",
+        title: "Eksik Bilgi",
+        text: "Kategori adı zorunludur.",
+        confirmButtonText: "Tamam"
+      });
       return;
     }
+    
     try {
       setSaving(true);
       setError(null);
+      
       await createCategory({
         name: form.name.trim(),
         parentId: form.parentId ?? undefined,
       });
 
+      // ✅ Başarı SweetAlert'i
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı!",
+        text: "Kategori başarıyla oluşturuldu.",
+        confirmButtonText: "Tamam",
+        timer: 2000,
+        timerProgressBar: true
+      });
+
+      // Form temizleme ve liste güncelleme
       await loadAll();
       setForm({ name: "", parentId: null });
-      alert("Kategori oluşturuldu.");
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.title ||
-        e?.message ||
-        "Kategori oluşturulamadı.";
-      setError(msg);
+      
+    } catch (err: any) {
+      console.error("Kategori oluşturma hatası:", err);
+      
+      // ✅ Backend hata mesajını detaylı işle
+      let errorTitle = "Kategori Oluşturma Hatası";
+      let errorMessage = "Kategori oluşturulurken bilinmeyen bir hata oluştu.";
+      let isHtml = false;
+      
+      if (err?.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+        
+        if (status === 400) {
+          errorTitle = "Doğrulama Hatası";
+          
+          if (typeof data === 'string') {
+            errorMessage = data;
+          } else if (data?.message) {
+            errorMessage = data.message;
+          } else if (data?.title) {
+            errorMessage = data.title;
+          } else if (data?.errors) {
+            // Birden fazla validation hatası
+            if (Array.isArray(data.errors)) {
+              errorMessage = `<ul class="text-start mb-0">
+                ${data.errors.map(error => `<li>${error}</li>`).join('')}
+              </ul>`;
+              isHtml = true;
+            } else if (typeof data.errors === 'object') {
+              // Field-based validation errors
+              const fieldErrors = Object.entries(data.errors)
+                .map(([field, msgs]) => {
+                  const fieldName = getFieldDisplayName(field);
+                  const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+                  return `<li><strong>${fieldName}:</strong> ${message}</li>`;
+                })
+                .join('');
+              errorMessage = `<ul class="text-start mb-0">${fieldErrors}</ul>`;
+              isHtml = true;
+            }
+          } else {
+            errorMessage = `Geçersiz veri gönderildi: ${JSON.stringify(data)}`;
+          }
+        } else if (status === 409) {
+          errorTitle = "Çakışma Hatası";
+          errorMessage = data?.message || data?.title || "Bu kategori adı zaten kullanılıyor.";
+        } else if (status === 422) {
+          errorTitle = "Veri Hatası";
+          errorMessage = data?.message || data?.title || "Gönderilen veriler işlenemedi.";
+        } else if (status === 500) {
+          errorTitle = "Sunucu Hatası";
+          errorMessage = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+        } else if (status === 403) {
+          errorTitle = "Yetki Hatası";
+          errorMessage = "Bu işlemi gerçekleştirmek için yetkiniz bulunmuyor.";
+        } else {
+          errorTitle = `HTTP ${status} Hatası`;
+          errorMessage = data?.message || data?.title || 'Bilinmeyen sunucu hatası';
+        }
+      } else if (err?.code === 'NETWORK_ERROR' || !err?.response) {
+        errorTitle = "Bağlantı Hatası";
+        errorMessage = "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      // ✅ SweetAlert ile hata göster
+      await MySwal.fire({
+        icon: "error",
+        title: errorTitle,
+        html: isHtml ? errorMessage : undefined,
+        text: isHtml ? undefined : errorMessage,
+        confirmButtonText: "Tamam",
+        width: "500px",
+        customClass: {
+          htmlContainer: 'text-start'
+        }
+      });
+      
     } finally {
       setSaving(false);
     }
@@ -104,21 +209,25 @@ export default function CategoryCreate() {
             Yeni Kategori
           </h3>
 
+          {/* ✅ Error div'ini kaldırabilir veya backup olarak tutabilirsiniz */}
           {error && <div className="alert alert-danger">{error}</div>}
 
-          <form onSubmit={submit} className="sherah-wc__form-main p-0">
+          <form onSubmit={submit} className="sherah-wc__form-main p-0" noValidate>
             <div className="row">
               <div className="col-12">
                 <div className="form-group">
                   <label className="sherah-wc__form-label">Ad *</label>
                   <div className="form-group__input">
                     <input
+                      name="name"
                       className="sherah-wc__form-input"
                       value={form.name}
                       onChange={(e) =>
                         setForm((f) => ({ ...f, name: e.target.value }))
                       }
                       required
+                      title="Kategori adı zorunlu bir alandır"
+                      placeholder="Kategori adını girin"
                     />
                   </div>
                 </div>
@@ -132,6 +241,7 @@ export default function CategoryCreate() {
                     <div className="text-danger small">{treeErr}</div>
                   ) : (
                     <select
+                      name="parentId"
                       className="sherah-wc__form-input ps-2"
                       value={form.parentId ?? ""}
                       onChange={(e) =>
@@ -143,6 +253,7 @@ export default function CategoryCreate() {
                               : Number(e.target.value),
                         }))
                       }
+                      title="Üst kategori seçimi"
                     >
                       {options.map((o) => (
                         <option

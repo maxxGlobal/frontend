@@ -7,7 +7,7 @@ import { hasPermission } from "../../utils/permissions";
 import Swal from "sweetalert2";
 
 export default function DealerCreate() {
-  const canManage = hasPermission({ required: "DEALER_MANAGE" });
+  const canManage = hasPermission({  anyOf: ["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"]});
   const navigate = useNavigate();
   if (!canManage) {
     return (
