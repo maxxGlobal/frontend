@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Arrow from "../../../Helpers/icons/Arrow";
 import { listAllCategories } from "../../../../../services/categories/listAll";
-import { medicalIcons } from "../../../../../assets/icons/MedicalIcons";
+import { getMedicalIcon } from "../../../../../assets/icons/MedicalIcons";
 import {
   buildCategoryTree,
   type CatNode,
@@ -185,23 +185,17 @@ export default function Navbar({ className }: { className?: string }) {
 
                     {/* Dinamik Kategoriler */}
                     {roots.map((n) => {
-                      const Icon =
-                        medicalIcons[n.id % medicalIcons.length] ||
-                        medicalIcons[0];
-
                       return (
                         <li key={n.id}>
                           <button
                             type="button"
                             onClick={() => handlePick(n.id)}
-                            className="w-full flex justify-between items-center px-5 h-10 bg-white hover:bg-qh2-green transition-all duration-300 ease-in-out cursor-pointer text-qblack hover:text-white"
+                            className="w-full categories-btn flex justify-between items-center px-5 h-10 bg-white hover:bg-qh2-green transition-all duration-300 ease-in-out cursor-pointer text-qblack hover:text-white"
                             title={n.name}
                           >
                             <div className="flex items-center space-x-6">
-                              <span>
-                                <Icon className="w-4 h-4" />
-                              </span>
-                              <span className="text-xs font-400 line-clamp-1">
+                              <span>{getMedicalIcon(n.name, "w-4 h-4")}</span>
+                              <span className="text-xs font-400 text-start line-clamp-1">
                                 {n.name}
                               </span>
                             </div>
@@ -239,7 +233,7 @@ export default function Navbar({ className }: { className?: string }) {
                       </span>
                     </Link>
                   </li>
-                  <li className="relative">
+                  {/* <li className="relative">
                     <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
                       <span>Kurumsal</span>
                       <span className="ml-1.5 ">
@@ -277,7 +271,7 @@ export default function Navbar({ className }: { className?: string }) {
                         </div>
                       </div>
                     </div>
-                  </li>
+                  </li> */}
                   <li>
                     <Link to="/homepage/about">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { medicalIcons } from "../../../assets/icons/MedicalIcons";
+import { getMedicalIcon } from "../../../assets/icons/MedicalIcons";
 import { listAllCategories } from "../../../services/categories/listAll";
 import {
   buildCategoryTree,
@@ -29,39 +29,37 @@ export default function CategoriesSection() {
     navigate(`/homepage/all-product?cat=${cat.id}`);
   };
 
-  const iconMap = useMemo(() => {
-    const map: Record<number, React.ComponentType<{ className?: string }>> = {};
-    roots.forEach((cat) => {
-      const Icon =
-        medicalIcons[Math.floor(Math.random() * medicalIcons.length)];
-      map[cat.id] = Icon;
-    });
-    return map;
-  }, [roots]);
-
   return (
     <div className="categories-section-wrapper w-full">
-      <div className="container-x mx-auto">
+      <div className="container-x mx-auto p-0">
         <div className="w-full categories-items">
-          <div className="grid xl:grid-cols-8 sm:grid-cols-4 grid-cols-2 gap-10 mb-[46px]">
+          <div className="grid xl:grid-cols-6 sm:grid-cols-4 grid-cols-2 gap-10 mb-[46px]">
             {roots.map((cat) => {
-              const Icon = iconMap[cat.id];
               return (
                 <div
                   key={cat.id}
                   className="item w-full group cursor-pointer"
                   onClick={() => handlePick(cat)}
                 >
-                  <div className="w-full flex justify-center">
+                  <div className="w-full flex justify-start">
                     <div className="w-[110px] h-[110px] rounded-full bg-[#EEF1F1] group-hover:bg-qh2-green mb-2.5 flex justify-center items-center">
                       <span className="text-qblack group-hover:invert">
-                        {Icon && <Icon className="w-10 h-10" />}
+                        {getMedicalIcon(cat.name, "w-10 h-10")}
                       </span>
                     </div>
                   </div>
-                  <div className="w-full flex justify-center">
-                    <p className="text-base text-qblack whitespace-nowrap">
-                      {cat.name}
+                  <div className="w-full flex justify-start">
+                    <p className="text-center text-qblack text-base leading-snug max-w-[140px]">
+                      {cat.name.split("-").map((part, idx) => (
+                        <span
+                          key={idx}
+                          className={
+                            idx === 0 ? "text-qh2-green font-600" : "block"
+                          }
+                        >
+                          {part.trim()}
+                        </span>
+                      ))}
                     </p>
                   </div>
                 </div>
