@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Compair from "../../Helpers/icons/Compair";
 import ThinLove from "../../Helpers/icons/ThinLove";
 import Close from "../../Helpers/icons/Close";
 import Search from "../../Helpers/icons/Search";
@@ -8,8 +7,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { listAllCategories } from "../../../../services/categories/listAll";
 import { medicalIcons } from "../../../../assets/icons/MedicalIcons";
 import { getFavoriteCount } from "../../../../services/favorites/count";
-import { BiChevronRight } from "react-icons/bi";
-import { BiChevronDown } from "react-icons/bi";
+import { BiChevronRight, BiChevronDown } from "react-icons/bi";
+import Bell from "../../Helpers/icons/Bell";
+import { getCart } from "../../../../services/cart/storage";
+import { listNotifications } from "../../../../services/notifications/list";
+import NotificationCart from "../../Notifications/Cart";
 
 import {
   buildCategoryTree,
@@ -18,7 +20,7 @@ import {
 
 type DrawerProps = {
   open?: boolean;
-  action?: (value: string) => void;
+  action?: () => void;
   className?: string;
 };
 
@@ -61,13 +63,32 @@ export default function Drawer({ className, open, action }: DrawerProps) {
     queryFn: getFavoriteCount,
     refetchInterval: 60_000,
   });
+  const { data: notificationCount = 0 } = useQuery({
+    queryKey: ["notificationCount"],
+    queryFn: async () => {
+      const res = await listNotifications({});
+      return (res.content ?? []).length;
+    },
+    refetchInterval: 60_000,
+  });
+
   const [categoryToggle, setToggle] = useState(false);
   const [roots, setRoots] = useState<CatNode[]>([]);
   const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
-  const [tab, setTab] = useState("category");
-  // Kategorileri yükle (sadece kökler)
+  const [tab, setTab] = useState<"category" | "menu">("category");
+
+  // 🔎 Search state + handler (Middlebar ile aynı davranış)
+  const [search, setSearch] = useState("");
+  const handleSearch = () => {
+    const q = search.trim();
+    if (!q) return;
+    navigate(`/homepage/all-product?search=${encodeURIComponent(q)}`);
+    action?.();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   useEffect(() => {
     const controller = new AbortController();
     (async () => {
@@ -102,14 +123,16 @@ export default function Drawer({ className, open, action }: DrawerProps) {
     params.set("cat", String(id));
     params.set("cats", ids.join(","));
     navigate(`/homepage/all-product?${params.toString()}`);
+    action?.(); // seçince çekmeceyi kapatmak isterseniz
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const totalItems = useMemo(() => roots.length, [roots]);
+
   return (
     <>
       <div
-        className={`drawer-wrapper w-full  h-full relative block lg:hidden  ${
+        className={`drawer-wrapper w-full h-full relative block lg:hidden ${
           className || ""
         }`}
       >
@@ -117,8 +140,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
           <div
             onClick={action}
             className="w-full h-screen bg-black bg-opacity-40 z-40 left-0 top-0 fixed"
-          ></div>
+          />
         )}
+
         <div
           className={`w-[280px] transition-all duration-300 ease-in-out h-screen overflow-y-auto overflow-x-hidden overflow-style-none bg-white fixed top-0 z-50 ${
             open ? "left-0" : "-left-[280px]"
@@ -139,6 +163,17 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     </span>
                   )}
                 </div>
+                <div className="cart relative cursor-pointer">
+                  <Link to="/homepage/notifications">
+                    <Bell />
+                  </Link>
+                  {notificationCount > 0 && (
+                    <span className="w-[18px] h-[18px] rounded-full bg-qh2-green absolute -top-2 -right-1 flex justify-center items-center text-[9px] text-white">
+                      {notificationCount}
+                    </span>
+                  )}
+                </div>
+                <NotificationCart className="absolute -right-[45px] top-11 z-50 hidden group-hover:block" />
               </div>
               <button onClick={action} type="button">
                 <Close />
@@ -146,31 +181,43 @@ export default function Drawer({ className, open, action }: DrawerProps) {
             </div>
           </div>
           <div className="w-full mt-5 px-5">
-            <div className="search-bar w-full h-[34px]  flex ">
+            <div className="search-bar w-full h-[34px] flex">
               <div className="flex-1 bg-white h-full border border-r-0 border-[#E9E9E9]">
                 <input
                   type="text"
-                  className="w-full text-xs h-full focus:outline-none foucus:ring-0 placeholder:text-qgraytwo pl-2.5 "
-                  placeholder="Search Product..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSearch();
+                  }}
+                  className="w-full text-xs h-full focus:outline-none focus:ring-0 placeholder:text-qgraytwo pl-2.5 pr-2"
+                  placeholder="Ürün Ara..."
+                  aria-label="Ürün ara"
                 />
               </div>
-              <div className="w-[40px] h-full bg-qyellow flex justify-center items-center">
+              <button
+                type="button"
+                onClick={handleSearch}
+                className="w-[40px] h-full bg-[#2D6F6D] flex justify-center items-center"
+                aria-label="Ara"
+              >
                 <span>
                   <Search />
                 </span>
-              </div>
+              </button>
             </div>
           </div>
+
           <div className="w-full mt-5 px-5 flex items-center space-x-3">
             <span
               onClick={() => setTab("category")}
-              className={`text-base font-semibold  ${
+              className={`text-base font-semibold ${
                 tab === "category" ? "text-qblack" : "text-qgray"
               }`}
             >
               Kategoriler
             </span>
-            <span className="w-[1px] h-[14px] bg-qgray"></span>
+            <span className="w-[1px] h-[14px] bg-qgray" />
             <span
               onClick={() => setTab("menu")}
               className={`text-base font-semibold ${
@@ -180,16 +227,17 @@ export default function Drawer({ className, open, action }: DrawerProps) {
               Ana Menü
             </span>
           </div>
+
           {tab === "category" ? (
-            <div className=" mt-5 w-full hover:bg-transparent">
-              <ul className="w-full">
-                {/* Tümü seçeneği */}
+            <div className="mt-5 w-full hover:bg-transparent">
+              <ul className="w-full" ref={listRef}>
                 <li className="p-0">
                   <button
                     type="button"
                     onClick={() => {
                       setToggle(false);
                       navigate("/homepage/all-product");
+                      action?.();
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     className="w-full flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer"
@@ -214,6 +262,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     </div>
                   </button>
                 </li>
+
                 {roots.map((n) => {
                   const Icon =
                     medicalIcons[n.id % medicalIcons.length] || medicalIcons[0];
@@ -252,7 +301,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
             <div className="menu-item mt-5 w-full">
               <ul className="w-full">
                 <li className="p-0 hover:bg-transparent">
-                  <Link to="/homepage">
+                  <Link to="/homepage" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
                         <span className="text-sm font-400">AnaSayfa</span>
@@ -265,8 +314,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     </div>
                   </Link>
                 </li>
+
                 <li className="p-0">
-                  <Link to="/homepage/all-product">
+                  <Link to="/homepage/all-product" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
                         <span className="text-sm font-400">Ürünlerimiz</span>
@@ -279,9 +329,10 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     </div>
                   </Link>
                 </li>
+
                 <li className="p-0">
                   <a href="#">
-                    <div className=" flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
+                    <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
                         <span className="text-sm font-400">Kurumsal</span>
                       </div>
@@ -294,8 +345,8 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   </a>
                   <ul className="submenu-list ml-5">
                     <li className="p-0">
-                      <Link to="/privacy-policy">
-                        <div className=" flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
+                      <Link to="/privacy-policy" onClick={action}>
+                        <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                           <div className="flex items-center space-x-6">
                             <span className="text-sm font-400">Kvkk</span>
                           </div>
@@ -308,8 +359,8 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                       </Link>
                     </li>
                     <li className="p-0">
-                      <Link to="/faq">
-                        <div className=" flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
+                      <Link to="/faq" onClick={action}>
+                        <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                           <div className="flex items-center space-x-6">
                             <span className="text-sm font-400">
                               Kalite Politamız
@@ -327,7 +378,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                 </li>
 
                 <li className="p-0">
-                  <Link to="/homepage/about">
+                  <Link to="/homepage/about" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
                         <span className="text-sm font-400">Hakkımızda</span>
@@ -340,8 +391,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     </div>
                   </Link>
                 </li>
+
                 <li className="p-0">
-                  <Link to="/homepage/contact">
+                  <Link to="/homepage/contact" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
                         <span className="text-sm font-400">İletişim</span>
@@ -353,6 +405,19 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                       </div>
                     </div>
                   </Link>
+                </li>
+                <li className="p-0">
+                  <div className="become-seller-btn mt-2 px-5 w-[161px] h-[40px]">
+                    <Link to="/homepage/my-orders">
+                      <div className="bg-[#2D6F6D] flex justify-center items-center cursor-pointer h-full rounded-sm">
+                        <div className="flex space-x-2 items-center">
+                          <span className="text-sm font-600 text-white">
+                            Sipariş Geçmişi
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
                 </li>
               </ul>
             </div>

@@ -16,16 +16,19 @@ const crumbs: Crumb[] = [
 ];
 
 export default function FavoritesProductPage() {
-  const [products, setProducts] = useState<ProductRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 🔒 tri-state: null = henüz yüklenmedi
+  const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // ⏱️ opsiyonel min loader süresi
+  const MIN_LOADER_TIME = 800;
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
-    const MIN_LOADER_TIME = 5000;
     const start = Date.now();
 
-    async function loadAll() {
+    (async () => {
       try {
         const req: PageRequest & { isFavorite?: boolean } = {
           page: 0,
@@ -40,29 +43,28 @@ export default function FavoritesProductPage() {
         });
 
         const onlyFavs = (pageRes.content ?? []).filter((p) => p.isFavorite);
-        setProducts(onlyFavs);
+        setProducts(onlyFavs); // ✅ önce veri gelsin
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
           console.error(e);
           setError(e?.message || "Favori ürünler getirilemedi");
-          setProducts([]);
+          setProducts([]); // ✅ yüklendi ama boş/hatalı durumu
         }
       } finally {
-        // ✅ loader en az MIN_LOADER_TIME görünsün
+        // ✅ sonra min süreyi bekleyip ready=true yap
         const elapsed = Date.now() - start;
         const remaining = Math.max(0, MIN_LOADER_TIME - elapsed);
-        setTimeout(() => setLoading(false), remaining);
+        setTimeout(() => setReady(true), remaining);
       }
-    }
+    })();
 
-    loadAll();
     return () => controller.abort();
   }, []);
 
-  const visibleProducts = useMemo(() => products, [products]);
+  const visibleProducts = useMemo(() => products ?? [], [products]);
 
-  // 🔑 1) Veriler yüklenirken sadece loader göster
-  if (loading) {
+  // 🔑 Veri gelmeden veya min süre dolmadan loader dışına çıkma
+  if (!ready || products === null) {
     return (
       <Layout>
         <div className="flex justify-center items-center w-full h-[70vh]">
@@ -72,7 +74,6 @@ export default function FavoritesProductPage() {
     );
   }
 
-  // 🔑 2) Yükleme bittikten sonra asıl sayfa
   return (
     <Layout>
       <div className="products-page-wrapper w-full">
@@ -87,6 +88,7 @@ export default function FavoritesProductPage() {
             </div>
           )}
 
+          {/* 🟡 Boş mesaj sadece veri YÜKLENDİKTEN sonra */}
           {!error && visibleProducts.length === 0 && (
             <div className="mb-6 p-4 rounded bg-yellow-50 text-yellow-700 text-sm">
               Henüz favori ürününüz bulunmamaktadır.
