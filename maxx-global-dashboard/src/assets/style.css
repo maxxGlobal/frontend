@@ -46,7 +46,6 @@ Version:	1.0.0
 }
 .admin-menu__one {
 	padding-bottom: 30px;
-	padding-top: 25px;
 }
 .admin-menu__two {
 	border-top: 1px solid #6176FE16;
@@ -1113,6 +1112,14 @@ Version:	1.0.0
 		padding: 8px 15px;
 	}
 }
+ @media (max-width: 1278px) {
+	.sherah-smenu .logo {
+		margin: 0;
+		min-height: 80px;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+ }
 
 @media only screen and  (max-width: 767px) {
 .sherah-header__form-inner {
