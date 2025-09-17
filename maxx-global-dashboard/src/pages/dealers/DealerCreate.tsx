@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/rules-of-hooks */
 // src/pages/dealers/DealerCreate.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

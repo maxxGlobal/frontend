@@ -169,6 +169,7 @@ export default function DiscountCreate() {
 
     try {
       setSaving(true);
+      console.log(payload.discountType)
       const created = await createDiscount(payload);
       await Swal.fire(
         "Başarılı",

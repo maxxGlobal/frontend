@@ -1,14 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { login, persistAuth } from "../../services/auth/authService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // ← yeni
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ Login'den önce hangi sayfadan geldiğini kontrol et
+  const from = (location.state as any)?.from?.pathname || null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,12 +24,21 @@ export default function LoginForm() {
     try {
       const res = await login(email, password);
       persistAuth(res);
-      if (res.isDealer === true) {
-        navigate("/homepage"); // bayi ise
-      } else {
-        navigate("/dashboard"); // normal kullanıcı ise
+      
+      // ✅ Önce from kontrolü yap - varsa oraya git
+      if (from && from !== '/login') {
+        console.log("Redirecting to original page:", from);
+        navigate(from, { replace: true });
+        return;
       }
-    } catch (err: any) {
+      
+      // ✅ from yoksa default sayfaya git
+      if (res.isDealer === true) {
+        navigate("/homepage");
+      } else {
+        navigate("/dashboard");
+      }
+     } catch (err: any) {
       setError(err?.response?.data?.message || "Login failed");
       console.error("LOGIN ERROR:", err);
     } finally {
@@ -72,6 +87,17 @@ export default function LoginForm() {
                   <span>Lütfen e-postanızı ve şifrenizi girin</span>
                 </h3>
 
+                {/* ✅ Yönlendirme mesajı göster */}
+                {from && (
+                  <div className="alert alert-info mb-3">
+                    <small>
+                      <i className="fas fa-info-circle me-2"></i>
+                      {(location.state as any)?.message || 
+                       "İstediğiniz sayfaya erişim için giriş yapmanız gerekiyor."}
+                    </small>
+                  </div>
+                )}
+
                 <form
                   onSubmit={handleSubmit}
                   className="sherah-wc__form-main p-0"
@@ -102,7 +128,7 @@ export default function LoginForm() {
                     <label className="sherah-wc__form-label">Şifre</label>
                     <div className="form-group__input position-relative">
                       <input
-                        className="sherah-wc__form-input pw-pad" // padding sağlandı (CSS aşağıda)
+                        className="sherah-wc__form-input pw-pad"
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••"
                         value={password}

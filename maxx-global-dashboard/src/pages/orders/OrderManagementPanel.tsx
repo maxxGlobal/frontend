@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { listAdminOrders } from "../../services/orders/listAdminOrders";
 import { approveOrder } from "../../services/orders/approve";
 import { rejectOrder } from "../../services/orders/reject";
@@ -10,6 +12,7 @@ import OrderDetailModal from "./components/OrderDetailModal";
 import EditOrderModal from "./components/EditOrderModal";
 import { downloadOrderPdf } from "../../services/orders/downloadPdf";
 import Swal from "sweetalert2";
+import PopoverBadgeOrderItem from "../../components/popover/PopoverBadgeOrderItem";
 
 // Sipariş durumları sabitleri
 const ORDER_STATUSES = [
@@ -23,9 +26,8 @@ const ORDER_STATUSES = [
 ];
 
 export default function OrderManagementPanel() {
-  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(
-    null
-  );
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(null);
   const [dealers, setDealers] = useState<SimpleDealer[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -38,9 +40,7 @@ export default function OrderManagementPanel() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
-    null
-  );
+  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
 
   // Dealers'ı yükle
   useEffect(() => {
@@ -126,6 +126,11 @@ export default function OrderManagementPanel() {
     setModalOpen(false);
     setEditModalOpen(false);
     setSelectedOrder(null);
+  }
+
+  // ✅ Detay sayfasına yönlendir
+  function goToDetailPage(order: OrderResponse) {
+    navigate(`/admin/orders/${order.id}`);
   }
 
   // Actions
@@ -316,15 +321,19 @@ export default function OrderManagementPanel() {
             <tbody className="sherah-table__body h-auto overflow-hidden">
               {orders?.content.map((o) => (
                 <tr key={o.id}>
-                  <td>#{o.orderNumber}</td>
+                  <td>
+                    <button
+                      className="btn btn-link p-0 text-primary fw-semibold text-decoration-none"
+                      onClick={() => goToDetailPage(o)}
+                      title="Detay sayfasına git"
+                    >
+                      #{o.orderNumber}
+                    </button>
+                  </td>
                   <td>{o.dealerName}</td>
                   <td>{o.createdBy?.fullName}</td>
                   <td>
-                    {o.items.map((it, idx) => (
-                      <div key={it.productPriceId ?? `${it.productId}-${idx}`}>
-                        {it.productName} x{it.quantity}
-                      </div>
-                    ))}
+                    <PopoverBadgeOrderItem items={o.items} />
                   </td>
                   <td>
                     <strong>
@@ -341,10 +350,17 @@ export default function OrderManagementPanel() {
                     <div className="d-flex gap-2 align-items-center">
                       <button
                         className="sherah-table__action sherah-color2 sherah-color3__bg--opactity border-0"
-                        onClick={() => openDetail(o)}
-                        title="Detay"
+                        onClick={() => goToDetailPage(o)}
+                        title="Detay Sayfası"
                       >
-                        <i className="fa-solid fa-magnifying-glass" />
+                        <i className="fa-solid fa-eye" />
+                      </button>
+                      <button
+                        className="sherah-table__action sherah-color2 sherah-color3__bg--opactity border-0"
+                        onClick={() => openDetail(o)}
+                        title="Hızlı İşlem"
+                      >
+                        <i className="fa-solid fa-bolt" />
                       </button>
                       {canShowDetail(o.orderStatus) && (
                         <button
