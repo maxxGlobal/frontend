@@ -39,7 +39,7 @@ export default function Sidebar() {
         </NavLink>
         <div className="sherah__sicon close-icon d-xl-none">
           <svg
-            enable-background="new 0 0 32 32"
+            enableBackground="new 0 0 32 32"
             height="30px"
             version="1.1"
             viewBox="0 0 32 30"

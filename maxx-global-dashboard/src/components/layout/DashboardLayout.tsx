@@ -37,13 +37,13 @@ export default function DashboardLayout() {
 
   return (
     <div id="sherah-dark-light" className="sherah-body-area">
+      <Header />
       {/* Sidebar */}
       <div className="sherah-smenu">
         <Sidebar />
       </div>
 
       {/* Header */}
-      <Header />
 
       {/* Sayfa içeriği */}
       <section className="sherah-adashboard sherah-show">

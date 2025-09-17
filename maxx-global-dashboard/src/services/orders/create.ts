@@ -8,7 +8,6 @@ export type CreateOrderPayload = {
 };
 
 export async function createOrder(payload: CreateOrderPayload) {
-  console.log("POST /orders payload →", payload);
   try {
     const { data } = await api.post("/orders", payload, {
       headers: { "Content-Type": "application/json" },

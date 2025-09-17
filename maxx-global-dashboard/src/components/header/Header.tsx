@@ -50,7 +50,7 @@ export default function Header() {
                     fill="#fff"
                     color="#fff"
                     height="28"
-                    stroke-width="1.5"
+                    strokeLinejoin="1.5"
                     viewBox="0 0 24 24"
                     width="28"
                     xmlns="http://www.w3.org/2000/svg"
@@ -58,20 +58,20 @@ export default function Header() {
                     <path
                       d="M3 5H21"
                       stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M3 12H21"
                       stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       d="M3 19H21"
                       stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>
@@ -161,7 +161,7 @@ export default function Header() {
                           data-name="Path 1271"
                           d="M-15383,7197.438l20.555-20.992,20.555,20.992Z"
                           transform="translate(15384.189 -7175.73)"
-                          stroke-width="1"
+                          strokeWidth="1"
                         ></path>
                       </svg>
                       <h3 className="sherah-dropdown-card__title sherah-border-btm">

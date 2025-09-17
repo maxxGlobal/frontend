@@ -259,7 +259,8 @@ export default function OrderManagementPanel() {
           <div className="col-md-2">
             <div className="d-flex gap-2">
               <button
-                className="btn btn-secondary btn-sm"
+                className="sherah-btn sherah-btn__primary"
+                style={{ height: 50 }}
                 onClick={clearFilters}
                 title="Filtreleri Temizle"
               >
@@ -382,10 +383,6 @@ export default function OrderManagementPanel() {
           {orders && orders.totalElements > 0 && (
             <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
               <div className="d-flex justify-content-between align-items-center">
-                <small className="text-muted">
-                  Toplam {orders.totalElements} siparişten{" "}
-                  {orders.content.length} tanesi gösteriliyor
-                </small>
                 <ul className="pagination">
                   <li
                     className={`paginate_button page-item previous ${
