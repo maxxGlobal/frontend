@@ -131,7 +131,7 @@ export default function Middlebar({ className }: { className?: string }) {
               onMouseEnter={loadNotifications}
             >
               <div className="cart relative cursor-pointer">
-                <Link to="/homepage/notification">
+                <Link to="/homepage/notifications">
                   <Bell />
                 </Link>
                 {notificationCount > 0 && (

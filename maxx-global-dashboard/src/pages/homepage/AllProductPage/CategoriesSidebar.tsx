@@ -41,20 +41,19 @@ function NodeItem({
         onClick={() => {
           onPick(node);
           if (hasChildren) {
-            // başka root’a tıklanınca önceki açık olan kapansın
+            // Parent kategoriye tıklayınca aç/kapat
             setOpenNodeId(isOpen ? null : node.id);
           } else {
-            // alt kategori tıklandığında da tüm üst menüleri kapat
-            setOpenNodeId(null);
+            // Alt kategoriye tıklandığında parent açık kalsın (openNodeId değişmesin)
           }
         }}
         className={`w-full flex justify-between items-center px-3 h-9 text-left rounded transition-colors
           ${
             isActive
-              ? "bg-blue-100 font-semibold text-blue-700"
+              ? "bg-qh2-green font-semibold text-white"
               : "hover:bg-gray-100"
           }
-          ${isOpen && !isActive ? "bg-gray-50" : ""}`}
+          ${isOpen && !isActive ? "bg-gray-200" : ""}`}
       >
         <span className="truncate text-sm">{node.name}</span>
         {hasChildren && (
@@ -160,7 +159,6 @@ export default function CategoriesSidebar() {
 
   return (
     <div className="bg-white rounded-md mb-4 shadow-sm">
-      {/* Mobil toggle */}
       <button
         type="button"
         className="w-full lg:hidden flex justify-between items-center px-3 py-3 text-sm font-semibold border-2 border-[#2D6F6D] rounded"
