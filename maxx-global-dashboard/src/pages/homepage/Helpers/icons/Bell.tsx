@@ -19,7 +19,7 @@ export default function Bell({
       width={width}
       height={height}
       className={className}
-      style={style} // artık object tipinde
+      style={style}
       viewBox="0 0 512 512"
     >
       <g>

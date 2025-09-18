@@ -8945,3 +8945,6 @@ box-shadow: none !important;
   backdrop-filter: blur(6px);   /* opsiyonel: arkaya hafif blur */
   border-radius: 4px;
 }
+.swal2-textarea{
+	width: auto;
+}

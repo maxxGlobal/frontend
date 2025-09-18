@@ -11,7 +11,6 @@ import "../../../assets/homepage.css";
 
 function getDealerIdFromLocal(): number | null {
   const userStr = localStorage.getItem("user");
-  console.log(userStr);
   if (!userStr) return null;
   try {
     const user = JSON.parse(userStr);
