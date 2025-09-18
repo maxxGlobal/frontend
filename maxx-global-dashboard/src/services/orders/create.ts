@@ -30,43 +30,24 @@ export type OrderResponse = {
   totalAmount: number;
   currency: string;
   notes?: string;
-  adminNotes?: string;
-  status: string;
-  appliedDiscount?: {
-    discountId: number;
-    discountName: string;
-    discountType: string;
-    discountValue: number;
-    calculatedAmount: number;
-  };
-  hasDiscount: boolean;
-  savingsAmount: number;
 };
 
-/**
- * Yeni sipariş oluştur
- */
-export async function createOrder(
-  request: OrderRequest,
-  opts?: { signal?: AbortSignal }
-): Promise<OrderResponse> {
-  console.log("Creating order with request:", request);
-  
+export async function createOrder(payload: CreateOrderPayload) {
+  console.log("POST /orders payload →", payload);
   try {
-    const res = await api.post<ApiEnvelope<OrderResponse>>(
-      "/orders",
-      request,
-      { 
-        signal: opts?.signal,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
-    
+    const res = await api.post<ApiEnvelope<OrderResponse>>("/orders", request, {
+      signal: opts?.signal,
+      headers: { "Content-Type": "application/json" },
+    });
+
     console.log("Order created successfully:", res.data.data);
     return res.data.data;
-    
   } catch (e: any) {
-    console.error("Order creation error:", e?.response?.status, e?.response?.data || e?.message);
+    console.error(
+      "Order creation error:",
+      e?.response?.status,
+      e?.response?.data || e?.message
+    );
     throw e;
   }
 }
@@ -92,7 +73,7 @@ export async function createOrderWithValidation(
     if (!product.productPriceId || product.productPriceId <= 0) {
       throw new Error("Geçersiz ürün fiyat ID'si");
     }
-    
+
     if (!product.quantity || product.quantity <= 0) {
       throw new Error("Ürün miktarı 0'dan büyük olmalıdır");
     }

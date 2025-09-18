@@ -74,15 +74,12 @@ export default function DashboardLayout() {
 
   return (
     <div id="sherah-dark-light" className="sherah-body-area">
-      {/* ✅ Token uyarısı bileşeni */}
-      {/* <TokenWarning warnBeforeMinutes={30} /> */}
-      
       {/* Sidebar */}
       <div className="sherah-smenu">
         <Sidebar />
       </div>
 
-      {/* Header - user bilgisini props olarak gönderebilirsiniz */}
+      {/* Header */}
       <Header />
 
       {/* Sayfa içeriği */}

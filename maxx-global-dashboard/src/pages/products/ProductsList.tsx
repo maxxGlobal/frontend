@@ -120,11 +120,9 @@ export default function ProductList() {
 
       // Seviyeli listeyi oluştur
       const leveled = flattenTreeToOptions(tree);
-      console.log("Leveled categories:", leveled); // Burada artık ↳ ile göreceksin
       setCategories(leveled);
     } catch (err) {
       if (isAbortError(err)) return;
-      console.error("Kategoriler yüklenemedi:", err);
     }
   }
 

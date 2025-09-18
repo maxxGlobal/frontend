@@ -63,7 +63,7 @@ export default function Header() {
                     fill="#fff"
                     color="#fff"
                     height="28"
-                    strokeWidth="1.5"
+                    stroke-width="1.5"
                     viewBox="0 0 24 24"
                     width="28"
                     xmlns="http://www.w3.org/2000/svg"
@@ -110,9 +110,9 @@ export default function Header() {
                       </ul>
                     </div>
                   </div>
-                  
+
                   <HeaderBell />
-                  
+
                   <div
                     ref={profileRef}
                     role="button"
