@@ -246,7 +246,7 @@ export default function Navbar({ className }: { className?: string }) {
             </div>
             <div className="become-seller-btn w-[161px] h-[40px]">
               <Link to="/homepage/my-orders">
-                <div className="yellow-btn flex justify-center items-center cursor-pointer h-full rounded-sm">
+                <div className="bg-[#FFBB38] border border-[#FFBB38] flex justify-center items-center cursor-pointer transition h-full rounded-sm hover:bg-qh2-green">
                   <div className="flex space-x-2 items-center">
                     <span className="text-sm font-600 text-white">
                       Sipariş Geçmişi
