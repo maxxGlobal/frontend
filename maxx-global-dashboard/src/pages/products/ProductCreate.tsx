@@ -7,7 +7,10 @@ import { getAllCategoryOptions } from "../../services/categories/options";
 import type { CategoryOption } from "../../services/categories/_normalize";
 import { exportProductsToExcel } from "../../services/products/exportExcel";
 import { useNavigate } from "react-router-dom";
-import { setupTurkishValidation, validateFormInTurkish } from "../../utils/validation";
+import {
+  setupTurkishValidation,
+  validateFormInTurkish,
+} from "../../utils/validation";
 // ✅ SweetAlert import'larını ekleyin
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -30,7 +33,7 @@ function numOrUndef(v: any): number | undefined {
 function getFieldDisplayName(fieldName: string): string {
   const fieldMap: Record<string, string> = {
     name: "Ürün Adı",
-    code: "Ürün Kodu", 
+    code: "Ürün Kodu",
     categoryId: "Kategori",
     stockQuantity: "Stok Adedi",
     unit: "Birim",
@@ -53,9 +56,9 @@ function getFieldDisplayName(fieldName: string): string {
     barcode: "Barkod",
     minimumOrderQuantity: "Minimum Sipariş",
     maximumOrderQuantity: "Maksimum Sipariş",
-    description: "Açıklama"
+    description: "Açıklama",
   };
-  
+
   return fieldMap[fieldName] || fieldName;
 }
 
@@ -222,20 +225,18 @@ export default function ProductCreate() {
         text: "Ürün başarıyla oluşturuldu. Şimdi resim ekleme sayfasına yönlendiriliyorsunuz.",
         confirmButtonText: "Tamam",
         timer: 3000,
-        timerProgressBar: true
+        timerProgressBar: true,
       });
 
       nav(`/products/${created.id}/images`);
     } catch (err: any) {
-      console.error("Ürün oluşturma hatası:", err);
-
       // Frontend validation hatası
       if (err?.message && !err?.response) {
         await MySwal.fire({
           icon: "warning",
           title: "Eksik Bilgi",
           text: err.message,
-          confirmButtonText: "Tamam"
+          confirmButtonText: "Tamam",
         });
         return;
       }
@@ -252,7 +253,7 @@ export default function ProductCreate() {
         if (status === 400) {
           errorTitle = "Doğrulama Hatası";
 
-          if (typeof data === 'string') {
+          if (typeof data === "string") {
             errorMessage = data;
           } else if (data?.message) {
             errorMessage = data.message;
@@ -261,40 +262,47 @@ export default function ProductCreate() {
           } else if (data?.errors) {
             if (Array.isArray(data.errors)) {
               errorMessage = `<ul class="text-start mb-0">
-              ${data.errors.map(error => `<li>${error}</li>`).join('')}
+              ${data.errors.map((error) => `<li>${error}</li>`).join("")}
             </ul>`;
               isHtml = true;
-            } else if (typeof data.errors === 'object') {
+            } else if (typeof data.errors === "object") {
               const fieldErrors = Object.entries(data.errors)
                 .map(([field, msgs]) => {
                   const fieldName = getFieldDisplayName(field);
-                  const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+                  const message = Array.isArray(msgs) ? msgs.join(", ") : msgs;
                   return `<li><strong>${fieldName}:</strong> ${message}</li>`;
                 })
-                .join('');
+                .join("");
               errorMessage = `<ul class="text-start mb-0">${fieldErrors}</ul>`;
               isHtml = true;
             }
           }
         } else if (status === 409) {
           errorTitle = "Çakışma Hatası";
-          errorMessage = data?.message || data?.title || "Bu ürün kodu zaten kullanılıyor. Lütfen farklı bir kod deneyin.";
+          errorMessage =
+            data?.message ||
+            data?.title ||
+            "Bu ürün kodu zaten kullanılıyor. Lütfen farklı bir kod deneyin.";
         } else if (status === 422) {
           errorTitle = "Veri Hatası";
-          errorMessage = data?.message || data?.title || "Gönderilen veriler işlenemedi.";
+          errorMessage =
+            data?.message || data?.title || "Gönderilen veriler işlenemedi.";
         } else if (status === 500) {
           errorTitle = "Sunucu Hatası";
-          errorMessage = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+          errorMessage =
+            "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
         } else if (status === 403) {
           errorTitle = "Yetki Hatası";
           errorMessage = "Bu işlemi gerçekleştirmek için yetkiniz bulunmuyor.";
         } else {
           errorTitle = `HTTP ${status} Hatası`;
-          errorMessage = data?.message || data?.title || 'Bilinmeyen sunucu hatası';
+          errorMessage =
+            data?.message || data?.title || "Bilinmeyen sunucu hatası";
         }
-      } else if (err?.code === 'NETWORK_ERROR' || !err?.response) {
+      } else if (err?.code === "NETWORK_ERROR" || !err?.response) {
         errorTitle = "Bağlantı Hatası";
-        errorMessage = "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
+        errorMessage =
+          "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
       } else if (err?.message) {
         errorMessage = err.message;
       }
@@ -308,10 +316,9 @@ export default function ProductCreate() {
         confirmButtonText: "Tamam",
         width: "500px",
         customClass: {
-          htmlContainer: 'text-start'
-        }
+          htmlContainer: "text-start",
+        },
       });
-
     } finally {
       setSaving(false);
     }
@@ -353,8 +360,8 @@ export default function ProductCreate() {
     } catch (e: any) {
       setExcelErr(
         e?.response?.data?.message ||
-        e?.message ||
-        "Excel içe aktarma başarısız."
+          e?.message ||
+          "Excel içe aktarma başarısız."
       );
     } finally {
       setExcelBusy(false);
@@ -371,10 +378,9 @@ export default function ProductCreate() {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Excel export hatası:", err);
       alert("Ürünler Excel'e aktarılamadı!");
     }
-  }; 
+  };
 
   return (
     <div className="col-lg-12 col-md-12 col-12 register-add-form">

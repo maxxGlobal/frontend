@@ -122,7 +122,6 @@ export default function CartPage() {
             products.map((p) => ({ product: p, qty: qtyMap.get(p.id) ?? 1 }))
           );
         } catch (e) {
-          console.error("Ürünler alınırken hata:", e);
           setItems([]);
         }
       })();
@@ -136,7 +135,6 @@ export default function CartPage() {
             setDiscounts([]);
           }
         } catch (e) {
-          console.error("İndirimler alınırken hata:", e);
           setDiscounts([]);
         }
       })();
@@ -247,7 +245,6 @@ export default function CartPage() {
         });
       }
     } catch (e: any) {
-      console.error("İndirim hesaplama hatası:", e);
       setCalculationResult(null);
       setSelectedDiscountId(null);
 
@@ -291,8 +288,6 @@ export default function CartPage() {
       setPreviewData(preview);
       setShowPreviewModal(true);
     } catch (e: any) {
-      console.error("Sipariş önizleme hatası:", e);
-
       let errorMessage = "Sipariş önizlemesi oluşturulamadı.";
       if (e.response?.data?.message) {
         errorMessage = e.response.data.message;
@@ -375,7 +370,6 @@ export default function CartPage() {
       setSelectedDiscountId(null);
       setCalculationResult(null);
     } catch (e: any) {
-      console.error("Sipariş oluşturma hatası:", e);
       let errorMessage = "Sipariş oluşturulurken bir hata oluştu.";
       let errorDetail = "";
 

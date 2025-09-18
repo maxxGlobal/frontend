@@ -52,7 +52,6 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
         setInputValues(iv);
         setFavorites(fav);
       } catch (e) {
-        console.error(e);
         setError("Ürünler getirilemedi");
       } finally {
         setLoading(false);
@@ -122,7 +121,6 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["favorites"] });
     } catch (e) {
-      console.error(e);
       setFavorites((p) => ({ ...p, [id]: !p[id] }));
       Swal.fire({
         icon: "error",

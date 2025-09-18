@@ -39,7 +39,6 @@ export default function AllProductPage() {
         setMaterials(data);
       } catch (e: any) {
         if (e.code !== "ERR_CANCELED") {
-          console.error("Malzeme listesi alınamadı", e);
         }
       }
     })();
@@ -84,7 +83,6 @@ export default function AllProductPage() {
         setTotalPages(pageRes.totalPages ?? 0);
       } catch (e: any) {
         if (e.code !== "ERR_CANCELED") {
-          console.error(e);
           setError("Ürünler getirilemedi");
           setProducts([]);
         }

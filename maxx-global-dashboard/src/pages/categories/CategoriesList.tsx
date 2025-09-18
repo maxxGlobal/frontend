@@ -26,7 +26,9 @@ export default function CategoriesList() {
   const canRead = hasPermission({
     anyOf: ["CATEGORY_READ", "CATEGORY_MANAGE", "SYSTEM_ADMIN"],
   });
-  const canManage = hasPermission({ anyOf: ["CATEGORY_MANAGE", "SYSTEM_ADMIN"]});
+  const canManage = hasPermission({
+    anyOf: ["CATEGORY_MANAGE", "SYSTEM_ADMIN"],
+  });
 
   if (!canRead) {
     return (
@@ -123,7 +125,6 @@ export default function CategoriesList() {
         setData(pageData);
       } catch (e: any) {
         if (e?.name === "AbortError" || e?.name === "CanceledError") return;
-        console.error(e);
         setError("Kategoriler yüklenirken bir hata oluştu.");
       } finally {
         setLoading(false);
@@ -157,14 +158,14 @@ export default function CategoriesList() {
     try {
       await deleteCategory(deleteTarget.id);
 
-        await MySwal.fire({
-      icon: "success",
-      title: "Başarılı!",
-      text: "Kategori başarıyla silindi.",
-      confirmButtonText: "Tamam",
-      timer: 2000,
-      timerProgressBar: true
-    });
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı!",
+        text: "Kategori başarıyla silindi.",
+        confirmButtonText: "Tamam",
+        timer: 2000,
+        timerProgressBar: true,
+      });
 
       const isLastRowOnPage = (data?.content?.length ?? 0) === 1 && page > 0;
       if (isLastRowOnPage) setPage((p) => Math.max(0, p - 1));
@@ -184,37 +185,34 @@ export default function CategoriesList() {
   async function handleRestore(row: CategoryRow) {
     try {
       await restoreCategory(row.id);
-        // ✅ Başarı mesajı
-    await MySwal.fire({
-      icon: "success",
-      title: "Başarılı!",
-      text: "Kategori başarıyla geri yüklendi.",
-      confirmButtonText: "Tamam",
-      timer: 2000,
-      timerProgressBar: true
-    });
-    
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı!",
+        text: "Kategori başarıyla geri yüklendi.",
+        confirmButtonText: "Tamam",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
       refresh();
     } catch (e: any) {
-    console.error("Kategori geri yükleme hatası:", err);
-    
-    // ✅ Hata mesajını SweetAlert ile göster
-    let errorMessage = "Kategori geri yüklenemedi.";
-    
-    if (err?.response?.data?.message) {
-      errorMessage = err.response.data.message;
-    } else if (err?.response?.data?.title) {
-      errorMessage = err.response.data.title;
-    } else if (err?.message) {
-      errorMessage = err.message;
-    }
-    
-    await MySwal.fire({
-      icon: "error",
-      title: "Geri Yükleme Hatası",
-      text: errorMessage,
-      confirmButtonText: "Tamam"
-    });
+      // ✅ Hata mesajını SweetAlert ile göster
+      let errorMessage = "Kategori geri yüklenemedi.";
+
+      if (e?.response?.data?.message) {
+        errorMessage = e.response.data.message;
+      } else if (e?.response?.data?.title) {
+        errorMessage = e.response.data.title;
+      } else if (e?.message) {
+        errorMessage = e.message;
+      }
+
+      await MySwal.fire({
+        icon: "error",
+        title: "Geri Yükleme Hatası",
+        text: errorMessage,
+        confirmButtonText: "Tamam",
+      });
     }
   }
 

@@ -55,7 +55,6 @@ export default function AdminNotificationCreate() {
         setTypes(tps);
         setDealers(dls);
       } catch (e: any) {
-        console.error(e);
         MySwal.fire("Hata", e?.message || "Veriler yüklenemedi", "error");
       } finally {
         setLoading(false);

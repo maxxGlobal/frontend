@@ -55,7 +55,6 @@ export default function OrderDetailPage() {
         });
         setImages(map);
       } catch (error) {
-        console.error("Sipariş yüklenirken hata:", error);
         Swal.fire("Hata", "Sipariş bulunamadı", "error");
       } finally {
         setLoading(false);

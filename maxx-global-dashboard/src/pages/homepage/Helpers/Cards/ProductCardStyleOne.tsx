@@ -124,7 +124,6 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["favorites"] });
     } catch (e) {
-      console.error(e);
       setIsFav((prev) => !prev);
       Swal.fire({
         icon: "error",

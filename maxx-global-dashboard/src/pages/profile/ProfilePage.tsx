@@ -20,7 +20,6 @@ export default function ProfilePage() {
         const p = await getMyProfile();
         setMe(p);
       } catch (e) {
-        console.error(e);
         setError("Profil bilgileri alınamadı.");
       } finally {
         setLoading(false);
@@ -56,7 +55,6 @@ export default function ProfilePage() {
     <div className="sherah-personals">
       <div className="row">
         {/* SOL MENÜ */}
-        
 
         {/* SAĞ İÇERİK */}
         <div className="col-lg-12 col-md-10 col-12  sherah-personals__content mg-top-30">
@@ -89,7 +87,7 @@ export default function ProfilePage() {
                                 <div className="sherah-profile-cover__content">
                                   <h3 className="sherah-profile-cover__title">
                                     {fullName || "-"}
-                                  </h3> 
+                                  </h3>
                                 </div>
                               </div>
                               {/* Personal Information */}
@@ -121,7 +119,7 @@ export default function ProfilePage() {
                                     <p className="sherah-profile-info__text">
                                       {me.phoneNumber || "-"}
                                     </p>
-                                  </li> 
+                                  </li>
                                   <li className="sherah-dflex">
                                     <h4 className="sherah-profile-info__title">
                                       Rol :

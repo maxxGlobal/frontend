@@ -65,7 +65,6 @@ export default function ProductPage() {
         if (cartItem) setQuantity(cartItem.qty);
       } catch (e: any) {
         if (e?.name !== "CanceledError" && e?.name !== "AbortError") {
-          console.error("getProductById error:", e);
           setErr("Ürün detayı yüklenemedi.");
         }
       } finally {

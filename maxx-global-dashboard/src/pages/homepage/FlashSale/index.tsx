@@ -83,7 +83,6 @@ export default function FlashSale() {
         setDiscounts(activeDiscounts);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
-          console.error("Flash sale loading error:", e);
           setError("İndirimli ürünler getirilemedi. Lütfen sayfayı yenileyin.");
         }
       } finally {

@@ -21,7 +21,6 @@ export default function Banner({ className }: BannerProps) {
         const data = await listRandomProducts(2);
         setProducts(data);
       } catch (e: any) {
-        console.error(e);
         setError("Ürünler getirilemedi");
       } finally {
         setLoading(false);

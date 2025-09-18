@@ -18,9 +18,7 @@ export default function CategoriesSection() {
         const flat = await listAllCategories({ signal: controller.signal });
         const tree = buildCategoryTree(flat);
         setRoots(tree);
-      } catch (e) {
-        console.error("Kategoriler alınamadı:", e);
-      }
+      } catch (e) {}
     })();
     return () => controller.abort();
   }, []);

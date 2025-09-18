@@ -61,7 +61,6 @@ export default function UsersList() {
         refresh();
       }
     } catch (e) {
-      console.error(e);
       alert("Kullanıcı silinirken bir hata oluştu.");
     } finally {
       setDeleting(false);

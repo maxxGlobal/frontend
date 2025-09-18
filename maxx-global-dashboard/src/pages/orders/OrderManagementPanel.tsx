@@ -27,7 +27,9 @@ const ORDER_STATUSES = [
 
 export default function OrderManagementPanel() {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(null);
+  const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(
+    null
+  );
   const [dealers, setDealers] = useState<SimpleDealer[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -40,7 +42,9 @@ export default function OrderManagementPanel() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
+    null
+  );
 
   // Dealers'ı yükle
   useEffect(() => {
@@ -48,9 +52,7 @@ export default function OrderManagementPanel() {
       try {
         const dealerList = await listSimpleDealers();
         setDealers(dealerList);
-      } catch (error) {
-        console.error("Bayiler yüklenemedi:", error);
-      }
+      } catch (error) {}
     }
     loadDealers();
   }, []);
@@ -69,7 +71,6 @@ export default function OrderManagementPanel() {
       });
       setOrders(data);
     } catch (e) {
-      console.error("Siparişler yüklenemedi", e);
       Swal.fire("Hata", "Siparişler yüklenemedi", "error");
     } finally {
       setLoading(false);

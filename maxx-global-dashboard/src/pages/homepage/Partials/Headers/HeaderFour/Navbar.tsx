@@ -57,9 +57,7 @@ export default function Navbar({ className }: { className?: string }) {
         const flat = await listAllCategories({ signal: controller.signal });
         const tree = buildCategoryTree(flat);
         setRoots(tree);
-      } catch (e) {
-        console.error("Kategori listesi getirilemedi", e);
-      }
+      } catch (e) {}
     })();
     return () => controller.abort();
   }, []);
@@ -99,7 +97,6 @@ export default function Navbar({ className }: { className?: string }) {
         <div className="w-full h-full relative">
           <div className="w-full h-full flex justify-between items-center">
             <div className="category-and-nav flex xl:space-x-7 space-x-3 items-center">
-              {/* === KATEGORİ DROPDOWN === */}
               <div className="category w-[270px] h-[53px] bg-white px-5 rounded-t-md mt-[6px] relative">
                 <button
                   onClick={() => setToggle((v) => !v)}
@@ -152,7 +149,6 @@ export default function Navbar({ className }: { className?: string }) {
                     ref={listRef}
                     className="categories-list bg-white py-1 max-h-[70vh] overflow-auto"
                   >
-                    {/* Tümü seçeneği */}
                     <li>
                       <button
                         type="button"
@@ -182,8 +178,6 @@ export default function Navbar({ className }: { className?: string }) {
                         </div>
                       </button>
                     </li>
-
-                    {/* Dinamik Kategoriler */}
                     {roots.map((n) => {
                       return (
                         <li key={n.id}>
@@ -216,7 +210,6 @@ export default function Navbar({ className }: { className?: string }) {
                 </div>
               </div>
 
-              {/* === NAV MENÜLER === */}
               <div className="nav">
                 <ul className="nav-wrapper flex xl:space-x-10 space-x-5">
                   <li>
@@ -233,45 +226,7 @@ export default function Navbar({ className }: { className?: string }) {
                       </span>
                     </Link>
                   </li>
-                  {/* <li className="relative">
-                    <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
-                      <span>Kurumsal</span>
-                      <span className="ml-1.5 ">
-                        <Arrow className="fill-current" />
-                      </span>
-                    </span>
-                    <div className="sub-menu w-[220px] absolute left-0 top-[60px]">
-                      <div
-                        className="w-full bg-white flex justify-between items-center "
-                        style={{
-                          boxShadow: "0px 15px 50px 0px rgba(0, 0, 0, 0.14)",
-                        }}
-                      >
-                        <div className="categories-wrapper w-full h-full p-5">
-                          <div>
-                            <div className="category-items">
-                              <ul className="flex flex-col space-y-2">
-                                <li>
-                                  <Link to="/homepage/kvkk">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      KVKK
-                                    </span>
-                                  </Link>
-                                </li>
-                                <li>
-                                  <Link to="/homepage/quality-policy">
-                                    <span className="text-qgray text-sm font-400 border-b border-transparent hover:border-qyellow hover:text-qyellow">
-                                      Kalite Politikamız
-                                    </span>
-                                  </Link>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </li> */}
+
                   <li>
                     <Link to="/homepage/about">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">

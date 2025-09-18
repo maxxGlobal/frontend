@@ -98,7 +98,6 @@ export default function AdminSentNotificationsList() {
       setTotalElements(te);
       setTotalPages(tp);
     } catch (e: any) {
-      console.error(e);
       MySwal.fire("Hata", e?.message || "Kayıtlar yüklenemedi", "error");
     } finally {
       setLoading(false);
@@ -117,9 +116,7 @@ export default function AdminSentNotificationsList() {
             )
           )
         );
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     })();
   }, []);
 

@@ -21,7 +21,6 @@ export default function NotificationsPage() {
         setItems(content);
       } catch (err: any) {
         if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") return;
-        console.error("Bildirimler alınırken hata:", err);
         setItems([]);
       }
     })();

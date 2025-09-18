@@ -51,7 +51,6 @@ export default function RegisterUser() {
         setDealers(dealerList);
         setRoles(roleList);
       } catch (err) {
-        console.error(err);
         setListsError("Liste verileri yüklenirken hata oluştu.");
       } finally {
         setListsLoading(false);
@@ -158,7 +157,6 @@ export default function RegisterUser() {
         roleId: "",
       });
     } catch (err: any) {
-      console.error(err);
       const parsed = parseApiErrors(err);
       setGlobalError(parsed.global ?? null);
       setFieldErrors(parsed.fields);

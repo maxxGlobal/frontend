@@ -90,7 +90,6 @@ export default function AdminBroadcastPanel() {
 
         if (sortedTypes.length && !typeName) setTypeName(sortedTypes[0].name);
       } catch (e: any) {
-        console.error(e);
         MySwal.fire("Hata", e?.message || "Veriler yüklenemedi", "error");
       } finally {
         setLoading(false);
@@ -128,7 +127,6 @@ export default function AdminBroadcastPanel() {
 
         setUserOptions(opts);
       } catch (e: any) {
-        console.error(e);
         MySwal.fire("Hata", e?.message || "Kullanıcılar yüklenemedi", "error");
       }
     })();
@@ -291,7 +289,6 @@ export default function AdminBroadcastPanel() {
       setTargetDealerId(undefined);
       setTargetDealerIds([]);
     } catch (e: any) {
-      console.error(e);
       await MySwal.fire(
         "Hata",
         e?.message || "Bildirim gönderilemedi",
