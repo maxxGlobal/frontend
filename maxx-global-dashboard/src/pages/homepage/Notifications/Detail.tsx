@@ -4,11 +4,11 @@ import type { NotificationRow } from "../../../types/notifications";
 import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
+import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
 export default function NotificationsPage() {
-  // null = daha yüklenmedi (loader göster)
   const [items, setItems] = useState<NotificationRow[] | null>(null);
 
   useEffect(() => {
@@ -18,19 +18,16 @@ export default function NotificationsPage() {
       try {
         const res = await listNotifications({ signal: controller.signal });
         const content = Array.isArray(res?.content) ? res.content : [];
-        setItems(content); // yüklendi (boş da olabilir, dolu da)
+        setItems(content);
       } catch (err: any) {
-        // iptal ise sessizce çık
         if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") return;
         console.error("Bildirimler alınırken hata:", err);
-        setItems([]); // hata durumunda “boş” göster
+        setItems([]);
       }
     })();
 
     return () => controller.abort();
   }, []);
-
-  // 1) Daha yüklenmedi -> sadece loader
   if (items === null) {
     return (
       <Layout>
@@ -40,10 +37,12 @@ export default function NotificationsPage() {
       </Layout>
     );
   }
-
-  // 2) Yüklendikten sonra: boşsa mesaj, doluysa liste
   return (
     <Layout>
+      <Helmet>
+        <title>Medintera – Bildirimler</title>
+        <meta name="description" content="Bildirimler" />
+      </Helmet>
       <div className="cart-page-wrapper w-full bg-white pb-[60px]">
         <div className="w-full">
           <PageTitle

@@ -6,6 +6,7 @@ import type { ProductRow } from "../../../types/product";
 import PageTitle from "../Helpers/PageTitle";
 import type { Crumb } from "../Helpers/PageTitle";
 import { listProducts } from "../../../services/products/list";
+import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
@@ -16,11 +17,8 @@ const crumbs: Crumb[] = [
 ];
 
 export default function FavoritesProductPage() {
-  // 🔒 tri-state: null = henüz yüklenmedi
   const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // ⏱️ opsiyonel min loader süresi
   const MIN_LOADER_TIME = 800;
   const [ready, setReady] = useState(false);
 
@@ -43,15 +41,14 @@ export default function FavoritesProductPage() {
         });
 
         const onlyFavs = (pageRes.content ?? []).filter((p) => p.isFavorite);
-        setProducts(onlyFavs); // ✅ önce veri gelsin
+        setProducts(onlyFavs);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
           console.error(e);
           setError(e?.message || "Favori ürünler getirilemedi");
-          setProducts([]); // ✅ yüklendi ama boş/hatalı durumu
+          setProducts([]);
         }
       } finally {
-        // ✅ sonra min süreyi bekleyip ready=true yap
         const elapsed = Date.now() - start;
         const remaining = Math.max(0, MIN_LOADER_TIME - elapsed);
         setTimeout(() => setReady(true), remaining);
@@ -62,11 +59,13 @@ export default function FavoritesProductPage() {
   }, []);
 
   const visibleProducts = useMemo(() => products ?? [], [products]);
-
-  // 🔑 Veri gelmeden veya min süre dolmadan loader dışına çıkma
   if (!ready || products === null) {
     return (
       <Layout>
+        <Helmet>
+          <title>Medintera – Favoriler</title>
+          <meta name="description" content="Favoriler" />
+        </Helmet>
         <div className="flex justify-center items-center w-full h-[70vh]">
           <LoaderStyleOne />
         </div>
@@ -76,6 +75,10 @@ export default function FavoritesProductPage() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Medintera – Favoriler</title>
+        <meta name="description" content="Favoriler" />
+      </Helmet>
       <div className="products-page-wrapper w-full">
         <div className="title-area w-full">
           <PageTitle title="Favori Ürünler" breadcrumb={crumbs} />
@@ -87,8 +90,6 @@ export default function FavoritesProductPage() {
               {error}
             </div>
           )}
-
-          {/* 🟡 Boş mesaj sadece veri YÜKLENDİKTEN sonra */}
           {!error && visibleProducts.length === 0 && (
             <div className="mb-6 p-4 rounded bg-yellow-50 text-yellow-700 text-sm">
               Henüz favori ürününüz bulunmamaktadır.

@@ -15,21 +15,21 @@ export default function CampaignCountDown({
 
   return (
     <div>
-      <div className={`w-full lg:h-[460px] ${className || ""}`}>
+      <div className={`w-full lg:h-[560px] ${className || ""}`}>
         <div className="container-x mx-auto h-full">
-          <div className="items-center h-full">
+          <div className="items-center h-full banner-discount">
             <div
               data-aos="fade-right"
               className="campaign-countdown h-full w-full mb-5 lg:mb-0 rounded-xl"
               style={{
-                background: `url(src/assets/images/discount.png) no-repeat`,
+                background: `url(src/assets/images/discount-banner-new.png) no-repeat`,
                 backgroundSize: "cover",
               }}
             >
               <Link to="/homepage/flash-sale">
                 <div className="w-full xl:p-12 p-5">
                   {/* countdown */}
-                  <div className="countdown-wrapper w-full flex space-x-[23px] mb-10">
+                  <div className="countdown-wrapper w-full flex space-x-[23px] lg:mb-10 mb-1">
                     <div className="countdown-item">
                       <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
                         <span className="font-700 sm:text-[30px] text-[14px] text-[#EB5757]">
@@ -74,7 +74,7 @@ export default function CampaignCountDown({
 
                   {/* title */}
                   <div className="countdown-title mb-4">
-                    <h1 className="text-[44px] text-qyellow font-600">
+                    <h1 className="lg:text-[54px] text-[38px] text-qyellow font-600">
                       İndirimli Ürünler
                     </h1>
                     <p className="text-[18px] text-qblack leading-7">
@@ -84,8 +84,8 @@ export default function CampaignCountDown({
                   </div>
 
                   {/* button */}
-                  <div className="h-10 w-max">
-                    <div className="yellow-btn  space-x-2 items-center px-4 transition hover:text-white">
+                  <div className="w-max">
+                    <div className="bg-qyellow banner-discount-btn flex group  space-x-2 items-center border border-qyellow px-4 py-2 rounded-xl transition hover:text-white hover:bg-qh2-green">
                       <span className="text-sm font-600 tracking-wide leading-7 ">
                         Alışveriş Yap
                       </span>
@@ -96,6 +96,7 @@ export default function CampaignCountDown({
                           viewBox="0 0 7 11"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
+                          className="group-hover"
                         >
                           <rect
                             x="2.08984"

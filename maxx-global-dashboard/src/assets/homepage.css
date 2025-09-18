@@ -564,3 +564,11 @@ html {
     fill: #fff;
   }
 }
+.banner-discount .banner-discount-btn:hover svg{
+ filter: invert(1);
+}
+ @media (max-width: 991px) {
+.banner-discount .campaign-countdown{
+   background-size: auto !important  ; 
+  }
+}

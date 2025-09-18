@@ -8946,5 +8946,5 @@ box-shadow: none !important;
   border-radius: 4px;
 }
 .swal2-textarea{
-	width: auto;
+	width: auto !important;
 }

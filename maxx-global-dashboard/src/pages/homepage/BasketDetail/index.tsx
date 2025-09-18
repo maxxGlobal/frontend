@@ -10,16 +10,19 @@ import {
 } from "../../../services/cart/storage";
 import { fetchProductsByIds } from "../../../services/products/bulk";
 import { listDiscountsByDealer } from "../../../services/discounts/list-by-dealer";
-import { calculateOrder, previewOrder } from "../../../services/orders/calculate";
+import {
+  calculateOrder,
+  previewOrder,
+} from "../../../services/orders/calculate";
 import { createOrderWithValidation } from "../../../services/orders/create";
 import type { ProductRow } from "../../../types/product";
 import type { Discount } from "../../../types/discount";
 import Swal from "sweetalert2";
+import { Helmet } from "react-helmet-async";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
-// ✅ YENİ - Order calculate & create için tip tanımları
 type OrderProductRequest = {
   productPriceId: number;
   quantity: number;
@@ -78,14 +81,14 @@ export default function CartPage() {
     null
   );
 
-  // ✅ YENİ - Order calculation state'leri
-  const [calculationResult, setCalculationResult] = useState<OrderCalculationResponse | null>(null);
+  const [calculationResult, setCalculationResult] =
+    useState<OrderCalculationResponse | null>(null);
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
-  
-  // ✅ YENİ - Preview modal state'leri
+
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [previewData, setPreviewData] = useState<OrderCalculationResponse | null>(null);
+  const [previewData, setPreviewData] =
+    useState<OrderCalculationResponse | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
   const { dealerId, dealerCurrency } = (() => {
@@ -100,7 +103,6 @@ export default function CartPage() {
     }
   })();
 
-  /** Ürünler + kuponlar birlikte yüklensin; bitince initLoading kapansın */
   useEffect(() => {
     const controller = new AbortController();
 
@@ -138,7 +140,7 @@ export default function CartPage() {
           setDiscounts([]);
         }
       })();
-      
+
       await Promise.allSettled([pProducts, pDiscounts]);
       setInitLoading(false);
     }
@@ -146,8 +148,6 @@ export default function CartPage() {
     loadAll();
     return () => controller.abort();
   }, [dealerId]);
-
-  // ✅ YENİ - Manual subtotal hesaplama (calculation yoksa)
   const manualSubtotal = useMemo(
     () =>
       items.reduce((sum, it) => {
@@ -157,7 +157,6 @@ export default function CartPage() {
     [items]
   );
 
-  // ✅ YENİ - Displayed values (calculation varsa ondan, yoksa manual'dan)
   const displayedSubtotal = calculationResult?.subtotal ?? manualSubtotal;
   const displayedDiscountAmount = calculationResult?.discountAmount ?? 0;
   const displayedTotal = calculationResult?.totalAmount ?? manualSubtotal;
@@ -168,8 +167,6 @@ export default function CartPage() {
       prev.map((r) => (r.product.id === id ? { ...r, qty: q } : r))
     );
     updateQty(id, q);
-    
-    // ✅ YENİ - Quantity değişince calculation'ı temizle
     setCalculationResult(null);
     setSelectedDiscountId(null);
   };
@@ -177,21 +174,22 @@ export default function CartPage() {
   const handleRemove = (id: number) => {
     setItems((prev) => prev.filter((r) => r.product.id !== id));
     removeFromCart(id);
-    
-    // ✅ YENİ - Ürün çıkarınca calculation'ı temizle
     setCalculationResult(null);
     setSelectedDiscountId(null);
   };
 
-  // ✅ YENİ - Order request oluşturma helper
-  const createOrderRequest = (includeDiscount: boolean = false): OrderRequest => {
+  const createOrderRequest = (
+    includeDiscount: boolean = false
+  ): OrderRequest => {
     const products: OrderProductRequest[] = items
       .map((it) => {
         const price = it.product.prices?.[0];
-        return price ? {
-          productPriceId: price.productPriceId,
-          quantity: it.qty
-        } : null;
+        return price
+          ? {
+              productPriceId: price.productPriceId,
+              quantity: it.qty,
+            }
+          : null;
       })
       .filter(Boolean) as OrderProductRequest[];
 
@@ -199,11 +197,10 @@ export default function CartPage() {
       dealerId,
       products,
       discountId: includeDiscount ? selectedDiscountId || undefined : undefined,
-      notes: "Web sepetinden sipariş"
+      notes: "Web sepetinden sipariş",
     };
   };
 
-  // ✅ YENİ - İndirim hesaplama (yeni endpoint)
   const handleApplyDiscount = async () => {
     if (!dealerId || !items.length || !selectedDiscountId) {
       Swal.fire({
@@ -217,15 +214,9 @@ export default function CartPage() {
 
     try {
       setApplyingDiscount(true);
-
-      // ✅ YENİ - İmport edilmiş calculateOrder servisini kullan
       const orderRequest = createOrderRequest(true);
       const result = await calculateOrder(orderRequest);
-      
-      // ✅ Calculation sonucunu state'e kaydet
       setCalculationResult(result);
-
-      // ✅ Stock warnings kontrolü
       if (result.stockWarnings && result.stockWarnings.length > 0) {
         Swal.fire({
           icon: "warning",
@@ -238,35 +229,36 @@ export default function CartPage() {
         Swal.fire({
           icon: "success",
           title: "İndirim Uygulandı!",
-          text: `${fmt(result.discountAmount, result.currency)} indirim uygulandı`,
+          text: `${fmt(
+            result.discountAmount,
+            result.currency
+          )} indirim uygulandı`,
           timer: 1500,
           showConfirmButton: false,
         });
       } else {
-        // İndirim uygulanamadıysa
         Swal.fire({
           icon: "info",
           title: "İndirim Uygulanamadı",
-          text: result.discountDescription || "Bu indirim şu anda uygulanamıyor.",
+          text:
+            result.discountDescription || "Bu indirim şu anda uygulanamıyor.",
           confirmButtonText: "Tamam",
           confirmButtonColor: "#059669",
         });
       }
-
     } catch (e: any) {
       console.error("İndirim hesaplama hatası:", e);
       setCalculationResult(null);
       setSelectedDiscountId(null);
-      
-      // Backend'den gelen hata mesajını parse et
+
       let errorMessage = "İndirim hesaplanırken bir hata oluştu.";
-      
+
       if (e.response?.data?.message) {
         errorMessage = e.response.data.message;
       } else if (e.message) {
         errorMessage = e.message;
       }
-      
+
       Swal.fire({
         icon: "error",
         title: "İndirim Hesaplama Hatası",
@@ -279,7 +271,6 @@ export default function CartPage() {
     }
   };
 
-  // ✅ YENİ - Sipariş önizleme göster
   const handleShowPreview = async () => {
     if (!dealerId || !items.length) {
       Swal.fire({
@@ -293,22 +284,22 @@ export default function CartPage() {
 
     try {
       setLoadingPreview(true);
-      
-      const orderRequest = createOrderRequest(true); // İndirim dahil
+
+      const orderRequest = createOrderRequest(true);
       const preview = await previewOrder(orderRequest);
-      
+
       setPreviewData(preview);
-      setShowPreviewModal(true); 
+      setShowPreviewModal(true);
     } catch (e: any) {
       console.error("Sipariş önizleme hatası:", e);
-      
+
       let errorMessage = "Sipariş önizlemesi oluşturulamadı.";
       if (e.response?.data?.message) {
         errorMessage = e.response.data.message;
       } else if (e.message) {
         errorMessage = e.message;
       }
-      
+
       Swal.fire({
         icon: "error",
         title: "Önizleme Hatası",
@@ -330,9 +321,10 @@ export default function CartPage() {
       });
       return;
     }
-
-    // Stok uyarısı varsa kullanıcıya sor
-    if (calculationResult?.stockWarnings && calculationResult.stockWarnings.length > 0) {
+    if (
+      calculationResult?.stockWarnings &&
+      calculationResult.stockWarnings.length > 0
+    ) {
       const result = await Swal.fire({
         icon: "warning",
         title: "Stok Uyarısı Mevcut",
@@ -353,8 +345,6 @@ export default function CartPage() {
       setCreatingOrder(true);
 
       const finalOrderRequest = createOrderRequest(true);
-
-      // ✅ YENİ - İmport edilmiş createOrderWithValidation servisini kullan
       const result = await createOrderWithValidation(finalOrderRequest);
 
       Swal.fire({
@@ -362,48 +352,47 @@ export default function CartPage() {
         title: "Sipariş Başarıyla Oluşturuldu!",
         html: `
           <p><strong>Sipariş Numarası:</strong> ${result.orderNumber}</p>
-          <p><strong>Toplam Tutar:</strong> ${fmt(result.totalAmount, result.currency)}</p>
-          ${result.hasDiscount ? `<p><strong>İndirim:</strong> ${fmt(result.savingsAmount, result.currency)}</p>` : ''}
+          <p><strong>Toplam Tutar:</strong> ${fmt(
+            result.totalAmount,
+            result.currency
+          )}</p>
+          ${
+            result.hasDiscount
+              ? `<p><strong>İndirim:</strong> ${fmt(
+                  result.savingsAmount,
+                  result.currency
+                )}</p>`
+              : ""
+          }
         `,
         confirmButtonText: "Tamam",
         confirmButtonColor: "#059669",
-      }).then(() => {
-        // ✅ Sipariş sayfasına yönlendir (opsiyonel)
-        // window.location.href = `/homepage/my-orders`;
-      });
-
-      // ✅ Sipariş başarılı - modal'ı kapat
+      }).then(() => {});
       setShowPreviewModal(false);
       setPreviewData(null);
-      
-      // ✅ Sepeti temizle
       clearCart();
       setItems([]);
       setSelectedDiscountId(null);
       setCalculationResult(null);
-
     } catch (e: any) {
       console.error("Sipariş oluşturma hatası:", e);
-      
-      // Backend'den gelen hata mesajını parse et
       let errorMessage = "Sipariş oluşturulurken bir hata oluştu.";
       let errorDetail = "";
-      
+
       if (e.response?.data?.message) {
         errorMessage = e.response.data.message;
       } else if (e.message) {
         errorMessage = e.message;
       }
-
-      // Eğer validation hatası varsa daha detaylı göster
       if (e.response?.status === 400) {
         errorDetail = "Lütfen sepetinizi kontrol ederek tekrar deneyiniz.";
       } else if (e.response?.status === 403) {
         errorDetail = "Bu işlem için yetkiniz bulunmuyor.";
       } else if (e.response?.status === 500) {
-        errorDetail = "Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyiniz.";
+        errorDetail =
+          "Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyiniz.";
       }
-      
+
       Swal.fire({
         icon: "error",
         title: "Sipariş Oluşturma Hatası",
@@ -417,7 +406,6 @@ export default function CartPage() {
     }
   };
 
-  // ✅ YENİ - İndirim seçimini temizle
   const handleClearDiscount = () => {
     setSelectedDiscountId(null);
     setCalculationResult(null);
@@ -426,6 +414,10 @@ export default function CartPage() {
   if (initLoading) {
     return (
       <Layout>
+        <Helmet>
+          <title>Medintera – Sepet</title>
+          <meta name="description" content="Sepet" />
+        </Helmet>
         <div className="flex justify-center items-center h-[70vh]">
           <LoaderStyleOne />
         </div>
@@ -436,6 +428,10 @@ export default function CartPage() {
   if (!items.length) {
     return (
       <Layout>
+        <Helmet>
+          <title>Medintera – Sepet</title>
+          <meta name="description" content="Sepet" />
+        </Helmet>
         <div className="container-x mx-auto py-10 text-center">
           <p className="text-lg font-medium">Sepetiniz boş.</p>
         </div>
@@ -445,6 +441,10 @@ export default function CartPage() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Medintera – Sepet</title>
+        <meta name="description" content="Sepet" />
+      </Helmet>
       <div className="cart-page-wrapper w-full bg-white pb-[60px]">
         <div className="w-full">
           <PageTitle
@@ -458,7 +458,6 @@ export default function CartPage() {
 
         <div className="w-full mt-[23px]">
           <div className="container-x mx-auto">
-            {/* Ürün tablosu */}
             <div className="w-full mb-[30px]">
               <div className="relative w-full overflow-x-auto border border-[#EDEDED]">
                 <table className="w-full text-sm text-left text-gray-500">
@@ -474,14 +473,14 @@ export default function CartPage() {
                     {items.map(({ product, qty }) => {
                       const price = product.prices?.[0];
                       const line = price ? price.amount * qty : 0;
-                      
-                      // ✅ YENİ - Eğer calculation varsa, item-specific discount amount göster
-                      const itemCalculation = calculationResult?.itemCalculations?.find(
-                        calc => calc.productId === product.id
-                      );
-                      const itemDiscountAmount = itemCalculation?.discountAmount || 0;
+                      const itemCalculation =
+                        calculationResult?.itemCalculations?.find(
+                          (calc) => calc.productId === product.id
+                        );
+                      const itemDiscountAmount =
+                        itemCalculation?.discountAmount || 0;
                       const finalItemTotal = line - itemDiscountAmount;
-                      
+
                       return (
                         <tr
                           key={product.id}
@@ -504,10 +503,10 @@ export default function CartPage() {
                                 <p className="font-medium text-[15px] text-qblack">
                                   {product.name}
                                 </p>
-                                {/* ✅ YENİ - Stock status göster */}
                                 {itemCalculation && (
                                   <p className="text-xs text-gray-500 mt-1">
-                                    Stok: {itemCalculation.availableStock} - {itemCalculation.stockStatus}
+                                    Stok: {itemCalculation.availableStock} -{" "}
+                                    {itemCalculation.stockStatus}
                                   </p>
                                 )}
                               </div>
@@ -533,21 +532,22 @@ export default function CartPage() {
                           </td>
                           <td className="text-center py-4">
                             <div className="flex flex-col items-center">
-                              {/* Orijinal tutar */}
                               {price && (
-                                <span className={itemDiscountAmount > 0 ? "line-through text-gray-400 text-xs" : ""}>
+                                <span
+                                  className={
+                                    itemDiscountAmount > 0
+                                      ? "line-through text-gray-400 text-xs"
+                                      : ""
+                                  }
+                                >
                                   {fmt(line, price.currency)}
                                 </span>
                               )}
-                              
-                              {/* İndirimli tutar (varsa) */}
                               {itemDiscountAmount > 0 && price && (
                                 <span className="text-green-600 font-semibold">
                                   {fmt(finalItemTotal, price.currency)}
                                 </span>
                               )}
-                              
-                              {/* İndirim tutarı (varsa) */}
                               {itemDiscountAmount > 0 && (
                                 <span className="text-xs text-green-500">
                                   -{fmt(itemDiscountAmount, price?.currency)}
@@ -570,8 +570,6 @@ export default function CartPage() {
                 </table>
               </div>
             </div>
-
-            {/* İndirimler */}
             {discounts.length > 0 && (
               <div className="mb-6 relative">
                 <h2 className="text-lg font-semibold mb-3">
@@ -597,7 +595,6 @@ export default function CartPage() {
                           setSelectedDiscountId((prev) =>
                             prev === d.id ? null : d.id
                           );
-                          // ✅ YENİ - Seçim değişince calculation'ı temizle
                           setCalculationResult(null);
                         }
                       }}
@@ -636,8 +633,6 @@ export default function CartPage() {
                   >
                     {applyingDiscount ? "Hesaplanıyor..." : "İndirimi Uygula"}
                   </button>
-
-                  {/* ✅ YENİ - İndirimi temizle butonu */}
                   {(selectedDiscountId || calculationResult) && (
                     <button
                       onClick={handleClearDiscount}
@@ -650,20 +645,19 @@ export default function CartPage() {
                 </div>
               </div>
             )}
-
-            {/* ✅ YENİ - Stock warnings display */}
-            {calculationResult?.stockWarnings && calculationResult.stockWarnings.length > 0 && (
-              <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded">
-                <h3 className="text-orange-800 font-semibold mb-2">Stok Uyarıları:</h3>
-                <ul className="list-disc list-inside text-orange-700 text-sm">
-                  {calculationResult.stockWarnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Toplam hesabı */}
+            {calculationResult?.stockWarnings &&
+              calculationResult.stockWarnings.length > 0 && (
+                <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded">
+                  <h3 className="text-orange-800 font-semibold mb-2">
+                    Stok Uyarıları:
+                  </h3>
+                  <ul className="list-disc list-inside text-orange-700 text-sm">
+                    {calculationResult.stockWarnings.map((warning, index) => (
+                      <li key={index}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             <div className="w-full mt-[30px] flex sm:justify-end">
               <div className="sm:w-[370px] w-full border border-[#EDEDED] px-[30px] py-[26px]">
                 <div className="flex justify-between mb-6">
@@ -674,8 +668,6 @@ export default function CartPage() {
                     {fmt(displayedSubtotal, dealerCurrency)}
                   </p>
                 </div>
-
-                {/* ✅ İndirim satırı (varsa) */}
                 {displayedDiscountAmount > 0 && (
                   <>
                     <div className="flex justify-between mb-4">
@@ -686,8 +678,6 @@ export default function CartPage() {
                         -{fmt(displayedDiscountAmount, dealerCurrency)}
                       </p>
                     </div>
-                    
-                    {/* ✅ İndirim açıklaması (varsa) */}
                     {calculationResult?.discountDescription && (
                       <div className="mb-4">
                         <p className="text-xs text-gray-600 italic">
@@ -699,7 +689,7 @@ export default function CartPage() {
                 )}
 
                 <div className="w-full h-[1px] bg-[#EDEDED] mb-6" />
-                
+
                 <div className="flex justify-between mb-6">
                   <p className="text-[18px] font-bold text-qblack">
                     Toplam Tutar
@@ -708,8 +698,6 @@ export default function CartPage() {
                     {fmt(displayedTotal, dealerCurrency)}
                   </p>
                 </div>
-
-                {/* ✅ Sipariş onaylama butonu - preview modal açar */}
                 <button
                   onClick={handleShowPreview}
                   disabled={loadingPreview || applyingDiscount}
@@ -723,14 +711,13 @@ export default function CartPage() {
             </div>
           </div>
         </div>
-
-        {/* ✅ YENİ - Sipariş Önizleme Modal'ı */}
         {showPreviewModal && previewData && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
               <div className="flex justify-between items-center p-6 border-b">
-                <h2 className="text-xl font-bold text-gray-800">Sipariş Önizleme</h2>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Sipariş Önizleme
+                </h2>
                 <button
                   onClick={() => {
                     setShowPreviewModal(false);
@@ -742,45 +729,68 @@ export default function CartPage() {
                   ×
                 </button>
               </div>
-
-              {/* Modal Content */}
               <div className="p-6">
-                {/* Sipariş Özeti */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-gray-800">Sipariş Özeti</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                    Sipariş Özeti
+                  </h3>
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-600">Toplam Ürün:</span>
-                        <span className="font-medium ml-2">{previewData.totalItems} adet</span>
+                        <span className="font-medium ml-2">
+                          {previewData.totalItems} adet
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-600">Para Birimi:</span>
-                        <span className="font-medium ml-2">{previewData.currency}</span>
+                        <span className="font-medium ml-2">
+                          {previewData.currency}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Ürün Detayları */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-gray-800">Ürün Detayları</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                    Ürün Detayları
+                  </h3>
                   <div className="space-y-3">
                     {previewData.itemCalculations.map((item) => (
-                      <div key={item.productId} className="border border-gray-200 rounded-lg p-3">
+                      <div
+                        key={item.productId}
+                        className="border border-gray-200 rounded-lg p-3"
+                      >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-800">{item.productName}</h4>
-                            <p className="text-sm text-gray-600">Kod: {item.productCode}</p>
+                            <h4 className="font-medium text-gray-800">
+                              {item.productName}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Kod: {item.productCode}
+                            </p>
                             <div className="flex items-center gap-2 text-sm mt-1">
                               <span>Miktar: {item.quantity}</span>
                               <span>•</span>
-                              <span>Birim: {fmt(item.unitPrice, previewData.currency)}</span>
+                              <span>
+                                Birim:{" "}
+                                {fmt(item.unitPrice, previewData.currency)}
+                              </span>
                               <span>•</span>
-                              <span className={item.inStock ? "text-green-600" : "text-red-600"}>
-                                {item.stockStatus === "IN_STOCK" ? "Stokta" : 
-                                 item.stockStatus === "LOW_STOCK" ? "Az Stok" :
-                                 item.stockStatus === "INSUFFICIENT_STOCK" ? "Yetersiz Stok" : "Stok Yok"}
+                              <span
+                                className={
+                                  item.inStock
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {item.stockStatus === "IN_STOCK"
+                                  ? "Stokta"
+                                  : item.stockStatus === "LOW_STOCK"
+                                  ? "Az Stok"
+                                  : item.stockStatus === "INSUFFICIENT_STOCK"
+                                  ? "Yetersiz Stok"
+                                  : "Stok Yok"}
                               </span>
                             </div>
                           </div>
@@ -788,13 +798,21 @@ export default function CartPage() {
                             {item.discountAmount > 0 ? (
                               <div>
                                 <div className="line-through text-gray-400 text-sm">
-                                  {fmt(item.totalPrice + item.discountAmount, previewData.currency)}
+                                  {fmt(
+                                    item.totalPrice + item.discountAmount,
+                                    previewData.currency
+                                  )}
                                 </div>
                                 <div className="font-semibold text-green-600">
                                   {fmt(item.totalPrice, previewData.currency)}
                                 </div>
                                 <div className="text-xs text-green-500">
-                                  -{fmt(item.discountAmount, previewData.currency)} indirim
+                                  -
+                                  {fmt(
+                                    item.discountAmount,
+                                    previewData.currency
+                                  )}{" "}
+                                  indirim
                                 </div>
                               </div>
                             ) : (
@@ -808,59 +826,74 @@ export default function CartPage() {
                     ))}
                   </div>
                 </div>
-
-                {/* Stok Uyarıları */}
-                {previewData.stockWarnings && previewData.stockWarnings.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3 text-orange-800">Stok Uyarıları</h3>
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                      <ul className="list-disc list-inside text-orange-700 text-sm space-y-1">
-                        {previewData.stockWarnings.map((warning, index) => (
-                          <li key={index}>{warning}</li>
-                        ))}
-                      </ul>
+                {previewData.stockWarnings &&
+                  previewData.stockWarnings.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-3 text-orange-800">
+                        Stok Uyarıları
+                      </h3>
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <ul className="list-disc list-inside text-orange-700 text-sm space-y-1">
+                          {previewData.stockWarnings.map((warning, index) => (
+                            <li key={index}>{warning}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* İndirim Bilgisi */}
+                  )}
                 {previewData.discountAmount > 0 && (
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3 text-green-800">İndirim Bilgisi</h3>
+                    <h3 className="text-lg font-semibold mb-3 text-green-800">
+                      İndirim Bilgisi
+                    </h3>
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="text-sm text-green-700">
-                        <p className="font-medium">{previewData.discountDescription}</p>
+                        <p className="font-medium">
+                          {previewData.discountDescription}
+                        </p>
                         <p className="mt-1">
-                          <strong>İndirim Tutarı:</strong> {fmt(previewData.discountAmount, previewData.currency)}
+                          <strong>İndirim Tutarı:</strong>{" "}
+                          {fmt(
+                            previewData.discountAmount,
+                            previewData.currency
+                          )}
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
-
-                {/* Tutar Hesabı */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3 text-gray-800">Tutar Hesabı</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                    Tutar Hesabı
+                  </h3>
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
                     <div className="flex justify-between">
                       <span>Ara Toplam:</span>
-                      <span className="font-medium">{fmt(previewData.subtotal, previewData.currency)}</span>
+                      <span className="font-medium">
+                        {fmt(previewData.subtotal, previewData.currency)}
+                      </span>
                     </div>
                     {previewData.discountAmount > 0 && (
                       <div className="flex justify-between text-green-600">
                         <span>İndirim:</span>
-                        <span className="font-medium">-{fmt(previewData.discountAmount, previewData.currency)}</span>
+                        <span className="font-medium">
+                          -
+                          {fmt(
+                            previewData.discountAmount,
+                            previewData.currency
+                          )}
+                        </span>
                       </div>
                     )}
                     <div className="border-t pt-2 flex justify-between text-lg font-bold">
                       <span>Toplam:</span>
-                      <span className="text-qred">{fmt(previewData.totalAmount, previewData.currency)}</span>
+                      <span className="text-qred">
+                        {fmt(previewData.totalAmount, previewData.currency)}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Modal Footer */}
               <div className="flex gap-4 p-6 border-t bg-gray-50">
                 <button
                   onClick={() => {
@@ -879,9 +912,25 @@ export default function CartPage() {
                 >
                   {creatingOrder ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Sipariş Oluşturuluyor...
                     </>
