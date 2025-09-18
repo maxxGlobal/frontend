@@ -31,7 +31,6 @@ export default function RoleCreate() {
         const all = await listPermissions();
         setPerms(all);
       } catch (e) {
-        console.error(e);
         setError("Permission listesi yüklenemedi.");
       } finally {
         setLoading(false);
@@ -81,7 +80,6 @@ export default function RoleCreate() {
       setSelected([]);
       setPermQuery("");
     } catch (err: any) {
-      console.error(err);
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.title ||

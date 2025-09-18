@@ -58,9 +58,11 @@ const DEFAULT_SIZE = 10;
 
 export default function DealersList() {
   const navigate = useNavigate();
-  
+
   // ✅ Daha esnek yetki kontrolü
-  const canRead = hasPermission({ anyOf: ["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"] });
+  const canRead = hasPermission({
+    anyOf: ["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"],
+  });
   const canManage = hasPermission({ anyOf: ["DEALER_MANAGE", "SYSTEM_ADMIN"] });
 
   // ✅ Okuma yetkisi bile yoksa engelleyin
@@ -167,7 +169,7 @@ export default function DealersList() {
         setData(pageData);
       } catch (e: any) {
         if (e?.name === "AbortError" || e?.name === "CanceledError") return;
-        console.error(e);
+
         setError("Bayiler yüklenirken bir hata oluştu.");
       } finally {
         setLoading(false);

@@ -44,7 +44,6 @@ export default function FavoritesProductPage() {
         setProducts(onlyFavs);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
-          console.error(e);
           setError(e?.message || "Favori ürünler getirilemedi");
           setProducts([]);
         }

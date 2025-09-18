@@ -130,9 +130,7 @@ export default function CategoriesSidebar() {
       try {
         const flat = await listAllCategories({ signal: controller.signal });
         setTree(buildCategoryTree(flat));
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     })();
     return () => controller.abort();
   }, []);

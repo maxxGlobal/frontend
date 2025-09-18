@@ -192,12 +192,7 @@ export default function ProductList() {
           // İptal edilen istek hata sayılmaz; hiçbir şey gösterme
           return;
         }
-        console.error(
-          "Ürünler yüklenemedi:",
-          e?.response?.data ?? e?.message ?? e
-        );
         setListError("Ürünler yüklenemedi.");
-        // initialLoad'u true bırakıyoruz ki “Ürün Bulunamadı” mesajı görünmesin
       } finally {
         setLoading(false);
       }

@@ -29,7 +29,7 @@ function getFieldDisplayName(fieldName: string): string {
     parentId: "Üst Kategori",
     status: "Durum",
   };
-  
+
   return fieldMap[fieldName] || fieldName;
 }
 
@@ -92,7 +92,6 @@ export default function EditCategoryModal({
         }));
       } catch (e: any) {
         if (e?.name === "AbortError" || e?.name === "CanceledError") return;
-        console.error(e);
         setError("Kategori bilgileri yüklenemedi.");
       } finally {
         setLoadingOpts(false);
@@ -103,18 +102,18 @@ export default function EditCategoryModal({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    
+
     // Frontend validation
     if (!form.name?.trim()) {
       await MySwal.fire({
         icon: "warning",
         title: "Eksik Bilgi",
         text: "Kategori adı zorunludur.",
-        confirmButtonText: "Tamam"
+        confirmButtonText: "Tamam",
       });
       return;
     }
-    
+
     try {
       setSaving(true);
       setError(null);
@@ -136,26 +135,24 @@ export default function EditCategoryModal({
         text: "Kategori başarıyla güncellendi.",
         confirmButtonText: "Tamam",
         timer: 2000,
-        timerProgressBar: true
+        timerProgressBar: true,
       });
 
       onSaved();
     } catch (err: any) {
-      console.error("Kategori güncelleme hatası:", err);
-      
       // ✅ Backend hata mesajını detaylı işle
       let errorTitle = "Kategori Güncelleme Hatası";
       let errorMessage = "Kategori güncellenirken bilinmeyen bir hata oluştu.";
       let isHtml = false;
-      
+
       if (err?.response) {
         const status = err.response.status;
         const data = err.response.data;
-        
+
         if (status === 400) {
           errorTitle = "Doğrulama Hatası";
-          
-          if (typeof data === 'string') {
+
+          if (typeof data === "string") {
             errorMessage = data;
           } else if (data?.message) {
             errorMessage = data.message;
@@ -165,18 +162,18 @@ export default function EditCategoryModal({
             // Birden fazla validation hatası
             if (Array.isArray(data.errors)) {
               errorMessage = `<ul class="text-start mb-0">
-                ${data.errors.map(error => `<li>${error}</li>`).join('')}
+                ${data.errors.map((error) => `<li>${error}</li>`).join("")}
               </ul>`;
               isHtml = true;
-            } else if (typeof data.errors === 'object') {
+            } else if (typeof data.errors === "object") {
               // Field-based validation errors
               const fieldErrors = Object.entries(data.errors)
                 .map(([field, msgs]) => {
                   const fieldName = getFieldDisplayName(field);
-                  const message = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+                  const message = Array.isArray(msgs) ? msgs.join(", ") : msgs;
                   return `<li><strong>${fieldName}:</strong> ${message}</li>`;
                 })
-                .join('');
+                .join("");
               errorMessage = `<ul class="text-start mb-0">${fieldErrors}</ul>`;
               isHtml = true;
             }
@@ -185,13 +182,18 @@ export default function EditCategoryModal({
           }
         } else if (status === 409) {
           errorTitle = "Çakışma Hatası";
-          errorMessage = data?.message || data?.title || "Bu kategori adı zaten kullanılıyor.";
+          errorMessage =
+            data?.message ||
+            data?.title ||
+            "Bu kategori adı zaten kullanılıyor.";
         } else if (status === 422) {
           errorTitle = "Veri Hatası";
-          errorMessage = data?.message || data?.title || "Gönderilen veriler işlenemedi.";
+          errorMessage =
+            data?.message || data?.title || "Gönderilen veriler işlenemedi.";
         } else if (status === 500) {
           errorTitle = "Sunucu Hatası";
-          errorMessage = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+          errorMessage =
+            "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
         } else if (status === 403) {
           errorTitle = "Yetki Hatası";
           errorMessage = "Bu işlemi gerçekleştirmek için yetkiniz bulunmuyor.";
@@ -200,15 +202,17 @@ export default function EditCategoryModal({
           errorMessage = "Güncellenmeye çalışılan kategori bulunamadı.";
         } else {
           errorTitle = `HTTP ${status} Hatası`;
-          errorMessage = data?.message || data?.title || 'Bilinmeyen sunucu hatası';
+          errorMessage =
+            data?.message || data?.title || "Bilinmeyen sunucu hatası";
         }
-      } else if (err?.code === 'NETWORK_ERROR' || !err?.response) {
+      } else if (err?.code === "NETWORK_ERROR" || !err?.response) {
         errorTitle = "Bağlantı Hatası";
-        errorMessage = "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
+        errorMessage =
+          "Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.";
       } else if (err?.message) {
         errorMessage = err.message;
       }
-      
+
       // ✅ SweetAlert ile hata göster
       await MySwal.fire({
         icon: "error",
@@ -218,10 +222,9 @@ export default function EditCategoryModal({
         confirmButtonText: "Tamam",
         width: "500px",
         customClass: {
-          htmlContainer: 'text-start'
-        }
+          htmlContainer: "text-start",
+        },
       });
-      
     } finally {
       setSaving(false);
     }

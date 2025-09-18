@@ -29,7 +29,6 @@ export default function NotificationBox({
         const res = await listNotifications({ signal: controller.signal });
         setItems(res.content ?? []);
       } catch (err: any) {
-        if (err?.code !== "ERR_CANCELED") console.error(err);
       } finally {
         setLoading(false);
       }

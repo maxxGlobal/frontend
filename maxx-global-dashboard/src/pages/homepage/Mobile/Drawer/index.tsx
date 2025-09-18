@@ -4,12 +4,15 @@ import Close from "../../Helpers/icons/Close";
 import Search from "../../Helpers/icons/Search";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  getUnreadCount,
+  markAllNotificationsRead,
+} from "../../../../services/notifications/header";
 import { listAllCategories } from "../../../../services/categories/listAll";
-import { medicalIcons } from "../../../../assets/icons/MedicalIcons";
+import { getMedicalIcon } from "../../../../assets/icons/MedicalIcons";
 import { getFavoriteCount } from "../../../../services/favorites/count";
-import { BiChevronRight, BiChevronDown } from "react-icons/bi";
+import { BiChevronRight } from "react-icons/bi";
 import Bell from "../../Helpers/icons/Bell";
-import { getCart } from "../../../../services/cart/storage";
 import { listNotifications } from "../../../../services/notifications/list";
 import NotificationCart from "../../Notifications/Cart";
 
@@ -23,8 +26,8 @@ type DrawerProps = {
   action?: () => void;
   className?: string;
 };
+const qkUnread = ["notifications", "unreadCount"];
 
-// --- yardımcılar
 function findNodeById(nodes: CatNode[], id: number): CatNode | null {
   for (const n of nodes) {
     if (n.id === id) return n;
@@ -44,7 +47,6 @@ function collectDescendantsIds(node: CatNode): number[] {
   return out;
 }
 
-// ---- Helper: all descendants count (for height animation fallback)
 function countNodes(nodes: CatNode[]): number {
   let c = 0;
   const walk = (arr: CatNode[]) => {
@@ -63,12 +65,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
     queryFn: getFavoriteCount,
     refetchInterval: 60_000,
   });
-  const { data: notificationCount = 0 } = useQuery({
-    queryKey: ["notificationCount"],
-    queryFn: async () => {
-      const res = await listNotifications({});
-      return (res.content ?? []).length;
-    },
+  const { data: notificationCount = 0 } = useQuery<number>({
+    queryKey: qkUnread,
+    queryFn: getUnreadCount,
     refetchInterval: 60_000,
   });
 
@@ -78,8 +77,6 @@ export default function Drawer({ className, open, action }: DrawerProps) {
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
   const [tab, setTab] = useState<"category" | "menu">("category");
-
-  // 🔎 Search state + handler (Middlebar ile aynı davranış)
   const [search, setSearch] = useState("");
   const handleSearch = () => {
     const q = search.trim();
@@ -96,14 +93,11 @@ export default function Drawer({ className, open, action }: DrawerProps) {
         const flat = await listAllCategories({ signal: controller.signal });
         const tree = buildCategoryTree(flat);
         setRoots(tree);
-      } catch (e) {
-        console.error("Kategori listesi getirilemedi", e);
-      }
+      } catch (e) {}
     })();
     return () => controller.abort();
   }, []);
 
-  // Dropdown yükseklik ölçümü
   useEffect(() => {
     if (categoryToggle) {
       const el = listRef.current;
@@ -123,7 +117,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
     params.set("cat", String(id));
     params.set("cats", ids.join(","));
     navigate(`/homepage/all-product?${params.toString()}`);
-    action?.(); // seçince çekmeceyi kapatmak isterseniz
+    action?.();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -242,7 +236,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     }}
                     className="w-full flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer"
                   >
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-3">
                       <span>
                         <svg
                           className="fill-current"
@@ -255,7 +249,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                           <rect y="4" width="10" height="1" />
                         </svg>
                       </span>
-                      <span className="text-sm font-400">Tümü</span>
+                      <span className="text-sm ps-0 text-left ms-0 font-400 ">
+                        Tümü
+                      </span>
                     </div>
                     <div>
                       <BiChevronRight />
@@ -264,8 +260,6 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                 </li>
 
                 {roots.map((n) => {
-                  const Icon =
-                    medicalIcons[n.id % medicalIcons.length] || medicalIcons[0];
                   return (
                     <li key={n.id} className="p-0">
                       <button
@@ -274,11 +268,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                         title={n.name}
                         className="w-full flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer"
                       >
-                        <div className="flex items-center space-x-6">
-                          <span>
-                            <Icon className="w-4 h-4" />
-                          </span>
-                          <span className="text-sm font-400 line-clamp-1">
+                        <div className="flex items-center space-x-3">
+                          <span>{getMedicalIcon(n.name, "w-4 h-4")}</span>
+                          <span className="text-sm ps-0 text-left ms-0 font-400 line-clamp-1">
                             {n.name}
                           </span>
                         </div>

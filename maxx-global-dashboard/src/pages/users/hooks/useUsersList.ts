@@ -143,7 +143,6 @@ export function useUsersList() {
         if (!cancelled) setData(res);
       } catch (e: any) {
         if (e.name === "CanceledError" || e.name === "AbortError") return;
-        console.error(e);
         if (!cancelled) setError("Kullanıcılar yüklenirken bir hata oluştu.");
       } finally {
         if (!cancelled) setLoading(false);

@@ -40,8 +40,6 @@ export default function HeaderFour({
   return (
     <header className={`${className || ""} header-section-wrapper relative`}>
       <Middlebar className="quomodo-shop-middle-bar lg:block hidden" />
-
-      {/* mobile drawer */}
       <div className="quomodo-shop-drawer lg:hidden block w-full h-[60px] bg-white">
         <div className="w-full h-full flex justify-between items-center px-5">
           <div onClick={drawerAction} className="cursor-pointer">
@@ -66,8 +64,8 @@ export default function HeaderFour({
               <img width={140} height={36} src={Logo} alt="logo" />
             </Link>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="cart relative cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div className="cart relative cursor-pointer mt-2">
               <Link to="/homepage/basket">
                 <span>
                   <ThinBag />

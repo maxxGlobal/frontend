@@ -66,7 +66,6 @@ export default function MyOrdersPage() {
         setTimeout(() => setOrders(withImages), remain);
       } catch (err: any) {
         if (err?.name !== "AbortError" && err?.code !== "ERR_CANCELED") {
-          console.error("Siparişler alınırken hata:", err);
           setError("Siparişler alınırken hata oluştu.");
         }
       }

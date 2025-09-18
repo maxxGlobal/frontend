@@ -43,7 +43,6 @@ export default function EditRoleModal({ role, onClose, onSaved }: Props) {
       await updateRole(role.id, { name: name.trim(), permissionIds: selected });
       onSaved();
     } catch (e) {
-      console.error(e);
       alert("Rol güncellenemedi.");
     } finally {
       setSaving(false);

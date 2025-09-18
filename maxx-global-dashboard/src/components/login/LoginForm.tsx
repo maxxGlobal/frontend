@@ -40,7 +40,6 @@ export default function LoginForm() {
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || "Login failed");
-      console.error("LOGIN ERROR:", err);
     } finally {
       setLoading(false);
     }

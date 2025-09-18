@@ -50,7 +50,6 @@ export default function ProductDetails() {
       } catch (e: any) {
         if (e?.name === "CanceledError" || e?.name === "AbortError") return;
         setErr("Ürün detayı yüklenemedi.");
-        console.error("getProductById error:", e);
         setLoading(false);
       }
     })();

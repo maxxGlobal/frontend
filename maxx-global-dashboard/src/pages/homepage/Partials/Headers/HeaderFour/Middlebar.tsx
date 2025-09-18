@@ -38,21 +38,18 @@ export default function Middlebar({ className }: { className?: string }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  // Favoriler
   const { data: wishlistCount = 0 } = useQuery<number>({
     queryKey: ["favoriteCount"],
     queryFn: getFavoriteCount,
     refetchInterval: 60_000,
   });
 
-  // 🔔 okunmamış bildirim sayısı
   const { data: notificationCount = 0 } = useQuery<number>({
     queryKey: qkUnread,
     queryFn: getUnreadCount,
     refetchInterval: 60_000,
   });
 
-  // 🛒 Sepet
   const [cartCount, setCartCount] = useState(() => getCart().length);
   useEffect(() => {
     const update = () => setCartCount(getCart().length);
@@ -64,14 +61,12 @@ export default function Middlebar({ className }: { className?: string }) {
     };
   }, []);
 
-  // Bildirim kutusu state
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  // Hover olduğunda bildirimleri yükle
   const loadNotifications = async () => {
-    if (loading || items.length > 0) return; // zaten yüklendiyse tekrar çağırma
+    if (loading || items.length > 0) return;
     try {
       setLoading(true);
       const res = await listNotifications();
@@ -81,7 +76,6 @@ export default function Middlebar({ className }: { className?: string }) {
     }
   };
 
-  // tümünü oku
   const handleMarkAll = async () => {
     const confirm = await MySwal.fire({
       title: "Tümünü Oku?",
@@ -98,7 +92,6 @@ export default function Middlebar({ className }: { className?: string }) {
       await markAllNotificationsRead();
       setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
-      // badge’i anında sıfırla
       qc.setQueryData<number>(qkUnread, 0);
       await qc.invalidateQueries({ queryKey: qkUnread });
 
@@ -133,7 +126,6 @@ export default function Middlebar({ className }: { className?: string }) {
           </div>
 
           <div className="flex gap-4 items-center">
-            {/* 🔔 Bildirimler */}
             <div
               className="group relative py-4"
               onMouseEnter={loadNotifications}
@@ -149,7 +141,6 @@ export default function Middlebar({ className }: { className?: string }) {
                 )}
               </div>
 
-              {/* Hover dropdown */}
               <div className="absolute -right-[45px] top-11 z-50 hidden group-hover:block">
                 <div
                   style={{ boxShadow: "0px 15px 50px 0px rgba(0,0,0,0.14)" }}
@@ -192,7 +183,6 @@ export default function Middlebar({ className }: { className?: string }) {
                                   : "hover:bg-gray-50"
                               }`}
                             >
-                              {/* ✔ Yeşil dot sadece okunmamışlarda */}
                               {!n.isRead && (
                                 <span className="w-2 h-2 mt-1 rounded-full bg-qh2-green flex-shrink-0"></span>
                               )}
@@ -238,7 +228,6 @@ export default function Middlebar({ className }: { className?: string }) {
               </div>
             </div>
 
-            {/* Favoriler */}
             <div className="relative">
               <Link to="/homepage/favorites">
                 <ThinLove />
@@ -250,7 +239,6 @@ export default function Middlebar({ className }: { className?: string }) {
               )}
             </div>
 
-            {/* Sepet */}
             <div className="cart-wrapper group relative py-4 me-2">
               <div className="cart relative cursor-pointer ps-2">
                 <Link to="/homepage/basket">
@@ -265,7 +253,6 @@ export default function Middlebar({ className }: { className?: string }) {
               </div>
             </div>
 
-            {/* Çıkış */}
             <button className="Btn" onClick={handleLogout}>
               <div className="sign">
                 <svg viewBox="0 0 512 512">
