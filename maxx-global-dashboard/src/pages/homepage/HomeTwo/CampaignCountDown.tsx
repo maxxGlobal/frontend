@@ -1,17 +1,12 @@
 import { Link } from "react-router-dom";
-import useCountDown from "../Helpers/CountDown";
 
 type CampaignCountDownProps = {
   className?: string;
-  lastDate: string;
 };
 
 export default function CampaignCountDown({
   className,
-  lastDate,
 }: CampaignCountDownProps) {
-  const { showDate, showHour, showMinute, showSecound } =
-    useCountDown(lastDate);
 
   return (
     <div>
@@ -28,50 +23,6 @@ export default function CampaignCountDown({
             >
               <Link to="/homepage/flash-sale">
                 <div className="w-full xl:p-12 p-5">
-                  {/* countdown */}
-                  <div className="countdown-wrapper w-full flex space-x-[23px] lg:mb-10 mb-1">
-                    <div className="countdown-item">
-                      <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                        <span className="font-700 sm:text-[30px] text-[14px] text-[#EB5757]">
-                          {showDate}
-                        </span>
-                      </div>
-                      <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Gün
-                      </p>
-                    </div>
-                    <div className="countdown-item">
-                      <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                        <span className="font-700 sm:text-[30px] text-[14px] text-[#2F80ED]">
-                          {showHour}
-                        </span>
-                      </div>
-                      <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Saat
-                      </p>
-                    </div>
-                    <div className="countdown-item">
-                      <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                        <span className="font-700 sm:text-[30px] text-[14px] text-[#219653]">
-                          {showMinute}
-                        </span>
-                      </div>
-                      <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Dakika
-                      </p>
-                    </div>
-                    <div className="countdown-item">
-                      <div className="countdown-number sm:w-[100px] sm:h-[100px] w-[50px] h-[50px] rounded-full bg-white flex justify-center items-center">
-                        <span className="font-700 sm:text-[30px] text-[14px] text-[#EF5DA8]">
-                          {showSecound}
-                        </span>
-                      </div>
-                      <p className="sm:text-[18px] text-[12px] font-500 text-center leading-8">
-                        Saniye
-                      </p>
-                    </div>
-                  </div>
-
                   {/* title */}
                   <div className="countdown-title mb-4">
                     <h1 className="lg:text-[54px] text-[38px] text-qyellow font-600">

@@ -1,7 +1,18 @@
-// src/services/orders/create.ts - GÜNCELLENMIŞ VERSİYON
+// src/services/orders/create.ts - DÜZELTILMIŞ VERSİYON
 import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
-import type { OrderRequest } from "./calculate";
+
+export type OrderProductRequest = {
+  productPriceId: number;
+  quantity: number;
+};
+
+export type OrderRequest = {
+  dealerId: number;
+  products: OrderProductRequest[];
+  discountId?: number;
+  notes?: string;
+};
 
 export type OrderResponse = {
   id: number;
@@ -30,10 +41,18 @@ export type OrderResponse = {
   totalAmount: number;
   currency: string;
   notes?: string;
+  hasDiscount: boolean;
+  savingsAmount: number;
 };
 
-export async function createOrder(payload: CreateOrderPayload) {
-  console.log("POST /orders payload →", payload);
+/**
+ * Temel sipariş oluşturma
+ */
+export async function createOrder(
+  request: OrderRequest,
+  opts?: { signal?: AbortSignal }
+): Promise<OrderResponse> {
+  console.log("POST /orders payload →", request);
   try {
     const res = await api.post<ApiEnvelope<OrderResponse>>("/orders", request, {
       signal: opts?.signal,

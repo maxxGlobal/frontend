@@ -1,27 +1,19 @@
-// src/pages/MyOrdersPage/index.tsx
+// src/pages/homepage/BasketDetail/my-orders.tsx
 import { useEffect, useState } from "react";
 import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { listMyOrders } from "../../../services/orders/my-orders";
-import { listProductImages } from "../../../services/products/images/list";
 import { Helmet } from "react-helmet-async";
 import type {
   OrderResponse,
-  OrderItem,
   PageResponse,
 } from "../../../types/order";
-import type { ProductImage } from "../../../types/product";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
-type OrderItemWithImage = OrderItem & { primaryImageUrl?: string | null };
-type OrderWithImages = Omit<OrderResponse, "items"> & {
-  items: OrderItemWithImage[];
-};
-
 export default function MyOrdersPage() {
-  const [orders, setOrders] = useState<OrderWithImages[] | null>(null);
+  const [orders, setOrders] = useState<OrderResponse[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,31 +31,14 @@ export default function MyOrdersPage() {
           20,
           controller.signal
         );
+        
+        // ✅ Backend artık primaryImageUrl'i direkt gönderiyor, 
+        // ekstra API çağrısı yapmaya gerek yok
         const content = res?.content ?? [];
-
-        const withImages: OrderWithImages[] = await Promise.all(
-          content.map(async (order) => {
-            const items: OrderItemWithImage[] = await Promise.all(
-              order.items.map(async (it) => {
-                try {
-                  const imgs: ProductImage[] = await listProductImages(
-                    it.productId,
-                    { signal: controller.signal }
-                  );
-                  const first = imgs.find((i) => i.isPrimary) ?? imgs[0];
-                  return { ...it, primaryImageUrl: first?.imageUrl ?? null };
-                } catch {
-                  return { ...it, primaryImageUrl: null };
-                }
-              })
-            );
-            return { ...order, items };
-          })
-        );
 
         const elapsed = Date.now() - start;
         const remain = Math.max(0, MIN_LOADER - elapsed);
-        setTimeout(() => setOrders(withImages), remain);
+        setTimeout(() => setOrders(content), remain);
       } catch (err: any) {
         if (err?.name !== "AbortError" && err?.code !== "ERR_CANCELED") {
           setError("Siparişler alınırken hata oluştu.");
@@ -104,6 +79,7 @@ export default function MyOrdersPage() {
       </Layout>
     );
   }
+
   return (
     <Layout>
       <Helmet>
@@ -148,13 +124,13 @@ export default function MyOrdersPage() {
               </div>
 
               <div className="divide-y divide-gray-100">
-                {order.items.map((it) => (
-                  <div key={it.productId} className="flex py-3 items-center">
+                {order.items.map((item) => (
+                  <div key={item.productId} className="flex py-3 items-center">
                     <div className="w-16 h-16 mr-4 border border-gray-200 rounded overflow-hidden">
-                      {it.primaryImageUrl ? (
+                      {item.primaryImageUrl ? (
                         <img
-                          src={it.primaryImageUrl}
-                          alt={it.productName}
+                          src={item.primaryImageUrl}
+                          alt={item.productName}
                           className="w-full h-full object-contain"
                         />
                       ) : (
@@ -165,18 +141,18 @@ export default function MyOrdersPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-800">
-                        {it.productName}
+                        {item.productName}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {it.quantity} ×{" "}
-                        {it.unitPrice.toLocaleString("tr-TR", {
+                        {item.quantity} ×{" "}
+                        {item.unitPrice.toLocaleString("tr-TR", {
                           style: "currency",
                           currency: order.currency || "TRY",
                         })}
                       </p>
                     </div>
                     <div className="text-sm font-semibold text-gray-700">
-                      {it.totalPrice.toLocaleString("tr-TR", {
+                      {item.totalPrice.toLocaleString("tr-TR", {
                         style: "currency",
                         currency: order.currency || "TRY",
                       })}

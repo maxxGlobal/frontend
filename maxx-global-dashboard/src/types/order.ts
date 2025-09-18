@@ -6,6 +6,7 @@ export type OrderItem = {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  primaryImageUrl?: string | null; // ✅ YENİ ALAN EKLENDI
 };
 
 export type OrderUser = {
