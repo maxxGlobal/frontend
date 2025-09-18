@@ -6,15 +6,25 @@ import Swal from "sweetalert2";
 import ViewMoreTitle from "./ViewMoreTitle";
 import ThinLove from "./icons/ThinLove";
 
-import { listProducts } from "../../../services/products/list";
+import { listPopularProducts } from "../../../services/products/popular";
 import { addToCart, updateQty } from "../../../services/cart/storage";
 import { addFavorite } from "../../../services/favorites/add";
 import { removeFavorite } from "../../../services/favorites/remove";
 import type { ProductRow } from "../../../types/product";
 
-type BannerProps = { className?: string };
+type BannerProps = { 
+  className?: string;
+  showProducts?: number;
+  sectionTitle?: string;
+  seeMoreUrl?: string;
+};
 
-export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
+export default function SectionStyleThreeHomeTwo({ 
+  className, 
+  showProducts = 3,
+  sectionTitle = "Popüler Ürünler",
+  seeMoreUrl 
+}: BannerProps) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,15 +39,8 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
     (async () => {
       try {
         setLoading(true);
-        const res = await listProducts({
-          page: 0,
-          size: 3,
-          sortBy: "id",
-          sortDirection: "desc",
-          isActive: true,
-        });
-
-        const data: ProductRow[] = res.content ?? [];
+        // 🔥 YENİ: Popüler ürünler endpoint'ini kullan
+        const data = await listPopularProducts(showProducts, 30); // Son 30 gün
         setProducts(data);
 
         const q: Record<number, number> = {};
@@ -52,12 +55,13 @@ export default function SectionStyleThreeHomeTwo({ className }: BannerProps) {
         setInputValues(iv);
         setFavorites(fav);
       } catch (e) {
-        setError("Ürünler getirilemedi");
+        console.error("Popüler ürünler getirilemedi:", e);
+        setError("Popüler ürünler getirilemedi");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [showProducts]);
 
   const increment = (id: number) =>
     setQuantities((prev) => {
