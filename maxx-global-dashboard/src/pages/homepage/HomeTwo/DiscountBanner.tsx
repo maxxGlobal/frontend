@@ -21,7 +21,7 @@ export default function DiscountBanner({ className }: DiscountBannerProps) {
           className="h-[54px] flex mt-8 justify-center"
         >
           <a
-            href="/homepage/sale"
+            href="/homepage/flash-sale"
             type="button"
             className="px-6 h-full flex justify-center items-center bg-qyellow text-md font-600 rounded"
           >

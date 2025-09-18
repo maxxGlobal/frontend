@@ -21,8 +21,10 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<Record<number, string>>({});
   const [actionLoading, setActionLoading] = useState(false);
-const [editModalOpen, setEditModalOpen] = useState(false);
-const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(
+    null
+  );
   useEffect(() => {
     async function load() {
       try {
@@ -80,16 +82,19 @@ const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
       setActionLoading(true);
       const result = await fn();
       await Swal.fire("Başarılı", successMsg, "success");
-      
+
       // Siparişi yeniden yükle
       if (order?.id) {
         const updatedOrder = await getOrderById(order.id);
         setOrder(updatedOrder);
       }
-      
+
       return result;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || "Bilinmeyen bir hata oluştu";
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Bilinmeyen bir hata oluştu";
       await Swal.fire("Hata", msg, "error");
     } finally {
       setActionLoading(false);
@@ -118,13 +123,13 @@ const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
     await safeAction(() => shipOrder(order.id, note), "Sipariş kargolandı");
   }
 
-async function handleEdit() {
-  if (!order) return;
-  
-  // Modal açmak için state ekle
-  setEditModalOpen(true);
-  setSelectedOrder(order);
-}
+  async function handleEdit() {
+    if (!order) return;
+
+    // Modal açmak için state ekle
+    setEditModalOpen(true);
+    setSelectedOrder(order);
+  }
 
   async function handleDownloadPdf() {
     if (!order) return;
@@ -156,12 +161,17 @@ async function handleEdit() {
 
   function canShowActionButtons() {
     if (!order) return false;
-    return ["BEKLEMEDE", "ONAYLANDI", "DÜZENLEME ONAY BEKLIYOR"].includes(order.orderStatus);
+    return ["BEKLEMEDE", "ONAYLANDI", "DÜZENLEME ONAY BEKLIYOR"].includes(
+      order.orderStatus
+    );
   }
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "400px" }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: "400px" }}
+      >
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Yükleniyor</span>
         </div>
@@ -176,7 +186,10 @@ async function handleEdit() {
           <div className="alert alert-danger">
             Sipariş bulunamadı.
             <div className="mt-2">
-              <button className="btn btn-primary" onClick={() => navigate("/orders-list")}>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate("/orders-list")}
+              >
                 Sipariş Listesine Dön
               </button>
             </div>
@@ -231,7 +244,7 @@ async function handleEdit() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Action Buttons */}
                 <div className="d-flex gap-2 flex-wrap">
                   <button
@@ -242,7 +255,7 @@ async function handleEdit() {
                     <i className="fa-solid fa-file-pdf me-1"></i>
                     PDF İndir
                   </button>
-                  
+
                   <button
                     className="btn btn-outline-secondary btn-sm"
                     onClick={() => navigate("/orders-list")}
@@ -307,9 +320,9 @@ async function handleEdit() {
 
               <div className="row align-items-stretch mt-4">
                 {/* Ürünler */}
+                <h3 className="mb-3">Sipariş Detayları</h3>
                 <div className="col-lg-6 col-md-12 col-12">
                   <div className="sherah-table-order h-100">
-                    <h5 className="mb-3">Sipariş Detayları</h5>
                     <table className="sherah-table__main sherah-table__main--orderv1">
                       <thead className="sherah-table__head">
                         <tr>
@@ -321,11 +334,16 @@ async function handleEdit() {
                       </thead>
                       <tbody className="sherah-table__body">
                         {(order.items ?? []).map((it, idx) => (
-                          <tr key={it.productPriceId ?? `${it.productId}-${idx}`}>
+                          <tr
+                            key={it.productPriceId ?? `${it.productId}-${idx}`}
+                          >
                             <td>
                               <div className="sherah-table__product--thumb">
                                 <img
-                                  src={images[it.productId] ?? "/src/assets/img/resim-yok.jpg"}
+                                  src={
+                                    images[it.productId] ??
+                                    "/src/assets/img/resim-yok.jpg"
+                                  }
                                   alt={it.productName}
                                   style={{
                                     width: 50,
@@ -412,7 +430,9 @@ async function handleEdit() {
                         <h4 className="sherah-vcard__title mb-2">
                           {order.createdBy.fullName}
                         </h4>
-                        <p className="mb-2"><strong>Bayi:</strong> {order.dealerName}</p>
+                        <p className="mb-2">
+                          <strong>Bayi:</strong> {order.dealerName}
+                        </p>
                         <ul className="sherah-vcard__contact gap-2">
                           <li>
                             <a href={`mailto:${order.createdBy.email}`}>
@@ -477,21 +497,21 @@ async function handleEdit() {
         </div>
       </div>
       {/* Edit Modal - OrderManagementPanel ile aynı */}
-{selectedOrder && (
-  <EditOrderModal
-    open={editModalOpen}
-    order={selectedOrder}
-    onClose={() => {
-      setEditModalOpen(false);
-      setSelectedOrder(null);
-    }}
-    onUpdated={(updated) => {
-      setOrder(updated); // Mevcut order'ı güncelle
-      setEditModalOpen(false);
-      setSelectedOrder(null);
-    }}
-  />
-)}
+      {selectedOrder && (
+        <EditOrderModal
+          open={editModalOpen}
+          order={selectedOrder}
+          onClose={() => {
+            setEditModalOpen(false);
+            setSelectedOrder(null);
+          }}
+          onUpdated={(updated) => {
+            setOrder(updated); // Mevcut order'ı güncelle
+            setEditModalOpen(false);
+            setSelectedOrder(null);
+          }}
+        />
+      )}
     </div>
-  ); 
+  );
 }

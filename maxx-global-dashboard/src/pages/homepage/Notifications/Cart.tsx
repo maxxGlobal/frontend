@@ -21,7 +21,6 @@ export default function NotificationBox({
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
-  // Bildirimleri getir
   useEffect(() => {
     const controller = new AbortController();
     (async () => {
@@ -38,7 +37,6 @@ export default function NotificationBox({
     return () => controller.abort();
   }, []);
 
-  // 🔑 Tümünü okundu işaretle
   const handleMarkAll = async () => {
     const confirm = await MySwal.fire({
       title: "Tümünü Oku?",
@@ -48,18 +46,26 @@ export default function NotificationBox({
       confirmButtonText: "Evet",
       cancelButtonText: "Vazgeç",
     });
-
     if (!confirm.isConfirmed) return;
 
     try {
       setUpdating(true);
-      await markAllNotificationsRead(); // backend API çağrısı
 
-      // local state'i güncelle ve gri görünüm ver
+      // ✅ Backend'de gerçekten tüm unread -> read yapılır
+      await markAllNotificationsRead();
+
+      // ✅ Liste görünümünü gri yap
       setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
-      // Middlebar’daki bildirimi sıfırlamak için query invalidate
-      qc.invalidateQueries({ queryKey: ["notificationCount"] });
+      // ✅ Middlebar sayacını ANINDA 0 göster (optimistic)
+      qc.setQueryData(["notificationCount"], 0);
+
+      // ✅ React Query'de gerçek değerle senkronize ol
+      await qc.invalidateQueries({
+        queryKey: ["notificationCount"],
+        exact: true,
+      });
+      await qc.refetchQueries({ queryKey: ["notificationCount"], exact: true });
 
       await MySwal.fire(
         "Tamam",
@@ -73,11 +79,10 @@ export default function NotificationBox({
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className={`p-4 text-center ${className || ""}`}>Yükleniyor…</div>
     );
-  }
 
   return (
     <div
@@ -87,7 +92,6 @@ export default function NotificationBox({
       } ${className || ""}`}
     >
       <div className="w-full h-full flex flex-col">
-        {/* Header */}
         {items.length > 0 && (
           <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200">
             <h3 className="text-qblack font-semibold">Bildirimler</h3>
@@ -102,7 +106,6 @@ export default function NotificationBox({
           </div>
         )}
 
-        {/* Liste */}
         <div className="product-items max-h-[310px] overflow-y-auto">
           {items.length === 0 && (
             <div className="p-4 text-center text-gray-500">Bildirim yok</div>
@@ -131,7 +134,6 @@ export default function NotificationBox({
           </ul>
         </div>
 
-        {/* Footer */}
         {items.length > 0 && (
           <div className="px-4 mt-4 border-t border-gray-200 pt-4">
             <Link to="/homepage/notifications">
@@ -141,12 +143,6 @@ export default function NotificationBox({
             </Link>
           </div>
         )}
-        <div className="px-4 mt-4 border-t border-gray-200 py-3 text-center">
-          <p className="text-[13px] font-medium text-qgray">
-            <span className="text-qblack">Tüm bildirimleri </span>görmek için
-            Tüm Bildirimleri Gör butonuna tıklayınız.
-          </p>
-        </div>
       </div>
     </div>
   );
