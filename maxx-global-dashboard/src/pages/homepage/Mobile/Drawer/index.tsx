@@ -133,7 +133,8 @@ export default function Drawer({ className, open, action }: DrawerProps) {
         {open && (
           <div
             onClick={action}
-            className="w-full h-screen bg-black bg-opacity-40 z-40 left-0 top-0 fixed"
+            className="w-full h-screen  z-40 left-0 top-0 fixed"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
           />
         )}
 
