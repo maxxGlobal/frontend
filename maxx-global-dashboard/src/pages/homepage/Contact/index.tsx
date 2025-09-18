@@ -6,6 +6,7 @@ import type { DealerRow } from "../../../types/dealer";
 import addressIcon from "../../../assets/img/address.svg";
 import emailIcon from "../../../assets/img/email-contact.svg";
 import phoneIcon from "../../../assets/img/phone.svg";
+import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
@@ -39,6 +40,10 @@ export default function Contact() {
 
   return (
     <Layout childrenClasses="pt-0 pb-0">
+      <Helmet>
+        <title>Medintera – İletişim</title>
+        <meta name="description" content="İletişim" />
+      </Helmet>
       <div className="page-title mb-10"></div>
       <div className="contact-wrapper w-full mb-10">
         <div className="container-x mx-auto">

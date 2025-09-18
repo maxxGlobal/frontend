@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PageTitle from "../Helpers/PageTitle";
 import type { Crumb } from "../Helpers/PageTitle";
 import Layout from "../Partials/Layout";
+import { Helmet } from "react-helmet-async";
 import AboutImage from "../../../assets/img/about.png";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
@@ -14,6 +15,10 @@ const crumbs: Crumb[] = [
 export default function About() {
   return (
     <Layout childrenClasses="pt-0 pb-0">
+      <Helmet>
+        <title>Medintera – Hakkımızda</title>
+        <meta name="description" content="Hakkımızda" />
+      </Helmet>
       <div className="about-page-wrapper w-full">
         <div className="title-area w-full">
           <PageTitle title="Hakkımızda" breadcrumb={crumbs} />

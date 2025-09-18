@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 export default function LoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,21 +24,21 @@ export default function LoginForm() {
     try {
       const res = await login(email, password);
       persistAuth(res);
-      
+
       // ✅ Önce from kontrolü yap - varsa oraya git
-      if (from && from !== '/login') {
+      if (from && from !== "/login") {
         console.log("Redirecting to original page:", from);
         navigate(from, { replace: true });
         return;
       }
-      
+
       // ✅ from yoksa default sayfaya git
       if (res.isDealer === true) {
         navigate("/homepage");
       } else {
         navigate("/dashboard");
       }
-     } catch (err: any) {
+    } catch (err: any) {
       setError(err?.response?.data?.message || "Login failed");
       console.error("LOGIN ERROR:", err);
     } finally {
@@ -92,8 +92,8 @@ export default function LoginForm() {
                   <div className="alert alert-info mb-3">
                     <small>
                       <i className="fas fa-info-circle me-2"></i>
-                      {(location.state as any)?.message || 
-                       "İstediğiniz sayfaya erişim için giriş yapmanız gerekiyor."}
+                      {(location.state as any)?.message ||
+                        "İstediğiniz sayfaya erişim için giriş yapmanız gerekiyor."}
                     </small>
                   </div>
                 )}
@@ -180,19 +180,11 @@ export default function LoginForm() {
                   {/* Remember + Forgot */}
                   <div className="form-group">
                     <div className="sherah-wc__check-inline">
-                      <div className="sherah-wc__checkbox">
-                        <input
-                          className="sherah-wc__form-check"
-                          id="checkbox"
-                          type="checkbox"
-                        />
-                        <label htmlFor="checkbox">Beni Hatırla</label>
-                      </div>
-                      <div className="sherah-wc__forgot">
+                      {/* <div className="sherah-wc__forgot">
                         <a href="/forgot-password" className="forgot-pass">
                           Şifremi Unuttum
                         </a>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 

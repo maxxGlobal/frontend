@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="lg:w-4/10 w-full mb-10 lg:mb-0">
             {/* logo area */}
             <div className="mb-5">
-              <Link to="/">
+              <Link to="/homepage">
                 <img width="260" height="20" src={Logo} alt="logo" />
               </Link>
             </div>

@@ -10,6 +10,7 @@ import { listProducts } from "../../../services/products/list";
 import { listProductsByCategory } from "../../../services/products/listByCategory";
 import { listMaterials } from "../../../services/products/listMaterials";
 import { listProductsBySearch } from "../../../services/products/search";
+import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
@@ -122,6 +123,10 @@ export default function AllProductPage() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Medintera – Ürünler</title>
+        <meta name="description" content="Ürünler" />
+      </Helmet>
       <div className="products-page-wrapper w-full">
         <div className="container-x mx-auto">
           <div className="w-full lg:flex lg:space-x-[30px]">

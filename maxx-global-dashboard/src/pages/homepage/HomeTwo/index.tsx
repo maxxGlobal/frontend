@@ -5,6 +5,8 @@ import ViewMoreTitle from "../Helpers/ViewMoreTitle";
 import Banner from "./Banner";
 import CampaignCountDown from "./CampaignCountDown";
 import CategoriesSection from "./CategoriesSection";
+import WhatsAppButton from "../Whatsapp/WhatsAppButton";
+import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
@@ -22,6 +24,10 @@ export default function HomeTwo() {
 
   return (
     <LayoutHomeTwo>
+      <Helmet>
+        <title>Medintera – Anasayfa</title>
+        <meta name="description" content="Anasayfa" />
+      </Helmet>
       <Banner className="banner-wrapper mb-[46px]" />
 
       <ViewMoreTitle
@@ -34,52 +40,13 @@ export default function HomeTwo() {
 
       <CampaignCountDown className="mb-[60px]" lastDate="2025-10-04 4:00:00" />
 
-      {/* <ProductsAds
-        ads={[
-          `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.2.png`,
-          `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.1.png`,
-        ]}
-        sectionHeight="sm:h-[290px] h-full"
-        className="products-ads-section mb-[60px]"
-      /> */}
-
       <SectionStyleThreeHomeTwo
-        // products={products.slice(3, 7)}
         showProducts={3}
         sectionTitle="Popular Sales"
         seeMoreUrl="/all-products"
         className="feature-products mb-[60px]"
       />
-
-      {/* <ProductsAds
-        ads={[
-          `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.3.png`,
-        ]}
-        className="products-ads-section mb-[60px]"
-      /> */}
-
-      {/* <SectionStyleThreeHomeTwo
-        // products={[...products].reverse().slice(0, 10)}
-        showProducts={9}
-        sectionTitle="New Arrivals"
-        seeMoreUrl="/all-products"
-        className="new-arrivals mb-[60px]"
-      /> */}
-
-      {/* <ProductsAds
-        sectionHeight="164"
-        ads={[
-          `${import.meta.env.VITE_PUBLIC_URL}/assets/images/bannera-2.4.png`,
-        ]}
-        className="products-ads-section mb-[60px]"
-      /> */}
-
-      {/* <SectionStyleFour
-        // products={products}
-        sectionTitle="Popular Sales"
-        seeMoreUrl="/all-products"
-        className="category-products mb-[60px]"
-      /> */}
+      <WhatsAppButton />
     </LayoutHomeTwo>
   );
 }

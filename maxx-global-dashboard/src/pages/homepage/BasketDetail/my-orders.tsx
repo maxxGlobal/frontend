@@ -5,6 +5,7 @@ import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { listMyOrders } from "../../../services/orders/my-orders";
 import { listProductImages } from "../../../services/products/images/list";
+import { Helmet } from "react-helmet-async";
 import type {
   OrderResponse,
   OrderItem,
@@ -30,7 +31,6 @@ export default function MyOrdersPage() {
 
     async function loadOrders() {
       try {
-        // ilk mount sırasında sıfırla
         setOrders(null);
         setError(null);
 
@@ -61,12 +61,10 @@ export default function MyOrdersPage() {
           })
         );
 
-        // Loader en az MIN_LOADER kadar görünsün
         const elapsed = Date.now() - start;
         const remain = Math.max(0, MIN_LOADER - elapsed);
         setTimeout(() => setOrders(withImages), remain);
       } catch (err: any) {
-        // ❗ yalnızca gerçek hatalarda error set et
         if (err?.name !== "AbortError" && err?.code !== "ERR_CANCELED") {
           console.error("Siparişler alınırken hata:", err);
           setError("Siparişler alınırken hata oluştu.");
@@ -78,7 +76,6 @@ export default function MyOrdersPage() {
     return () => controller.abort();
   }, []);
 
-  // 🟢 1) Veri henüz yüklenmediyse yalnızca loader
   if (orders === null && !error) {
     return (
       <Layout>
@@ -89,7 +86,6 @@ export default function MyOrdersPage() {
     );
   }
 
-  // 🟢 2) Gerçek hata varsa
   if (error) {
     return (
       <Layout>
@@ -100,7 +96,6 @@ export default function MyOrdersPage() {
     );
   }
 
-  // 🟢 3) Yükleme tamam ama sipariş yoksa
   if (orders && orders.length === 0) {
     return (
       <Layout>
@@ -110,10 +105,12 @@ export default function MyOrdersPage() {
       </Layout>
     );
   }
-
-  // 🟢 4) Siparişler listesi
   return (
     <Layout>
+      <Helmet>
+        <title>Medintera – Geçmiş Siparişler</title>
+        <meta name="description" content="Geçmiş Siparişler" />
+      </Helmet>
       <div className="w-full bg-white pb-10">
         <PageTitle
           title="Siparişlerim"
