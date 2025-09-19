@@ -9,4 +9,4 @@ import "./jquery-jvectormap.js";
 import "./jvector-map.js";
 import "./charts.js";
 import "./slickslider.min.js";
-import "./main.js";
+import "./main.ts";

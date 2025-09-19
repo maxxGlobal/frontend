@@ -10,6 +10,7 @@ if (!window.__sherahInit) window.__sherahInit = false;
 export function initMain() {
   if (window.__sherahInit) return;
   window.__sherahInit = true;
+  console.log("initMain çalıştı");
 
   /* Full Screen */
   const fullscreenButton = document.getElementById("sherah-header__full");
