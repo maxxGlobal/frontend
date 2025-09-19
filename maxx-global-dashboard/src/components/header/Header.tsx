@@ -15,7 +15,10 @@ export default function Header() {
 
   const msgRef = useRef<HTMLDivElement | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
-
+  const openSidebar = () => {
+    const el = document.querySelector(".admin-menu.sherah-smenu");
+    el?.classList.add("open");
+  };
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const t = e.target as Node;
@@ -27,12 +30,9 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // ✅ useAuth'dan gelen logout fonksiyonunu kullanın
   const handleLogout = () => {
-    logout(); // Bu otomatik olarak login sayfasına yönlendirecek
+    logout();
   };
-
-  // ✅ Kullanıcı yoksa loading durumu
   if (!user) {
     return (
       <header className="sherah-header">
@@ -58,34 +58,22 @@ export default function Header() {
           <div className="col-12">
             <div className="sherah-header__inner">
               <div className="sherah-header__middle">
-                <div className="sherah__sicon close-icon d-xl-none">
+                <div
+                  className="sherah__sicon close-icon d-lg-none"
+                  role="button"
+                  tabIndex={0}
+                  onClick={openSidebar}
+                >
                   <svg
                     fill="#fff"
-                    color="#fff"
                     height="28"
-                    stroke-width="1.5"
                     viewBox="0 0 24 24"
                     width="28"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <path
-                      d="M3 5H21"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M3 12H21"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M3 19H21"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <path d="M3 5H21" stroke="#fff" strokeLinecap="round" />
+                    <path d="M3 12H21" stroke="#fff" strokeLinecap="round" />
+                    <path d="M3 19H21" stroke="#fff" strokeLinecap="round" />
                   </svg>
                 </div>
                 <div className="sherah-header__left">
@@ -100,16 +88,7 @@ export default function Header() {
                       openMsg ? "is-open" : ""
                     }`}
                     onClick={() => setOpenMsg((v) => !v)}
-                  >
-                    <div className="sherah-dropdown-card sherah-dropdown-card__alarm sherah-border">
-                      <h3 className="sherah-dropdown-card__title sherah-border-btm">
-                        Recent Message
-                      </h3>
-                      <ul className="sherah-dropdown-card_list sherah-chatbox__list sherah-chatbox__list__header">
-                        {/* ... mesaj içeriği */}
-                      </ul>
-                    </div>
-                  </div>
+                  ></div>
 
                   <HeaderBell />
 
@@ -155,7 +134,6 @@ export default function Header() {
                     </div>
                     <div className="sherah-header__author--info sherah-dflex sherah-dflex__base">
                       <h4 className="sherah-header__author--title sherah-dflex sherah-dflex__column">
-                        {/* ✅ useAuth'dan gelen user bilgisini kullanın */}
                         {user.firstName} {user.lastName}
                         <span className="sherah-header__author--text">
                           {user.dealer?.name || "Admin"}
@@ -241,7 +219,7 @@ export default function Header() {
                             <h4 className="sherah-dropdown-card-name">
                               <button
                                 style={{ fontSize: 18 }}
-                                onClick={handleLogout} // ✅ useAuth'dan gelen logout'u kullanın
+                                onClick={handleLogout}
                                 className="underline fw-normal border-0 bg-transparent p-0"
                               >
                                 Çıkış Yap
@@ -252,7 +230,6 @@ export default function Header() {
                       </ul>
                     </div>
                   </div>
-                  {/* /Profil */}
                 </div>
               </div>
             </div>

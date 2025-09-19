@@ -4,59 +4,40 @@ import logo from "../../assets/img/medintera-logo.png";
 import { menuItems, type MenuItem } from "../config/menuConfig";
 import { hasPermission, type PermissionFlags } from "../../utils/permissions";
 
-// ✅ Geliştirilmiş yetki kontrol fonksiyonu
-const canShow = (node: PermissionFlags): boolean => {
-  // Hiç yetki tanımlanmamışsa herkese göster
-  if (!node.required && !node.anyOf?.length && !node.allOf?.length) {
-    return true;
-  }
+const canShow = (node: PermissionFlags): boolean =>
+  !node.required && !node.anyOf?.length && !node.allOf?.length
+    ? true
+    : hasPermission(node);
 
-  return hasPermission({
-    required: node.required,
-    anyOf: node.anyOf,
-    allOf: node.allOf,
-  });
-};
-
-// ✅ Ana menü öğesinin gösterilip gösterilmeyeceğini kontrol et
-const shouldShowMenuItem = (item: MenuItem): boolean => {
-  // Eğer alt menüsü yoksa, kendi yetkisine bak
-  if (!item.children?.length) {
-    return canShow(item);
-  }
-
-  // Alt menüsü varsa, en az bir alt menü görünebiliyorsa ana menüyü göster
-  const visibleChildren = item.children.filter(canShow);
-  return visibleChildren.length > 0;
-};
+const shouldShowMenuItem = (item: MenuItem): boolean =>
+  item.children?.length ? item.children.some(canShow) : canShow(item);
 
 export default function Sidebar() {
+  const closeSidebar = () => {
+    const el = document.querySelector(".admin-menu.sherah-smenu");
+    el?.classList.remove("open");
+  };
   return (
-    <div className="admin-menu">
+    <div className="admin-menu sherah-smenu">
       <div className="logo sherah-sidebar-padding ps-0">
         <NavLink to="/dashboard">
           <img className="sherah-logo__main" src={logo} alt="#" />
         </NavLink>
-        <div className="sherah__sicon close-icon d-xl-none">
+        <div
+          className="sherah__sicon close-icon d-lg-none"
+          role="button"
+          onClick={closeSidebar}
+        >
           <svg
-            enableBackground="new 0 0 32 32"
-            height="30px"
-            version="1.1"
+            height="30"
             viewBox="0 0 32 30"
-            width="30px"
+            width="30"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M17.459,16.014l8.239-8.194c0.395-0.391,0.395-1.024,0-1.414c-0.394-0.391-1.034-0.391-1.428,0  l-8.232,8.187L7.73,6.284c-0.394-0.395-1.034-0.395-1.428,0c-0.394,0.396-0.394,1.037,0,1.432l8.302,8.303l-8.332,8.286  c-0.394,0.391-0.394,1.024,0,1.414c0.394,0.391,1.034,0.391,1.428,0l8.325-8.279l8.275,8.276c0.394,0.395,1.034,0.395,1.428,0  c0.394-0.396,0.394-1.037,0-1.432L17.459,16.014z"
+              d="M17.459,16.014l8.239-8.194c.395-.391.395-1.024,0-1.414-.394-.391-1.034-.391-1.428,0l-8.232,8.187L7.73,6.284c-.394-.395-1.034-.395-1.428,0-.394.396-.394,1.037,0,1.432l8.302,8.303-8.332,8.286c-.394.391-.394,1.024,0,1.414.394.391,1.034.391,1.428,0l8.325-8.279 8.275,8.276c.394.395 1.034.395 1.428,0 .394-.396.394-1.037 0-1.432L17.459,16.014z"
               fill="#fff"
-              id="Close"
             />
-            <g />
-            <g />
-            <g />
-            <g />
-            <g />
-            <g />
           </svg>
         </div>
       </div>
@@ -65,10 +46,9 @@ export default function Sidebar() {
         <div className="menu-bar">
           <ul className="menu-bar__one sherah-dashboard-menu" id="sherahMenu">
             {menuItems.map((item) => {
-              if (!shouldShowMenuItem(item)) {
-                return null;
-              }
+              if (!shouldShowMenuItem(item)) return null;
               const isDropdown = !!item.children?.length;
+
               if (!isDropdown) {
                 return (
                   <li key={item.id}>
@@ -100,13 +80,9 @@ export default function Sidebar() {
                   </li>
                 );
               }
-              const visibleChildren = (item.children ?? []).filter((child) =>
-                canShow(child)
-              );
 
-              if (visibleChildren.length === 0) {
-                return null;
-              }
+              const visibleChildren = (item.children ?? []).filter(canShow);
+              if (!visibleChildren.length) return null;
 
               return (
                 <li key={item.id}>

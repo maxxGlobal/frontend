@@ -74,16 +74,9 @@ export default function DashboardLayout() {
 
   return (
     <div id="sherah-dark-light" className="sherah-body-area">
-      {/* Sidebar */}
-      <div className="sherah-smenu">
-        <Sidebar />
-      </div>
-
-      {/* Header */}
-      <Header />
-
-      {/* Sayfa içeriği */}
       <section className="sherah-adashboard sherah-show">
+        <Header />
+        <Sidebar />
         <div className="container">
           <div className="row">
             <div className="col-12 sherah-main__column">
