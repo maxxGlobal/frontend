@@ -60,6 +60,7 @@ export default function ProductList() {
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"top" | "popular" | "newest">("top");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [debouncedQ, setDebouncedQ] = useState(""); // ✅ Yeni debounced state
 
   const [page, setPage] = useState(0);
   const [size] = useState(12);
@@ -126,7 +127,7 @@ export default function ProductList() {
     }
   }
 
-  const fetchProducts = useCallback(
+ const fetchProducts = useCallback(
     async (signal?: AbortSignal) => {
       setLoading(true);
       setListError(null);
@@ -139,65 +140,26 @@ export default function ProductList() {
         };
 
         let res: PageResponse<ProductRow>;
-        if (q && q.trim() !== "") {
-          res = await listProductsBySearch(q.trim(), baseReq, { signal });
+        
+        // ✅ debouncedQ kullan, q değil
+        if (debouncedQ && debouncedQ.trim() !== "") {
+          res = await listProductsBySearch(debouncedQ.trim(), baseReq, { signal });
         } else if (selectedCat) {
           res = await listProductsByCategory(selectedCat, { signal });
         } else {
           res = await listProducts(baseReq, { signal });
         }
 
-        // Status filtresi (ALL/Aktif/Silindi)
-        let finalRes = res;
-        if (statusFilter !== "ALL") {
-          // bütün sayfalardaki ürünleri toplamak için
-          const allContent: ProductRow[] = [];
-          let allPage = 0;
-
-          do {
-            const resPage = await listProducts(
-              {
-                ...baseReq,
-                page: allPage,
-                size,
-              },
-              { signal }
-            );
-
-            allContent.push(...resPage.content);
-            allPage++;
-            if (allPage >= resPage.totalPages) break;
-          } while (true);
-
-          const filtered = allContent.filter((r) => {
-            const st = r.status ?? (r.isActive ? "AKTİF" : "SİLİNDİ");
-            return st === statusFilter;
-          });
-
-          finalRes = {
-            ...res,
-            content: filtered.slice(page * size, (page + 1) * size), // sayfalama uygula
-            numberOfElements: filtered.length,
-            totalElements: filtered.length,
-            totalPages: Math.ceil(filtered.length / size),
-            first: page === 0,
-            last: page >= Math.ceil(filtered.length / size) - 1,
-          };
-        }
-
-        setData(finalRes);
+        setData(res);
         setInitialLoad(false);
       } catch (e: any) {
-        if (isAbortError(e)) {
-          // İptal edilen istek hata sayılmaz; hiçbir şey gösterme
-          return;
-        }
+        if (isAbortError(e)) return;
         setListError("Ürünler yüklenemedi.");
       } finally {
         setLoading(false);
       }
     },
-    [q, page, size, sort, selectedCat, statusFilter]
+    [debouncedQ, page, size, sort, selectedCat, statusFilter] // ✅ debouncedQ dependency
   );
 
   // İlk/bağımlı yüklemeler
@@ -208,6 +170,17 @@ export default function ProductList() {
     return () => controller.abort();
   }, [fetchProducts]);
 
+   useEffect(() => {
+    const timer = setTimeout(() => {
+      // Minimum 3 karakter veya boş string
+      if (q.length >= 3 || q.length === 0) {
+        setDebouncedQ(q);
+        setPage(0); // Arama değiştiğinde sayfa sıfırla
+      }
+    }, 500); // 500ms bekle
+
+    return () => clearTimeout(timer);
+  }, [q]);
   // Edit sonrası tek satırı liste üzerinde güncelle (optimistic keep)
   const patchRowWithUpdated = (updated: Product) => {
     const movedOut =
@@ -245,6 +218,22 @@ export default function ProductList() {
       }
       return { ...prev, content };
     });
+  };
+
+   const handleSearchChange = (value: string) => {
+    setQ(value);
+    // Eğer 3 karakterden az ise ve boş değilse, uyarı göster
+    if (value.length > 0 && value.length < 3) {
+      // İsteğe bağlı: kullanıcıya feedback ver
+      console.log("Minimum 3 karakter gerekli");
+    }
+  };
+
+  // ✅ Temizleme fonksiyonu
+  const clearSearch = () => {
+    setQ("");
+    setDebouncedQ(""); // Hemen temizle
+    setPage(0);
   };
 
   // Silme onayı (soft delete → status: SİLİNDİ, isActive: false)
@@ -296,61 +285,70 @@ export default function ProductList() {
       <div className="col-xxl-9 col-lg-8 col-12">
         {/* Üst bar: arama + status filtre + ekle */}
         <div className="sherah-breadcrumb__right mg-top-30 d-flex flex-wrap gap-2 align-items-center justify-content-between">
-          <div className="sherah-breadcrumb__right--first d-flex align-items-center gap-2">
-            {/* Arama Alanı */}
-            <div
-              className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border"
-              style={{ minWidth: 240 }}
-            >
-              <span className="input-group-text">
-                <i className="fa-solid fa-magnifying-glass" />
-              </span>
-              <input
-                type="search"
-                className="form-control sherah-wc__form-input"
-                placeholder="Ürün adı / kodu ara…"
-                value={q}
-                onChange={(e) => {
-                  setQ(e.target.value);
-                  setPage(0);
-                }}
-              />
-              {q && (
-                <button
-                  className="btn btn-clear"
-                  onClick={() => {
-                    setQ("");
-                    setPage(0);
-                  }}
-                >
-                  <i className="fa-solid fa-xmark" />
-                </button>
-              )}
-            </div>
-
-            {/* Durum Filtresi */}
-            <select
-              className="form-select form-select-sm mt-2 p-2"
-              style={{ minWidth: 180, height: 46 }}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as StatusFilter);
-                setPage(0);
-              }}
-            >
-              <option value="ALL">Tümü</option>
-              <option value="AKTİF">Aktif</option>
-              <option value="SİLİNDİ">Silinen</option>
-            </select>
+        <div className="sherah-breadcrumb__right--first d-flex align-items-center gap-2">
+          <div
+            className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border"
+            style={{ minWidth: 240 }}
+          >
+            <span className="input-group-text">
+              <i className="fa-solid fa-magnifying-glass" />
+            </span>
+            <input
+              type="search"
+              className="form-control sherah-wc__form-input"
+              placeholder="Ürün adı / kodu ara… (min 3 karakter)"
+              value={q}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+            {q && (
+              <button
+                className="btn btn-clear"
+                onClick={clearSearch}
+                title="Aramayı temizle"
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            )}
           </div>
 
-          {/* Ürün Ekle Butonu */}
-          <div className="sherah-breadcrumb__right--second">
-            <a href="/product-add" className="sherah-btn sherah-gbcolor">
-              Ürün Ekle
-            </a>
-          </div>
+          {/* ✅ Arama durumu göstergesi (isteğe bağlı) */}
+          {q.length > 0 && q.length < 3 && (
+            <small className="text-muted">
+              En az 3 karakter girin
+            </small>
+          )}
+          
+          {debouncedQ && debouncedQ !== q && (
+            <small className="text-info">
+              <i className="fa-solid fa-spinner fa-spin me-1"></i>
+              Aranıyor...
+            </small>
+          )}
+
+          {/* Status Filter - mevcut kodunuz */}
+          <select
+            className="form-select form-select-sm mt-2 p-2"
+            style={{ minWidth: 180, height: 46 }}
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as StatusFilter);
+              setPage(0);
+            }}
+          >
+            <option value="ALL">Tümü</option>
+            <option value="AKTİF">Aktif</option>
+            <option value="SİLİNDİ">Silinen</option>
+          </select>
         </div>
+
+        {/* Ürün Ekle Butonu - mevcut kodunuz */}
+        <div className="sherah-breadcrumb__right--second">
+          <a href="/product-add" className="sherah-btn sherah-gbcolor">
+            Ürün Ekle
+          </a>
+        </div>
+      </div>
+
 
         {/* Grid / Spinner / Mesaj */}
         {loading ? (

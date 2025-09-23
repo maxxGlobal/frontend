@@ -87,8 +87,7 @@ export default function Dashboard() {
 
       {/* Rest of charts */}
       <RevenueTrendChart />
-      <MonthlyOrdersChart />
-      <DiscountEffectivenessChart />
+      <MonthlyOrdersChart /> 
     </div>
   );
 }

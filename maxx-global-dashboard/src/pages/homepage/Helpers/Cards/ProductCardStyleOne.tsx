@@ -50,7 +50,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   const d = datas;
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
 
-  /** ✅ Input gösterimi ve gerçek miktar ayrı state’ler */
+  /** ✅ Input gösterimi ve gerçek miktar ayrı state'ler */
   const [quantity, setQuantity] = useState<number>(1);
   const [inputValue, setInputValue] = useState<string>("1");
 
@@ -102,7 +102,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Link'in çalışmasını engelle
+    e.stopPropagation(); // Event bubbling'i durdur
     addToCart(d.id, quantity);
     Swal.fire({
       icon: "success",
@@ -112,7 +114,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     });
   };
 
-  async function handleFavorite() {
+  async function handleFavorite(e: React.MouseEvent) {
+    e.preventDefault(); // Link'in çalışmasını engelle
+    e.stopPropagation(); // Event bubbling'i durdur
     try {
       if (isFav) {
         setIsFav(false);
@@ -133,105 +137,129 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     }
   }
 
-  return (
-    <div
-      className="product-card-one w-full h-full bg-white relative group overflow-hidden rounded-[8px]"
-      style={{ boxShadow: "0px 15px 64px rgba(0,0,0,0.05)" }}
-    >
-      <div
-        className="product-card-img w-full h-[300px] bg-no-repeat bg-center bg-cover"
-        style={{ backgroundImage: `url(${buildImageUrl(d.primaryImageUrl)})` }}
-      />
+  // Miktar kontrollerinde event propagation'ı durdur
+  const handleQuantityEvent = (e: React.MouseEvent | React.FocusEvent | React.ChangeEvent) => {
+    e.stopPropagation();
+  };
 
-      <div className="product-card-details px-[30px] pb-[30px] relative">
-        <Link to={`/homepage/product/${d.id}`}>
+  return (
+    <Link to={`/homepage/product/${d.id}`} className="block">
+      <div
+        className="product-card-one w-full h-full bg-white relative group overflow-hidden rounded-[8px] cursor-pointer hover:shadow-lg transition-shadow duration-300"
+        style={{ boxShadow: "0px 15px 64px rgba(0,0,0,0.05)" }}
+      >
+        <div
+          className="product-card-img w-full h-[300px] bg-no-repeat bg-center bg-cover"
+          style={{ backgroundImage: `url(${buildImageUrl(d.primaryImageUrl)})` }}
+        />
+
+        <div className="product-card-details px-[30px] pb-[30px] relative">
           <p className="title my-2 text-[15px] font-600 text-qblack leading-[24px] line-clamp-2 hover:text-blue-600">
             {d.name}
           </p>
-        </Link>
 
-        {d.code && <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>}
-        {d.categoryName && (
-          <p className="text-[12px] text-qgray mb-2">
-            Kategori: {d.categoryName}
-          </p>
-        )}
-        {d.material !== undefined && d.material !== null && (
-          <p className="text-[12px] text-qgray mb-2">
-            Materyal: {d.material || "—"}
-          </p>
-        )}
+          {d.code && <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>}
+          {d.categoryName && (
+            <p className="text-[12px] text-qgray mb-2">
+              Kategori: {d.categoryName}
+            </p>
+          )}
+          {d.material !== undefined && d.material !== null && (
+            <p className="text-[12px] text-qgray mb-2">
+              Materyal: {d.material || "—"}
+            </p>
+          )}
 
-        {/* Fiyatlar */}
-        {d.prices?.length ? (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {d.prices.map((p) => (
-              <span
-                key={p.productPriceId}
-                className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
-              >
-                {p.amount.toLocaleString("tr-TR", {
-                  style: "currency",
-                  currency: p.currency || "TRY",
-                })}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
-        )}
+          {/* Fiyatlar */}
+          {d.prices?.length ? (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {d.prices.map((p) => (
+                <span
+                  key={p.productPriceId}
+                  className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
+                >
+                  {p.amount.toLocaleString("tr-TR", {
+                    style: "currency",
+                    currency: p.currency || "TRY",
+                  })}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
+          )}
 
-        {/* Sepete Ekle + Adet Kontrolü */}
-        <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 group-hover:bottom-[20px] transition-all">
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className="yellow-btn w-full h-full cursor-pointer"
-          >
-            Sepete Ekle
-          </button>
-          <div className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border">
-            <div className="flex justify-between items-center w-full">
-              <button
-                onClick={decrement}
-                type="button"
-                className="text-base text-qgray px-2"
-              >
-                –
-              </button>
+          {/* Sepete Ekle + Adet Kontrolü */}
+          <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 group-hover:bottom-[20px] transition-all">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="yellow-btn w-full h-full cursor-pointer"
+            >
+              Sepete Ekle
+            </button>
+            <div 
+              className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border"
+              onClick={handleQuantityEvent}
+            >
+              <div className="flex justify-between items-center w-full">
+                <button
+                  onClick={(e) => {
+                    handleQuantityEvent(e);
+                    decrement();
+                  }}
+                  type="button"
+                  className="text-base text-qgray px-2"
+                >
+                  –
+                </button>
 
-              <input
-                type="number"
-                min={1}
-                value={inputValue}
-                onChange={handleManualChange}
-                onFocus={handleFocus} // ✅ odakta 1’i seç/temizle
-                onBlur={handleBlur} // ✅ boşsa toparla
-                className="w-14 text-center border-none outline-none text-qblack"
-              />
+                <input
+                  type="number"
+                  min={1}
+                  value={inputValue}
+                  onChange={(e) => {
+                    handleQuantityEvent(e);
+                    handleManualChange(e);
+                  }}
+                  onFocus={(e) => {
+                    handleQuantityEvent(e);
+                    handleFocus(e);
+                  }}
+                  onBlur={(e) => {
+                    handleQuantityEvent(e);
+                    handleBlur();
+                  }}
+                  onClick={handleQuantityEvent}
+                  className="w-14 text-center border-none outline-none text-qblack"
+                />
 
-              <button
-                onClick={increment}
-                type="button"
-                className="text-base text-qgray"
-              >
-                +
-              </button>
+                <button
+                  onClick={(e) => {
+                    handleQuantityEvent(e);
+                    increment();
+                  }}
+                  type="button"
+                  className="text-base text-qgray"
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Hızlı erişim (favori) */}
-      <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
-        <button
-          type="button"
-          onClick={handleFavorite}
-          className="w-10 h-10 flex justify-center items-center bg-primarygray rounded"
-        >
-          <ThinLove fillColor={isFav ? "red" : "white"} />
-        </button>
+        {/* Hızlı erişim (favori) */}
+        <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
+          <button
+            type="button"
+            onClick={handleFavorite}
+            className="w-10 h-10 flex justify-center items-center bg-primarygray rounded"
+          >
+            <ThinLove fillColor={isFav ? "red" : "white"} />
+          </button>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

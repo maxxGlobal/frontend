@@ -48,19 +48,7 @@ export default function MonthlyOrdersChart() {
         pointBackgroundColor: "#9B2226",
         pointRadius: 2,
         pointHoverRadius: 7,
-      },
-      {
-        label: "Gelir",
-        data: orders.map((o) => o.revenue),
-        borderColor: "rgba(10,147,150,1)",
-        backgroundColor: "#94c3bcff",
-        tension: 0.4,
-        fill: true,
-        borderWidth: 6,
-        pointBackgroundColor: "rgba(10,147,150,1)",
-        pointRadius: 2,
-        pointHoverRadius: 7,
-      },
+      } ,
     ],
   };
 
