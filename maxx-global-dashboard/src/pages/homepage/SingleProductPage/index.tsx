@@ -9,12 +9,16 @@ import {
   type ProductDetail,
 } from "../../../services/products/getById";
 import { addToCart, updateQty, getCart } from "../../../services/cart/storage";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import { useCart } from "../Helpers/CartContext";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
 
+const MySwal = withReactContent(Swal);
 export default function ProductPage() {
   const { id: idParam } = useParams<{ id: string }>();
-
+  const { refresh } = useCart();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -36,14 +40,12 @@ export default function ProductPage() {
   };
   const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setInputValue(val); // her tuş vuruşunda ekrana yansır
+    setInputValue(val);
     const num = parseInt(val, 10);
     if (!isNaN(num) && num >= 1) {
-      setQuantity(num); // sadece geçerli sayı ise güncelle
+      setQuantity(num);
     }
   };
-
-  // Ürün detayı fetch
   useEffect(() => {
     const controller = new AbortController();
     (async () => {
@@ -59,8 +61,6 @@ export default function ProductPage() {
       try {
         const p = await getProductById(idNum, { signal: controller.signal });
         setProduct(p);
-
-        // Eğer ürün zaten sepetteyse, var olan quantity’i getir
         const cartItem = getCart().find((c) => c.id === idNum);
         if (cartItem) setQuantity(cartItem.qty);
       } catch (e: any) {
@@ -73,13 +73,17 @@ export default function ProductPage() {
     })();
     return () => controller.abort();
   }, [idParam]);
-
-  // Sepete ekleme
   const handleAddToCart = () => {
     if (!product) return;
     addToCart(product.id, quantity);
-    updateQty(product.id, quantity); // var ise qty güncelle
-    alert(`Ürün sepete eklendi (ID: ${product.id}, Adet: ${quantity})`);
+    updateQty(product.id, quantity);
+    refresh();
+    MySwal.fire({
+      icon: "success",
+      title: "Başarılı",
+      text: `${product.name} ürününden ${quantity} adet sepete eklendi`,
+      confirmButtonText: "Tamam",
+    });
   };
 
   const statusBadge = useMemo(() => {

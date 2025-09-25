@@ -7,7 +7,6 @@ type CampaignCountDownProps = {
 export default function CampaignCountDown({
   className,
 }: CampaignCountDownProps) {
-
   return (
     <div>
       <div className={`w-full lg:h-[560px] ${className || ""}`}>
@@ -22,9 +21,9 @@ export default function CampaignCountDown({
               }}
             >
               <Link to="/homepage/flash-sale">
-                <div className="w-full xl:p-12 p-5">
+                <div className="w-full xl:p-12 p-5 flex h-full items-center">
                   {/* title */}
-                  <div className="countdown-title mb-4">
+                  <div className="countdown-title mb-4 ">
                     <h1 className="lg:text-[54px] text-[38px] text-qyellow font-600">
                       İndirimli Ürünler
                     </h1>
@@ -32,43 +31,43 @@ export default function CampaignCountDown({
                       İndirimdeki Ürünlere Göz Atın
                       <br /> Fırsatları Kaçırmayın
                     </p>
+                    <div className="w-max mt-4">
+                      <div className="bg-qyellow banner-discount-btn flex group  space-x-2 items-center border border-qyellow px-4 py-2 rounded-xl transition hover:text-white hover:bg-qh2-green">
+                        <span className="text-sm font-600 tracking-wide leading-7 ">
+                          Alışveriş Yap
+                        </span>
+                        <span>
+                          <svg
+                            width="7"
+                            height="11"
+                            viewBox="0 0 7 11"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="group-hover"
+                          >
+                            <rect
+                              x="2.08984"
+                              y="0.636719"
+                              width="6.94219"
+                              height="1.54271"
+                              transform="rotate(45 2.08984 0.636719)"
+                              fill="#1D1D1D"
+                            />
+                            <rect
+                              x="7"
+                              y="5.54492"
+                              width="6.94219"
+                              height="1.54271"
+                              transform="rotate(135 7 5.54492)"
+                              fill="#1D1D1D"
+                            />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* button */}
-                  <div className="w-max">
-                    <div className="bg-qyellow banner-discount-btn flex group  space-x-2 items-center border border-qyellow px-4 py-2 rounded-xl transition hover:text-white hover:bg-qh2-green">
-                      <span className="text-sm font-600 tracking-wide leading-7 ">
-                        Alışveriş Yap
-                      </span>
-                      <span>
-                        <svg
-                          width="7"
-                          height="11"
-                          viewBox="0 0 7 11"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="group-hover"
-                        >
-                          <rect
-                            x="2.08984"
-                            y="0.636719"
-                            width="6.94219"
-                            height="1.54271"
-                            transform="rotate(45 2.08984 0.636719)"
-                            fill="#1D1D1D"
-                          />
-                          <rect
-                            x="7"
-                            y="5.54492"
-                            width="6.94219"
-                            height="1.54271"
-                            transform="rotate(135 7 5.54492)"
-                            fill="#1D1D1D"
-                          />
-                        </svg>
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </Link>
             </div>

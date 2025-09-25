@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  getCart,
-  removeFromCart,
-  clearCart,
-} from "../../../services/cart/storage";
+import { getCart, removeFromCart } from "../../../services/cart/storage";
 import { fetchProductsByIds } from "../../../services/products/bulk";
 import type { ProductRow } from "../../../types/product";
+import { useCart } from "../Helpers/CartContext";
 
 type CartProps = {
   className?: string;
@@ -14,6 +11,7 @@ type CartProps = {
 };
 
 export default function Cart({ className, type }: CartProps) {
+  const { items: cartItems } = useCart();
   const [items, setItems] = useState<{ product: ProductRow; qty: number }[]>(
     []
   );
@@ -24,7 +22,7 @@ export default function Cart({ className, type }: CartProps) {
     (async () => {
       try {
         setLoading(true);
-        const cart = getCart(); // [{id, qty}]
+        const cart = getCart();
         const ids = cart.map((c) => c.id);
         if (!ids.length) {
           setItems([]);
@@ -45,7 +43,7 @@ export default function Cart({ className, type }: CartProps) {
       }
     })();
     return () => controller.abort();
-  }, []);
+  }, [cartItems]);
 
   const handleRemove = (id: number) => {
     removeFromCart(id);
@@ -71,7 +69,6 @@ export default function Cart({ className, type }: CartProps) {
       } ${className || ""}`}
     >
       <div className="w-full h-full flex flex-col">
-        {/* Ürünler */}
         <div className="product-items max-h-[310px] overflow-y-auto">
           {items.length === 0 && (
             <div className="p-4 text-center text-gray-500">Sepet boş</div>

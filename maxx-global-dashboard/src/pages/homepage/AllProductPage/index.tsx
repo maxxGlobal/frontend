@@ -8,7 +8,6 @@ import type { PageRequest, PageResponse } from "../../../types/paging";
 import type { Product } from "../../../types/product";
 import { listProducts } from "../../../services/products/list";
 import { listProductsByCategory } from "../../../services/products/listByCategory";
-import { listMaterials } from "../../../services/products/listMaterials";
 import { listProductsBySearch } from "../../../services/products/search";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
@@ -18,34 +17,15 @@ export default function AllProductPage() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [page, setPage] = useState(0);
   const size = 12;
   const [totalPages, setTotalPages] = useState(0);
-
-  const [materials, setMaterials] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-
   const [sp] = useSearchParams();
   const catParam = sp.get("cat");
   const searchQuery = sp.get("search");
   const selectedCatId = catParam && catParam !== "0" ? Number(catParam) : null;
 
-  useEffect(() => {
-    const c = new AbortController();
-    (async () => {
-      try {
-        const data = await listMaterials(c.signal);
-        setMaterials(data);
-      } catch (e: any) {
-        if (e.code !== "ERR_CANCELED") {
-        }
-      }
-    })();
-    return () => c.abort();
-  }, []);
-
-  /** Ürünleri çek */
   useEffect(() => {
     const controller = new AbortController();
     (async () => {
@@ -64,18 +44,15 @@ export default function AllProductPage() {
 
         let pageRes: PageResponse<Product>;
         if (searchQuery && searchQuery.trim() !== "") {
-          // 🔎 Arama yapılmışsa search endpointini kullan
           pageRes = await listProductsBySearch(searchQuery, req, {
             signal: controller.signal,
           });
         } else if (selectedCatId) {
-          // Kategori seçilmişse kategoriye göre listele
           pageRes = await listProductsByCategory(selectedCatId, {
             ...req,
             signal: controller.signal,
           });
         } else {
-          // Normal tüm ürünler
           pageRes = await listProducts(req, { signal: controller.signal });
         }
 
@@ -93,7 +70,6 @@ export default function AllProductPage() {
     return () => controller.abort();
   }, [selectedCatId, page, searchQuery]);
 
-  /** Filtreleme */
   const visibleProducts = useMemo(() => {
     const base = (products ?? []).filter((p) => p.status === "AKTİF");
     if (!selectedMaterials.length) return base;
@@ -110,13 +86,6 @@ export default function AllProductPage() {
       setPage(newPage);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  };
-
-  const toggleMaterial = (mat: string) => {
-    setPage(0);
-    setSelectedMaterials((prev) =>
-      prev.includes(mat) ? prev.filter((m) => m !== mat) : [...prev, mat]
-    );
   };
 
   return (
