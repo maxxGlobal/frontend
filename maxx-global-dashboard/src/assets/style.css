@@ -2706,6 +2706,14 @@ Version:	1.0.0
 	font-size: 16px;
 }
 }
+
+@media only screen and (min-width: 768px) and (max-width: 1664px) {
+.sherah-table,.sherah-table--v1,.sherah-table-order{
+	width: 100%;
+	overflow: scroll;
+  }}
+
+
 @media only screen and  (max-width: 767px) {
 
 .sherah-table__product-title {
@@ -3351,10 +3359,13 @@ Version:	1.0.0
   
 .image-upload-group {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 30px;
+	justify-content: left;
 }
 .image-upload-group__single {
-	width: 25%;
+	flex: 1 1 250px;    
+  max-width: 300px;
 	border: 1px solid transparent;
 	display: flex;
 	justify-content: center;
@@ -3426,7 +3437,21 @@ Version:	1.0.0
 	.sherah-button-group .sherah-btn {
 		padding: 0;
 	}
+
   }
+    @media only screen and (max-width: 500px) {
+  	.image-upload-group__single {
+	flex: 1 1 250px;    
+    max-width:100%;
+	border: 1px solid transparent;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+  }
+
+
 /*======================================
 	End Products CSS
 ========================================*/

@@ -20,7 +20,7 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
 
   const [dealers, setDealers] = useState<DealerSummary[]>([]);
   const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [showPassword, setShowPassword] = useState(false); // ← yeni
+  const [showPassword, setShowPassword] = useState(false);
   const canManage = hasPermission({ anyOf: ["SYSTEM_ADMIN", "USER_MANAGE"] });
 
   useEffect(() => {
@@ -30,15 +30,14 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
       lastName: target.lastName,
       email: target.email,
       phoneNumber: target.phoneNumber ?? "",
-      address: target.address, // address bilgisi UserRow'da yok, boş başlatıyoruz
-      password: "", // password her zaman boş başlatılır (güvenlik)
+      address: target.address,
+      password: "",
       dealerId: target.dealer?.id,
-      roleId: target.roles?.[0]?.id, // tek rol varsa
+      roleId: target.roles?.[0]?.id,
       status: target.status == "AKTİF" ? "ACTIVE" : "DELETED",
     });
   }, [target]);
 
-  // açılınca listeleri çek
   useEffect(() => {
     if (!target) return;
     (async () => {

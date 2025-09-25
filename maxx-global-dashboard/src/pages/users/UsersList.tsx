@@ -7,6 +7,7 @@ import { deleteUser } from "../../services/users/delete";
 import { hasPermission } from "../../utils/permissions";
 import { type UserRow } from "../../types/user";
 import EditUserModal from "./components/EditUserModal";
+import Swal from "sweetalert2";
 
 export default function UsersList() {
   if (!hasPermission({ anyOf: ["SYSTEM_ADMIN", "USER_READ", "USER_MANAGE"] })) {
@@ -53,15 +54,18 @@ export default function UsersList() {
     try {
       setDeleting(true);
       await deleteUser(deleteTarget.id);
-
-      // son kayıt silinmişse sayfayı geri al; değilse yenile
       if (data?.content.length === 1 && page > 0) {
         setPage(Math.max(0, page - 1));
       } else {
         refresh();
       }
     } catch (e) {
-      alert("Kullanıcı silinirken bir hata oluştu.");
+      Swal.fire({
+        title: "Hata",
+        text: "Kullanıcı silinirken bir hata oluştu.",
+        icon: "error",
+        confirmButtonText: "Tamam",
+      });
     } finally {
       setDeleting(false);
       setDeleteTarget(null);

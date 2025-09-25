@@ -8,8 +8,6 @@ import { rejectOrder } from "../../services/orders/reject";
 import { shipOrder } from "../../services/orders/ship";
 import { downloadOrderPdf } from "../../services/orders/downloadPdf";
 import type { OrderResponse, EditOrderBody } from "../../types/order";
-import { editOrder } from "../../services/orders/edit";
-import { listSimpleDealers } from "../../services/dealers/listSimple";
 import emailIconUrl from "../../assets/img/email.svg";
 import Swal from "sweetalert2";
 import EditOrderModal from "./components/EditOrderModal";

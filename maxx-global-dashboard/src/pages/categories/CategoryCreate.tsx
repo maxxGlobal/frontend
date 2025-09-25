@@ -9,7 +9,7 @@ import {
   type CatNode,
 } from "../../services/categories/buildTree";
 import type { CategoryCreateRequest } from "../../types/category";
-// ✅ SweetAlert import'ları
+
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
@@ -17,7 +17,6 @@ const MySwal = withReactContent(Swal);
 
 type SelectOption = { value: number | null; label: string };
 
-// ✅ Türkçe field name mapping
 function getFieldDisplayName(fieldName: string): string {
   const fieldMap: Record<string, string> = {
     name: "Kategori Adı",
