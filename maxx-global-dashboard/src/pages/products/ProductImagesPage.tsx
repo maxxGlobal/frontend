@@ -24,12 +24,10 @@ export default function ProductImagesPage() {
   const [images, setImages] = useState<ProductImage[]>([]);
   const [busy, setBusy] = useState(false);
 
-  /** Listeyi yeniler: yalnızca tek bir kapak kalır */
   async function refresh() {
     if (productId == null) return;
     const list = await listProductImages(productId);
 
-    // UI güvenliği: sadece ilk kapak kalsın
     let primaryFound = false;
     const normalized = list.map((img) => {
       const isPrimary = !!img.isPrimary && !primaryFound;
@@ -44,7 +42,6 @@ export default function ProductImagesPage() {
     refresh();
   }, [productId]);
 
-  /** Yeni resim yükleme */
   async function handleUpload() {
     if (productId == null) {
       MySwal.fire({
@@ -61,7 +58,6 @@ export default function ProductImagesPage() {
       await uploadProductImages(productId, files);
       setFiles([]);
 
-      // Güncel listeyi kapak kontrolü ile al
       await refresh();
 
       MySwal.fire({
@@ -90,36 +86,37 @@ export default function ProductImagesPage() {
   return (
     <div className="product-form-box sherah-border">
       <h3 className="sherah-card__title py-3">Ürün Resimleri</h3>
-
-      {/* Yükleme Alanı */}
-      <div className="mb-3">
-        <label className="form-label">Yeni Resim Yükle</label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          className="form-control w-50 h-auto"
-          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-        />
-        <button
-          className="sherah-btn sherah-btn__primary bg-primary mt-3"
-          disabled={busy || files.length === 0}
-          onClick={handleUpload}
-        >
-          {busy ? "Yükleniyor…" : "Yükle"}
-        </button>
+      <div className="row">
+        <div className="col-lg-4">
+          <div className="mb-3">
+            <label className="form-label">Yeni Resim Yükle</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="form-control lg:w-50 h-auto"
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+            />
+            <button
+              className="sherah-btn sherah-btn__primary bg-primary mt-3"
+              disabled={busy || files.length === 0}
+              onClick={handleUpload}
+            >
+              {busy ? "Yükleniyor…" : "Yükle"}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Resim Listesi */}
       {images.length === 0 ? (
         <div className="text-muted">Henüz resim yok.</div>
       ) : (
         <div className="form-group">
-          <div className="image-upload-group flex-wrap">
+          <div className="image-upload-group row ms-0">
             {images.map((img) => (
               <div
                 key={img.id}
-                className="image-upload-group__single border p-3 rounded-3 col-lg-4 col-md-12 col-12"
+                className="image-upload-group__single border p-3 rounded-3 col-lg-3 col-md-12 col-12"
               >
                 <div className="d-grid">
                   <img src={img.imageUrl} alt="" className="card-img-top" />

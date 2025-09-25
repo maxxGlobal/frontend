@@ -196,7 +196,6 @@ export default function CategoriesList() {
 
       refresh();
     } catch (e: any) {
-      // ✅ Hata mesajını SweetAlert ile göster
       let errorMessage = "Kategori geri yüklenemedi.";
 
       if (e?.response?.data?.message) {

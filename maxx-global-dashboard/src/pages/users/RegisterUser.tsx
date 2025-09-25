@@ -3,7 +3,7 @@ import { registerUser } from "../../services/users/register";
 import { hasPermission } from "../../utils/permissions";
 import { getDealerSummaries } from "../../services/dealers";
 import type { DealerSummary } from "../../types/dealer";
-
+import Swal from "sweetalert2";
 import { getActiveRolesSimple } from "../../services/roles";
 import type { RoleOption } from "../../types/role";
 
@@ -13,7 +13,7 @@ export default function RegisterUser() {
   if (!hasPermission({ anyOf: ["SYSTEM_ADMIN", "USER_READ", "USER_MANAGE"] })) {
     return (
       <div className="alert alert-danger m-3">
-        Bu sayfaya erişim yetkiniz yok.
+        Swal.fire("Uyarı", "Bu sayfaya erişim yetkiniz yok.", "warning");
       </div>
     );
   }
@@ -127,7 +127,6 @@ export default function RegisterUser() {
     }
 
     try {
-      // ✅ dealerId sadece değer varsa gönderilir
       const payload: any = {
         firstName: form.firstName,
         lastName: form.lastName,
@@ -144,8 +143,12 @@ export default function RegisterUser() {
       }
 
       await registerUser(payload);
-
-      alert("Kullanıcı oluşturuldu");
+      Swal.fire({
+        title: "Başarılı",
+        text: "Kullanıcı oluşturuldu",
+        icon: "success",
+        confirmButtonText: "Tamam",
+      });
       setForm({
         firstName: "",
         lastName: "",

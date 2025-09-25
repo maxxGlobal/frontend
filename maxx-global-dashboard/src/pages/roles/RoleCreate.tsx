@@ -4,9 +4,8 @@ import { hasPermission } from "../../utils/permissions";
 import { listPermissions } from "../../services/permissions";
 import { createRole } from "../../services/roles";
 import type { Permission } from "../../types/permission";
-
+import Swal from "sweetalert2";
 export default function RoleCreate() {
-  // sadece SYSTEM_ADMIN erişsin
   if (!hasPermission({ required: "SYSTEM_ADMIN" })) {
     return (
       <div className="alert alert-danger m-3">
@@ -22,8 +21,6 @@ export default function RoleCreate() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // permissions yükle
   useEffect(() => {
     (async () => {
       try {
@@ -38,7 +35,6 @@ export default function RoleCreate() {
     })();
   }, []);
 
-  // arama filtresi
   const visiblePerms = useMemo(() => {
     const q = permQuery.trim().toLowerCase();
     if (!q) return perms;
@@ -49,7 +45,6 @@ export default function RoleCreate() {
     );
   }, [permQuery, perms]);
 
-  // seçim helpers
   const toggle = (id: number) =>
     setSelected((s) =>
       s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
@@ -65,7 +60,6 @@ export default function RoleCreate() {
       prev.filter((id) => !visiblePerms.some((p) => p.id === id))
     );
 
-  // kaydet
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return setError("Rol adı zorunludur.");
@@ -75,7 +69,13 @@ export default function RoleCreate() {
       setSaving(true);
       setError(null);
       await createRole({ name: name.trim(), permissionIds: selected });
-      alert("Rol oluşturuldu.");
+      Swal.fire({
+        title: "Başarılı",
+        text: "Rol oluşturuldu.",
+        icon: "success",
+        confirmButtonText: "Tamam",
+      });
+
       setName("");
       setSelected([]);
       setPermQuery("");
@@ -153,7 +153,7 @@ export default function RoleCreate() {
             <h3 className="sherah-card__title mb-3 mt-lg-4 mt-md-3">
               Yetkiler
             </h3>
-            {/* Grid (checkbox + label) */}
+
             {loading ? (
               <div className="text-center">
                 <div className="spinner-border" role="status">
@@ -199,7 +199,6 @@ export default function RoleCreate() {
             )}
           </div>
 
-          {/* Kaydet */}
           <div className="col-12 mt-2">
             <button
               type="submit"

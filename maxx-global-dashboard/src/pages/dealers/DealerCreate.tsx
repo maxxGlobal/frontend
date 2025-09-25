@@ -9,7 +9,9 @@ import { hasPermission } from "../../utils/permissions";
 import Swal from "sweetalert2";
 
 export default function DealerCreate() {
-  const canManage = hasPermission({  anyOf: ["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"]});
+  const canManage = hasPermission({
+    anyOf: ["DEALER_READ", "DEALER_MANAGE", "SYSTEM_ADMIN"],
+  });
   const navigate = useNavigate();
   if (!canManage) {
     return (
@@ -54,7 +56,7 @@ export default function DealerCreate() {
           title: "Başarılı",
           text: "Bayi oluşturuldu.",
           icon: "success",
-          confirmButtonText: "Tamam", // ✅ buton adı değişti
+          confirmButtonText: "Tamam",
         });
         navigate(`/dealers/${dealerId}/prices`);
       } else {
