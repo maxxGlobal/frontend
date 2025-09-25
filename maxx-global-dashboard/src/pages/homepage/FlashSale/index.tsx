@@ -174,10 +174,9 @@ export default function FlashSale() {
           return;
         }
         const discountList = await listDiscountsByDealer(dealerId);
-        const activeDiscounts = discountList.filter(
-          (d) => d.isActive && d.isValidNow
-        );
-
+const activeDiscounts = discountList.filter(
+  (d) => d.isActive === true && !d.isExpired && !d.isNotYetStarted
+);
         setDiscounts(activeDiscounts);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {

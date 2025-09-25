@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import NotificationIcon from "./NotificationIcon"; // dosya yolunu doğru ayarla
 
 import {
   getUnreadCount,
@@ -247,29 +248,27 @@ export default function HeaderBell() {
                   return (
                     <li
                       key={n.id}
-                      className={`notif-item ${
-                        unread ? "is-unread" : "is-read"
-                      }`}
+                      className={`notif-item ${unread ? "is-unread" : "is-read"
+                        }`}
                       onClick={() => handleOpen(n)}
                       role={n.actionUrl ? "button" : undefined}
                       style={{ cursor: n.actionUrl ? "pointer" : "default" }}
                     >
-                      <div className="d-flex align-items-center gap-3">
-                        <div
-                          className="notif-avatar"
-                          style={{ backgroundColor: colorFor(n) }}
-                          aria-hidden
-                        >
-                          {initialOf(n)}
-                        </div>
-
-                        <div className="notif-body">
-                          <div className="notif-title">{n.title}</div>
-                          {n.message && (
-                            <div className="notif-desc">{n.message}</div>
-                          )}
-                        </div>
+                      <div className="flex items-center justify-center" style={{ width: 32, height: 32 }} aria-hidden>
+                        {n.icon ? (
+                          <NotificationIcon icon={n.icon} size={20} color="#555" />
+                        ) : (
+                          <span className="text-sm font-semibold text-gray-700">
+                            {initialOf(n)}
+                          </span>
+                        )}
                       </div>
+
+                      <div className="notif-body">
+                        <div className="notif-title">{n.title}</div>
+                        {n.message && <div className="notif-desc">{n.message}</div>}
+                      </div>
+
 
                       <div className="notif-time">
                         {formatTimeAgo(n.createdAt)} önce

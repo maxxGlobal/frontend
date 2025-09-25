@@ -1,8 +1,7 @@
 // src/pages/orders/OrderDetailPage.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOrderById } from "../../services/orders/getOrderById";
-import { listProductImages } from "../../services/products/images/list";
+import { getOrderById } from "../../services/orders/getOrderById"; 
 import { approveOrder } from "../../services/orders/approve";
 import { rejectOrder } from "../../services/orders/reject";
 import { shipOrder } from "../../services/orders/ship";
@@ -24,42 +23,29 @@ export default function OrderDetailPage() {
     null
   );
   useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const data = await getOrderById(Number(id));
-        setOrder(data);
+  async function load() {
+    try {
+      setLoading(true);
+      const data = await getOrderById(Number(id));
+      setOrder(data);
 
-        const results = await Promise.all(
-          data.items.map(async (it) => {
-            try {
-              const imgs = await listProductImages(it.productId);
-              return {
-                productId: it.productId,
-                url: imgs[0]?.imageUrl ?? "/src/assets/img/resim-yok.jpg",
-              };
-            } catch {
-              return {
-                productId: it.productId,
-                url: "/src/assets/img/resim-yok.jpg",
-              };
-            }
-          })
-        );
+      // primaryImageUrl doğrudan order item içinden geliyor
+      const map: Record<number, string> = {};
+      data.items.forEach((it) => {
+        map[it.productId] =
+          it.primaryImageUrl ?? "/src/assets/img/resim-yok.jpg";
+      });
+      setImages(map);
 
-        const map: Record<number, string> = {};
-        results.forEach((r) => {
-          map[r.productId] = r.url;
-        });
-        setImages(map);
-      } catch (error) {
-        Swal.fire("Hata", "Sipariş bulunamadı", "error");
-      } finally {
-        setLoading(false);
-      }
+    } catch (error) {
+      Swal.fire("Hata", "Sipariş bulunamadı", "error");
+    } finally {
+      setLoading(false);
     }
-    if (id) load();
-  }, [id]);
+  }
+  if (id) load();
+}, [id]);
+
 
   // Helper functions
   async function getNote(title: string, def: string) {

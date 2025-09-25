@@ -639,7 +639,7 @@ export default function CartPage() {
                         <div className="coupon__detail text-sm text-gray-600">
                           <div className="coupon__price text-qh2-green">
                             {d.discountValue}{" "}
-                            {d.discountType === "PERCENTAGE"
+                            {d.discountType === "Yüzdesel"
                               ? "%"
                               : dealerCurrency}
                           </div>

@@ -109,8 +109,7 @@ export function getCurrentUser(): User | null {
   const localUser = localStorage.getItem('user');
   if (localUser) {
     try {
-      const parsed = JSON.parse(localUser) as User;
-      console.log('👤 Current user from localStorage:', parsed);
+      const parsed = JSON.parse(localUser) as User; 
       return parsed;
     } catch (error) {
       console.error('❌ Failed to parse user from localStorage:', error);
@@ -137,16 +136,14 @@ export function getToken(): string | null {
   // Önce cookie'ye bak
   const cookieToken = getCookie('token');
   if (cookieToken) {
-    const formatted = cookieToken.startsWith('Bearer ') ? cookieToken : `Bearer ${cookieToken}`;
-    console.log('🔑 Token from cookie:', formatted.substring(0, 20) + '...');
+    const formatted = cookieToken.startsWith('Bearer ') ? cookieToken : `Bearer ${cookieToken}`; 
     return formatted;
   }
   
   // Fallback: localStorage
   const localToken = localStorage.getItem('token');
   if (localToken) {
-    const formatted = localToken.startsWith('Bearer ') ? localToken : `Bearer ${localToken}`;
-    console.log('🔑 Token from localStorage:', formatted.substring(0, 20) + '...');
+    const formatted = localToken.startsWith('Bearer ') ? localToken : `Bearer ${localToken}`; 
     return formatted;
   }
   
@@ -168,11 +165,9 @@ export function isTokenValid(): boolean {
     const payload = JSON.parse(atob(parts[1]));
     const currentTime = Math.floor(Date.now() / 1000);
     
-    const valid = payload.exp ? payload.exp > currentTime : true;
-    console.log('🔐 Token valid:', valid);
+    const valid = payload.exp ? payload.exp > currentTime : true; 
     return valid;
-  } catch (error) {
-    console.error('❌ Token validation error:', error);
+  } catch (error) { 
     return false;
   }
 }
@@ -192,16 +187,7 @@ export function isAuthenticated(): boolean {
 }
 
 // Debug helper
-export function debugAuthState(): void {
-  console.group('🔍 Auth State Debug');
-  console.log('Token (cookie):', getCookie('token'));
-  console.log('Token (localStorage):', localStorage.getItem('token'));
-  console.log('User (localStorage):', localStorage.getItem('user'));
-  console.log('User (sessionStorage):', sessionStorage.getItem('user'));
-  console.log('IsDealer:', localStorage.getItem('isDealer'));
-  console.log('Current User Object:', getCurrentUser());
-  console.log('Is Authenticated:', isAuthenticated());
-  console.groupEnd();
+export function debugAuthState(): void { 
 }
 
 // Export for debugging in console

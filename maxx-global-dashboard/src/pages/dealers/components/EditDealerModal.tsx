@@ -161,13 +161,18 @@ export default function EditDealerModal({ dealer, onClose, onSaved }: Props) {
               </div>
               <div className="mb-2">
                 <label className="form-label">Para Birimi</label>
-                <input
+                <select
                   className="form-control"
                   value={form.preferredCurrency || ""}
                   onChange={(e) =>
                     setForm({ ...form, preferredCurrency: e.target.value })
                   }
-                />
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="TRY">TRY (₺)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
               </div>
             </div>
 

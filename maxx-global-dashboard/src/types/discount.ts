@@ -1,6 +1,6 @@
 // src/types/discount.ts
 
-export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT";
+export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | "Yüzdesel" | "Sabit Tutar";
 
 export interface DiscountProduct {
   id: number;
@@ -23,6 +23,12 @@ export interface DiscountDealer {
   preferredCurrency: string;
 }
 
+// ✅ YENİ - Kategori için interface
+export interface DiscountCategory {
+  id: number;
+  name: string;
+}
+
 export interface Discount {
   id: number;
   name: string;
@@ -33,12 +39,15 @@ export interface Discount {
   endDate: string;
   applicableProducts: DiscountProduct[];
   applicableDealers: DiscountDealer[];
+  applicableCategories?: DiscountCategory[]; // ✅ YENİ - Kategori desteği
   isActive: boolean;
   isValidNow: boolean;
   minimumOrderAmount?: number;
   maximumDiscountAmount?: number;
   createdDate: string;
   updatedDate: string;
+  isExpired:boolean;
+  isNotYetStarted: boolean
   status: string;
 }
 
@@ -51,6 +60,7 @@ export interface DiscountCreateRequest {
   endDate: string;
   productIds: number[];
   dealerIds: number[];
+  categoryIds?: number[]; // ✅ YENİ - Kategori ID'leri
   isActive: boolean;
   minimumOrderAmount?: number;
   maximumDiscountAmount?: number;
@@ -59,15 +69,6 @@ export interface DiscountCreateRequest {
 }
 
 export interface DiscountUpdateRequest extends DiscountCreateRequest {}
-
-export interface DiscountCalculationRequest {
-  productId: number;
-  dealerId: number;
-  quantity: number;
-  unitPrice: number;
-  includeDiscountIds?: number[];
-  excludeDiscountIds?: number[];
-}
 
 export interface DiscountCalculationRequest {
   productId: number;

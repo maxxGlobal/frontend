@@ -1,52 +1,28 @@
 // src/components/PopoverBadge.tsx
 import { useEffect, useRef, useState } from "react";
 
-type Item = { id: number; name?: string; description?: string | null };
+type PopoverBadgeProductProps = {
+  items: { id: number; name?: string }[];
+  type: "product" | "category";
+};
 
-export default function PopoverBadge({ items }: { items: Item[] }) {
+export default function PopoverBadgeProduct({ items, type }: PopoverBadgeProductProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const timerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!wrapperRef.current) return;
-      if (!wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
-  }, []);
-
-  const onEnter = () => {
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    setOpen(true);
-  };
-  const onLeave = () => {
-    timerRef.current = window.setTimeout(() => setOpen(false), 120);
-  };
 
   const count = items?.length ?? 0;
+  if (count === 0) return <span className="text-muted">-</span>;
 
+  const label = type === "product" ? "Ürünler" : "Kategoriler"; 
   return (
-    <div
-      ref={wrapperRef}
-      className="position-relative d-inline-block"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-    >
+    <div ref={wrapperRef} className="position-relative d-inline-block">
       <button
         type="button"
         className="bg-success border-0"
-        style={{
-          padding: "0.35rem 0.5rem",
-          cursor: count ? "pointer" : "default",
-          fontSize: 12,
-        }}
-        onClick={() => count && setOpen((s) => !s)}
+        style={{ padding: "0.35rem 0.5rem", cursor: "pointer", fontSize: 12 }}
+        onClick={() => setOpen((s) => !s)}
       >
-        {count} ürün
+        {label} ({count})
       </button>
 
       {open && count > 0 && (
@@ -66,18 +42,12 @@ export default function PopoverBadge({ items }: { items: Item[] }) {
             padding: "10px 12px",
             zIndex: 50,
           }}
-          onMouseEnter={onEnter}
-          onMouseLeave={onLeave}
         >
           <div className="d-flex justify-content-between align-items-center mb-2">
             <strong className="small mb-0 text-secondary">
-              Ürünler ({count})
+              {label} ({count})
             </strong>
-            <button
-              type="button"
-              className="btn btn-sm bg-danger"
-              onClick={() => setOpen(false)}
-            >
+            <button type="button" className="btn btn-sm bg-danger" onClick={() => setOpen(false)}>
               Kapat
             </button>
           </div>

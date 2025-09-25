@@ -50,25 +50,23 @@ export default function DealersTable({
   return (
     <div className="sherah-table p-0">
       <table className="sherah-table__main sherah-table__main-v3">
-        <thead className="sherah-table__head">
-          <tr>
-            <th
-              onClick={() => toggleSort("name")}
-              style={{ cursor: "pointer" }}
-            >
-              <span className="me-2">Ad</span>
-              {sortIcon("name")}
-            </th>
-            <th>E-posta</th>
-            <th>Telefon</th>
+       <thead className="sherah-table__head">
+  <tr>
+    <th
+      onClick={() => toggleSort("name")}
+      style={{ cursor: "pointer" }}
+    >
+      <span className="me-2">Ad</span>
+      {sortIcon("name")}
+    </th>
+    <th>E-posta</th>
+    <th>Telefon</th>
+    <th>Para Birimi</th> {/* ✅ Tek sütun */}
+    <th>Durum</th>
+    {canManage && <th>Aksiyon</th>}
+  </tr>
+</thead>
 
-            <th>TRY</th>
-            <th>USD</th>
-            <th>EUR</th>
-            <th>Durum</th>
-            {canManage && <th>Aksiyon</th>}
-          </tr>
-        </thead>
         <tbody className="sherah-table__body">
           {data.content.length ? (
             data.content.map((d) => (
@@ -92,27 +90,16 @@ export default function DealersTable({
                     </p>
                   </div>
                 </td>
-                <td>
-                  <div className="sherah-table__product-content">
-                    <p className="sherah-table__product-desc">
-                      {d.preferredCurrency === "TRY" ? "TRY (₺)" : "-"}
-                    </p>
-                  </div>
-                </td>
-                <td>
-                  <div className="sherah-table__product-content">
-                    <p className="sherah-table__product-desc">
-                      {d.preferredCurrency === "USD" ? "USD ($)" : "-"}
-                    </p>
-                  </div>
-                </td>
-                <td>
-                  <div className="sherah-table__product-content">
-                    <p className="sherah-table__product-desc">
-                      {d.preferredCurrency === "EUR" ? "EUR (€)" : "-"}
-                    </p>
-                  </div>
-                </td>
+                 <td>
+      <div className="sherah-table__product-content">
+        <p className="sherah-table__product-desc">
+          {d.preferredCurrency === "TRY" ? "TRY (₺)" : 
+           d.preferredCurrency === "USD" ? "USD ($)" : 
+           d.preferredCurrency === "EUR" ? "EUR (€)" : 
+           d.preferredCurrency || "—"}
+        </p>
+      </div>
+    </td>
                 <td>
                   <div className="sherah-table__product-content">
                     {statusBadge(d.status)}
