@@ -8,10 +8,10 @@ import { addFavorite } from "../../../../services/favorites/add";
 import { removeFavorite } from "../../../../services/favorites/remove";
 import type { Product } from "../../../../types/product";
 import { addToCart } from "../../../../services/cart/storage";
+import { useCart } from "../../Helpers/CartContext";
 
 type Props = {
   datas: Product;
-  /** Üst sayfadan gelen seçili malzemeler */
   filterMaterials?: string[];
 };
 
@@ -22,8 +22,6 @@ function buildImageUrl(u?: string | null) {
   if (!u || u.trim() === "") return PUBLIC_FALLBACK;
   return u;
 }
-
-/** Ürün seçili malzemelerden en az biriyle eşleşiyor mu? */
 function matchesMaterials(prod: Product, selected: string[] = []) {
   if (!selected.length) return true;
 
@@ -45,12 +43,10 @@ function matchesMaterials(prod: Product, selected: string[] = []) {
 export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   if (datas.status !== "AKTİF") return null;
   if (!matchesMaterials(datas, filterMaterials)) return null;
-
+  const { refresh } = useCart();
   const qc = useQueryClient();
   const d = datas;
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
-
-  /** ✅ Input gösterimi ve gerçek miktar ayrı state'ler */
   const [quantity, setQuantity] = useState<number>(1);
   const [inputValue, setInputValue] = useState<string>("1");
 
@@ -72,14 +68,11 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
 
   const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setInputValue(val); // her tuş vuruşunu hemen göster
+    setInputValue(val);
     const num = parseInt(val, 10);
     if (!isNaN(num) && num >= 1) setQuantity(num);
   };
-
-  // 👇 Odaklanınca (mobil/safari dahil) tüm metni seç ve varsayılan "1" ise temizle
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    // Seçimi güvenceye almak için kısa gecikme
     setTimeout(() => {
       try {
         e.target.select();
@@ -87,14 +80,12 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     }, 0);
 
     if (inputValue === "1") {
-      setInputValue(""); // direkt yazmaya başlayınca 1 yerine kendi değerin girilsin
+      setInputValue("");
     }
   };
-
-  // 👇 Boş bırakılırsa güvenli şekilde toparla
   const handleBlur = () => {
     if (inputValue.trim() === "") {
-      setInputValue(String(quantity || 1)); // en az 1
+      setInputValue(String(quantity || 1));
     } else {
       const n = Math.max(1, parseInt(inputValue, 10) || 1);
       setQuantity(n);
@@ -103,20 +94,21 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Link'in çalışmasını engelle
-    e.stopPropagation(); // Event bubbling'i durdur
+    e.preventDefault();
+    e.stopPropagation();
     addToCart(d.id, quantity);
+    refresh();
     Swal.fire({
       icon: "success",
       title: "Sepete eklendi",
-      timer: 1200,
-      showConfirmButton: false,
+      text: `${d.name} ürününden ${quantity} adet sepete eklendi`,
+      confirmButtonText: "Tamam",
     });
   };
 
   async function handleFavorite(e: React.MouseEvent) {
-    e.preventDefault(); // Link'in çalışmasını engelle
-    e.stopPropagation(); // Event bubbling'i durdur
+    e.preventDefault();
+    e.stopPropagation();
     try {
       if (isFav) {
         setIsFav(false);
@@ -136,9 +128,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       });
     }
   }
-
-  // Miktar kontrollerinde event propagation'ı durdur
-  const handleQuantityEvent = (e: React.MouseEvent | React.FocusEvent | React.ChangeEvent) => {
+  const handleQuantityEvent = (
+    e: React.MouseEvent | React.FocusEvent | React.ChangeEvent
+  ) => {
     e.stopPropagation();
   };
 
@@ -150,7 +142,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       >
         <div
           className="product-card-img w-full h-[300px] bg-no-repeat bg-center bg-cover"
-          style={{ backgroundImage: `url(${buildImageUrl(d.primaryImageUrl)})` }}
+          style={{
+            backgroundImage: `url(${buildImageUrl(d.primaryImageUrl)})`,
+          }}
         />
 
         <div className="product-card-details px-[30px] pb-[30px] relative">
@@ -158,7 +152,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
             {d.name}
           </p>
 
-          {d.code && <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>}
+          {d.code && (
+            <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>
+          )}
           {d.categoryName && (
             <p className="text-[12px] text-qgray mb-2">
               Kategori: {d.categoryName}
@@ -198,7 +194,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
             >
               Sepete Ekle
             </button>
-            <div 
+            <div
               className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border"
               onClick={handleQuantityEvent}
             >
