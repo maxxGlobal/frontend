@@ -50,6 +50,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   const [quantity, setQuantity] = useState<number>(1);
   const [inputValue, setInputValue] = useState<string>("1");
   const [hiddenAfterClick, setHiddenAfterClick] = useState(false);
+  
   const increment = () => {
     setQuantity((p) => {
       const n = p + 1;
@@ -72,6 +73,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     const num = parseInt(val, 10);
     if (!isNaN(num) && num >= 1) setQuantity(num);
   };
+  
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setTimeout(() => {
       try {
@@ -83,6 +85,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       setInputValue("");
     }
   };
+  
   const handleBlur = () => {
     if (inputValue.trim() === "") {
       setInputValue(String(quantity || 1));
@@ -129,16 +132,29 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       });
     }
   }
-  const handleQuantityEvent = (
-    e: React.MouseEvent | React.FocusEvent | React.ChangeEvent
-  ) => {
+
+  // Miktar alanları için event propagation'ı durdur
+  const stopPropagation = (e: React.MouseEvent | React.FocusEvent | React.ChangeEvent) => {
     e.stopPropagation();
+  };
+
+  // Card container'a tıklandığında ürün detayına git
+  const handleCardClick = () => {
+    // React Router ile yönlendirme yap ki state korunsun
+    const currentUrl = new URL(window.location.href);
+    const searchParams = currentUrl.searchParams.toString();
+    const productUrl = `/homepage/product/${d.id}${searchParams ? `?${searchParams}` : ''}`;
+    
+    // Navigate kullanarak yönlendirme yap
+    window.history.pushState(null, '', productUrl);
+    window.location.href = productUrl;
   };
 
   return (
     <div
       className="product-card-one w-full h-full bg-white relative group overflow-hidden rounded-[8px] cursor-pointer hover:shadow-lg transition-shadow duration-300"
       style={{ boxShadow: "0px 15px 64px rgba(0,0,0,0.05)" }}
+      onClick={handleCardClick}
     >
       <div
         className="product-card-img w-full h-[300px] bg-no-repeat bg-center bg-cover"
@@ -148,11 +164,10 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       />
 
       <div className="product-card-details px-[30px] pb-[30px] relative">
-        <Link to={`/homepage/product/${d.id}`} className="block">
-          <p className="title my-2 text-[15px] font-600 text-qblack leading-[24px] line-clamp-2 hover:text-blue-600">
-            {d.name}
-          </p>
-        </Link>
+        {/* Link'i kaldırıyoruz çünkü card'ın kendisi tıklanabilir */}
+        <p className="title my-2 text-[15px] font-600 text-qblack leading-[24px] line-clamp-2 hover:text-blue-600">
+          {d.name}
+        </p>
 
         {d.code && <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>}
         {d.categoryName && (
@@ -188,6 +203,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
             className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2
                -bottom-20 opacity-0 group-hover:bottom-[20px] group-hover:opacity-100
                transition-all duration-300"
+            onClick={stopPropagation}
           >
             <button
               type="button"
@@ -198,12 +214,12 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
             </button>
             <div
               className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border"
-              onClick={handleQuantityEvent}
+              onClick={stopPropagation}
             >
               <div className="flex justify-between items-center w-full">
                 <button
                   onClick={(e) => {
-                    handleQuantityEvent(e);
+                    stopPropagation(e);
                     decrement();
                   }}
                   type="button"
@@ -217,24 +233,24 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
                   min={1}
                   value={inputValue}
                   onChange={(e) => {
-                    handleQuantityEvent(e);
+                    stopPropagation(e);
                     handleManualChange(e);
                   }}
                   onFocus={(e) => {
-                    handleQuantityEvent(e);
+                    stopPropagation(e);
                     handleFocus(e);
                   }}
                   onBlur={(e) => {
-                    handleQuantityEvent(e);
+                    stopPropagation(e);
                     handleBlur();
                   }}
-                  onClick={handleQuantityEvent}
+                  onClick={stopPropagation}
                   className="w-14 text-center border-none outline-none text-qblack"
                 />
 
                 <button
                   onClick={(e) => {
-                    handleQuantityEvent(e);
+                    stopPropagation(e);
                     increment();
                   }}
                   type="button"
@@ -247,7 +263,12 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
           </div>
         )}
       </div>
-      <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
+      
+      {/* Favori butonu */}
+      <div 
+        className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300"
+        onClick={stopPropagation}
+      >
         <button
           type="button"
           onClick={handleFavorite}

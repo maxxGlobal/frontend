@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import ProductCardStyleOne from "../Helpers/Cards/ProductCardStyleOne";
 import Layout from "../Partials/Layout";
 import CategoriesSidebar from "./CategoriesSidebar";
@@ -17,25 +17,35 @@ export default function AllProductPage() {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
   const size = 12;
   const [totalPages, setTotalPages] = useState(0);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  const [sp] = useSearchParams();
-  const catParam = sp.get("cat");
-  const searchQuery = sp.get("search");
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // URL'den parametreleri al
+  const catParam = searchParams.get("cat");
+  const searchQuery = searchParams.get("search");
+  const pageParam = searchParams.get("page");
+  
   const selectedCatId = catParam && catParam !== "0" ? Number(catParam) : null;
+  const currentPage = pageParam ? Math.max(0, Number(pageParam) - 1) : 0; // URL'de 1-based, kod'da 0-based
 
   useEffect(() => {
     const controller = new AbortController();
+    let isMounted = true; // Component mount durumunu takip et
+    
     (async () => {
+      if (!isMounted) return; // Component unmount olduysa çık
+      
       setError(null);
       setLoading(true);
       setProducts(null);
 
       try {
         const req: PageRequest & { isActive: boolean } = {
-          page,
+          page: currentPage,
           size,
           sortBy: "name",
           sortDirection: "asc",
@@ -56,19 +66,27 @@ export default function AllProductPage() {
           pageRes = await listProducts(req, { signal: controller.signal });
         }
 
-        setProducts(pageRes.content ?? []);
-        setTotalPages(pageRes.totalPages ?? 0);
+        if (isMounted && !controller.signal.aborted) {
+          setProducts(pageRes.content ?? []);
+          setTotalPages(pageRes.totalPages ?? 0);
+        }
       } catch (e: any) {
-        if (e.code !== "ERR_CANCELED") {
+        if (isMounted && e.code !== "ERR_CANCELED" && !controller.signal.aborted) {
           setError("Ürünler getirilemedi");
           setProducts([]);
         }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     })();
-    return () => controller.abort();
-  }, [selectedCatId, page, searchQuery]);
+    
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [selectedCatId, currentPage, searchQuery]);
 
   const visibleProducts = useMemo(() => {
     const base = (products ?? []).filter((p) => p.status === "AKTİF");
@@ -83,10 +101,24 @@ export default function AllProductPage() {
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
-      setPage(newPage);
+      // URL'yi güncelle (1-based)
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.set("page", String(newPage + 1));
+      setSearchParams(newSearchParams);
+      
+      // Sayfanın en üstüne scroll
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  // Sayfa değiştiğinde URL'de sayfa numarası yoksa ekle
+  useEffect(() => {
+    if (!pageParam && (selectedCatId || searchQuery)) {
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.set("page", "1");
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [selectedCatId, searchQuery, pageParam, searchParams, setSearchParams]);
 
   return (
     <Layout>
@@ -111,6 +143,13 @@ export default function AllProductPage() {
                       : `${visibleProducts.length} / ${totalPages * size} adet`}
                   </p>
                 </div>
+                
+                {/* Sayfa bilgisi göster */}
+                {totalPages > 1 && !loading && (
+                  <div className="text-sm text-qgray">
+                    Sayfa {currentPage + 1} / {totalPages}
+                  </div>
+                )}
               </div>
 
               {error && (
@@ -143,20 +182,47 @@ export default function AllProductPage() {
                   {totalPages > 1 && (
                     <div className="flex justify-center items-center space-x-3 mb-10">
                       <button
-                        onClick={() => handlePageChange(page - 1)}
-                        disabled={page === 0}
-                        className="px-3 py-2 bg-qh2-green rounded text-white disabled:opacity-50"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 0}
+                        className="px-4 py-2 bg-qh2-green rounded text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-opacity-90 transition-colors"
                       >
                         Önceki
                       </button>
-                      <span className="text-sm text-qblack">
-                        Sayfa <span className="text-qh2-green">{page + 1}</span>{" "}
-                        / {totalPages}
-                      </span>
+                      
+                      {/* Sayfa numaraları */}
+                      <div className="flex space-x-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i;
+                          } else if (currentPage < 3) {
+                            pageNum = i;
+                          } else if (currentPage >= totalPages - 3) {
+                            pageNum = totalPages - 5 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`w-8 h-8 rounded text-sm transition-colors ${
+                                pageNum === currentPage
+                                  ? "bg-qh2-green text-white"
+                                  : "bg-gray-100 text-qblack hover:bg-gray-200"
+                              }`}
+                            >
+                              {pageNum + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
                       <button
-                        onClick={() => handlePageChange(page + 1)}
-                        disabled={page + 1 >= totalPages}
-                        className="px-3 py-2 bg-qh2-green rounded text-white disabled:opacity-50"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage + 1 >= totalPages}
+                        className="px-4 py-2 bg-qh2-green rounded text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-opacity-90 transition-colors"
                       >
                         Sonraki
                       </button>

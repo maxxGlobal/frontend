@@ -125,20 +125,36 @@ export default function CategoriesSidebar() {
 
   useEffect(() => {
     const controller = new AbortController();
+    let isMounted = true;
+    
     (async () => {
+      if (!isMounted) return;
+      
       try {
         const flat = await listAllCategories({ signal: controller.signal });
-        setTree(buildCategoryTree(flat));
-      } catch (e) {}
+        if (isMounted && !controller.signal.aborted) {
+          setTree(buildCategoryTree(flat));
+        }
+      } catch (e) {
+        // Hata durumunda sessizce devam et
+      }
     })();
-    return () => controller.abort();
+    
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   const handlePick = (node: CatNode) => {
     const ids = collectDescendantsIds(node);
     const params = new URLSearchParams(sp.toString());
 
+    // Arama ve sayfa parametrelerini temizle
     params.delete("search");
+    params.delete("page"); // Sayfa parametresini sıfırla
+    
+    // Kategori parametrelerini ayarla
     params.set("cat", String(node.id));
     params.set("cats", ids.join(","));
 
@@ -152,6 +168,7 @@ export default function CategoriesSidebar() {
     params.delete("cat");
     params.delete("cats");
     params.delete("search");
+    params.delete("page"); // Sayfa parametresini temizle
     navigate(`/homepage/all-product?${params.toString()}`);
     setMobileOpen(false);
     setOpenNodeId(null);
