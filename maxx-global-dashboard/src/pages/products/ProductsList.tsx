@@ -127,7 +127,7 @@ export default function ProductList() {
     }
   }
 
- const fetchProducts = useCallback(
+  const fetchProducts = useCallback(
     async (signal?: AbortSignal) => {
       setLoading(true);
       setListError(null);
@@ -140,10 +140,12 @@ export default function ProductList() {
         };
 
         let res: PageResponse<ProductRow>;
-        
+
         // ✅ debouncedQ kullan, q değil
         if (debouncedQ && debouncedQ.trim() !== "") {
-          res = await listProductsBySearch(debouncedQ.trim(), baseReq, { signal });
+          res = await listProductsBySearch(debouncedQ.trim(), baseReq, {
+            signal,
+          });
         } else if (selectedCat) {
           res = await listProductsByCategory(selectedCat, { signal });
         } else {
@@ -170,7 +172,7 @@ export default function ProductList() {
     return () => controller.abort();
   }, [fetchProducts]);
 
-   useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       // Minimum 3 karakter veya boş string
       if (q.length >= 3 || q.length === 0) {
@@ -220,7 +222,7 @@ export default function ProductList() {
     });
   };
 
-   const handleSearchChange = (value: string) => {
+  const handleSearchChange = (value: string) => {
     setQ(value);
     // Eğer 3 karakterden az ise ve boş değilse, uyarı göster
     if (value.length > 0 && value.length < 3) {
@@ -285,48 +287,46 @@ export default function ProductList() {
       <div className="col-xxl-9 col-lg-8 col-12">
         {/* Üst bar: arama + status filtre + ekle */}
         <div className="sherah-breadcrumb__right mg-top-30 d-flex flex-wrap gap-2 align-items-center justify-content-between">
-        <div className="sherah-breadcrumb__right--first d-flex align-items-center gap-2">
-          <div
-            className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border"
-            style={{ minWidth: 240 }}
-          >
-            <span className="input-group-text">
-              <i className="fa-solid fa-magnifying-glass" />
-            </span>
-            <input
-              type="search"
-              className="form-control sherah-wc__form-input"
-              placeholder="Ürün adı / kodu ara… (min 3 karakter)"
-              value={q}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
-            {q && (
-              <button
-                className="btn btn-clear"
-                onClick={clearSearch}
-                title="Aramayı temizle"
-              >
-                <i className="fa-solid fa-xmark" />
-              </button>
+          <div className="sherah-breadcrumb__right--first d-flex align-items-center gap-2">
+            <div
+              className="input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border"
+              style={{ minWidth: 240 }}
+            >
+              <span className="input-group-text">
+                <i className="fa-solid fa-magnifying-glass" />
+              </span>
+              <input
+                type="search"
+                className="form-control sherah-wc__form-input"
+                placeholder="Ürün adı / kodu ara… (min 3 karakter)"
+                value={q}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+              {q && (
+                <button
+                  className="btn btn-clear"
+                  onClick={clearSearch}
+                  title="Aramayı temizle"
+                >
+                  <i className="fa-solid fa-xmark" />
+                </button>
+              )}
+            </div>
+
+            {/* ✅ Arama durumu göstergesi (isteğe bağlı) */}
+            {q.length > 0 && q.length < 3 && (
+              <small className="text-muted">En az 3 karakter girin</small>
             )}
-          </div>
 
-          {/* ✅ Arama durumu göstergesi (isteğe bağlı) */}
-          {q.length > 0 && q.length < 3 && (
-            <small className="text-muted">
-              En az 3 karakter girin
-            </small>
-          )}
-          
-          {debouncedQ && debouncedQ !== q && (
-            <small className="text-info">
-              <i className="fa-solid fa-spinner fa-spin me-1"></i>
-              Aranıyor...
-            </small>
-          )}
+            {debouncedQ && debouncedQ !== q && (
+              <small className="text-info">
+                <i className="fa-solid fa-spinner fa-spin me-1"></i>
+                Aranıyor...
+              </small>
+            )}
 
-          {/* Status Filter - mevcut kodunuz */}
-          <select
+            {/* Status Filter - mevcut kodunuz */}
+            {/* <select
             className="form-select form-select-sm mt-2 p-2"
             style={{ minWidth: 180, height: 46 }}
             value={statusFilter}
@@ -338,17 +338,16 @@ export default function ProductList() {
             <option value="ALL">Tümü</option>
             <option value="AKTİF">Aktif</option>
             <option value="SİLİNDİ">Silinen</option>
-          </select>
-        </div>
+          </select> */}
+          </div>
 
-        {/* Ürün Ekle Butonu - mevcut kodunuz */}
-        <div className="sherah-breadcrumb__right--second">
-          <a href="/product-add" className="sherah-btn sherah-gbcolor">
-            Ürün Ekle
-          </a>
+          {/* Ürün Ekle Butonu - mevcut kodunuz */}
+          <div className="sherah-breadcrumb__right--second">
+            <a href="/product-add" className="sherah-btn sherah-gbcolor">
+              Ürün Ekle
+            </a>
+          </div>
         </div>
-      </div>
-
 
         {/* Grid / Spinner / Mesaj */}
         {loading ? (
