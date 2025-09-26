@@ -49,7 +49,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
   const [quantity, setQuantity] = useState<number>(1);
   const [inputValue, setInputValue] = useState<string>("1");
-
+  const [hiddenAfterClick, setHiddenAfterClick] = useState(false);
   const increment = () => {
     setQuantity((p) => {
       const n = p + 1;
@@ -98,12 +98,13 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     e.stopPropagation();
     addToCart(d.id, quantity);
     refresh();
+    setHiddenAfterClick(true);
     Swal.fire({
       icon: "success",
       title: "Sepete eklendi",
       text: `${d.name} ürününden ${quantity} adet sepete eklendi`,
       confirmButtonText: "Tamam",
-    });
+    }).then(() => setHiddenAfterClick(false));
   };
 
   async function handleFavorite(e: React.MouseEvent) {
@@ -135,58 +136,59 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   };
 
   return (
-    <Link to={`/homepage/product/${d.id}`} className="block">
+    <div
+      className="product-card-one w-full h-full bg-white relative group overflow-hidden rounded-[8px] cursor-pointer hover:shadow-lg transition-shadow duration-300"
+      style={{ boxShadow: "0px 15px 64px rgba(0,0,0,0.05)" }}
+    >
       <div
-        className="product-card-one w-full h-full bg-white relative group overflow-hidden rounded-[8px] cursor-pointer hover:shadow-lg transition-shadow duration-300"
-        style={{ boxShadow: "0px 15px 64px rgba(0,0,0,0.05)" }}
-      >
-        <div
-          className="product-card-img w-full h-[300px] bg-no-repeat bg-center bg-cover"
-          style={{
-            backgroundImage: `url(${buildImageUrl(d.primaryImageUrl)})`,
-          }}
-        />
+        className="product-card-img w-full h-[300px] bg-no-repeat bg-center bg-cover"
+        style={{
+          backgroundImage: `url(${buildImageUrl(d.primaryImageUrl)})`,
+        }}
+      />
 
-        <div className="product-card-details px-[30px] pb-[30px] relative">
+      <div className="product-card-details px-[30px] pb-[30px] relative">
+        <Link to={`/homepage/product/${d.id}`} className="block">
           <p className="title my-2 text-[15px] font-600 text-qblack leading-[24px] line-clamp-2 hover:text-blue-600">
             {d.name}
           </p>
+        </Link>
 
-          {d.code && (
-            <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>
-          )}
-          {d.categoryName && (
-            <p className="text-[12px] text-qgray mb-2">
-              Kategori: {d.categoryName}
-            </p>
-          )}
-          {d.material !== undefined && d.material !== null && (
-            <p className="text-[12px] text-qgray mb-2">
-              Materyal: {d.material || "—"}
-            </p>
-          )}
+        {d.code && <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>}
+        {d.categoryName && (
+          <p className="text-[12px] text-qgray mb-2">
+            Kategori: {d.categoryName}
+          </p>
+        )}
+        {d.material !== undefined && d.material !== null && (
+          <p className="text-[12px] text-qgray mb-2">
+            Materyal: {d.material || "—"}
+          </p>
+        )}
+        {d.prices?.length ? (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {d.prices.map((p) => (
+              <span
+                key={p.productPriceId}
+                className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
+              >
+                {p.amount.toLocaleString("tr-TR", {
+                  style: "currency",
+                  currency: p.currency || "TRY",
+                })}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
+        )}
 
-          {/* Fiyatlar */}
-          {d.prices?.length ? (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {d.prices.map((p) => (
-                <span
-                  key={p.productPriceId}
-                  className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
-                >
-                  {p.amount.toLocaleString("tr-TR", {
-                    style: "currency",
-                    currency: p.currency || "TRY",
-                  })}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
-          )}
-
-          {/* Sepete Ekle + Adet Kontrolü */}
-          <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 group-hover:bottom-[20px] transition-all">
+        {!hiddenAfterClick && (
+          <div
+            className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2
+               -bottom-20 opacity-0 group-hover:bottom-[20px] group-hover:opacity-100
+               transition-all duration-300"
+          >
             <button
               type="button"
               onClick={handleAddToCart}
@@ -243,19 +245,17 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Hızlı erişim (favori) */}
-        <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
-          <button
-            type="button"
-            onClick={handleFavorite}
-            className="w-10 h-10 flex justify-center items-center bg-primarygray rounded"
-          >
-            <ThinLove fillColor={isFav ? "red" : "white"} />
-          </button>
-        </div>
+        )}
       </div>
-    </Link>
+      <div className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300">
+        <button
+          type="button"
+          onClick={handleFavorite}
+          className="w-10 h-10 flex justify-center items-center bg-primarygray rounded"
+        >
+          <ThinLove fillColor={isFav ? "red" : "white"} />
+        </button>
+      </div>
+    </div>
   );
 }

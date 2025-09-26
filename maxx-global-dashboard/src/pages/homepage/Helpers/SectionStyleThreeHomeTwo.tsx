@@ -1,5 +1,6 @@
+// src/pages/SectionStyleThreeHomeTwo.tsx
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { data, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 
@@ -12,37 +13,34 @@ import { addFavorite } from "../../../services/favorites/add";
 import { removeFavorite } from "../../../services/favorites/remove";
 import type { ProductRow } from "../../../types/product";
 
-type BannerProps = { 
+type BannerProps = {
   className?: string;
   showProducts?: number;
   sectionTitle?: string;
   seeMoreUrl?: string;
 };
 
-export default function SectionStyleThreeHomeTwo({ 
-  className, 
+export default function SectionStyleThreeHomeTwo({
+  className,
   showProducts = 3,
   sectionTitle = "Popüler Ürünler",
-  seeMoreUrl 
+  seeMoreUrl,
 }: BannerProps) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  /** ✅ her ürün için miktar ve input metni ayrı tutulur */
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [inputValues, setInputValues] = useState<Record<number, string>>({});
   const [favorites, setFavorites] = useState<Record<number, boolean>>({});
+  const [clickedIds, setClickedIds] = useState<Set<number>>(new Set());
   const qc = useQueryClient();
 
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        // 🔥 YENİ: Popüler ürünler endpoint'ini kullan
-        const data = await listPopularProducts(showProducts, 30); // Son 30 gün
+        const data = await listPopularProducts(showProducts, 30);
         setProducts(data);
-
         const q: Record<number, number> = {};
         const iv: Record<number, string> = {};
         const fav: Record<number, boolean> = {};
@@ -85,14 +83,12 @@ export default function SectionStyleThreeHomeTwo({
     }
   };
 
-  // 👇 focus ile tüm metni seç ve eğer 1 ise temizle
   const handleFocus = (id: number) => {
     if (inputValues[id] === "1") {
       setInputValues((prev) => ({ ...prev, [id]: "" }));
     }
   };
 
-  // 👇 blur ile boşsa tekrar geçerli sayı yap
   const handleBlur = (id: number) => {
     const val = inputValues[id];
     const num = parseInt(val, 10);
@@ -101,16 +97,25 @@ export default function SectionStyleThreeHomeTwo({
     setInputValues((prev) => ({ ...prev, [id]: String(safe) }));
   };
 
-  const handleAddToCart = (id: number) => {
-    const qty = quantities[id] || 1;
-    addToCart(id, qty);
-    updateQty(id, qty);
+  const handleAddToCart = (product: ProductRow) => {
+    const qty = quantities[product.id] || 1;
+    addToCart(product.id, qty);
+    updateQty(product.id, qty);
+    setClickedIds((prev) => new Set(prev).add(product.id));
+
     Swal.fire({
       icon: "success",
       title: "Sepete eklendi",
-      timer: 1200,
-      showConfirmButton: false,
+      text: `${product.name} ürününden ${qty} adet sepete eklendi`,
+      confirmButtonText: "Tamam",
     });
+    setTimeout(() => {
+      setClickedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+    }, 500);
   };
 
   async function handleFavorite(id: number) {
@@ -136,7 +141,7 @@ export default function SectionStyleThreeHomeTwo({
 
   return (
     <div className={`section-style-one ${className || ""}`}>
-      <ViewMoreTitle categoryTitle="Popüler Ürünler">
+      <ViewMoreTitle categoryTitle={sectionTitle} seeMoreUrl={seeMoreUrl}>
         <div className="products-section w-full mt-10">
           {loading && <p className="text-center py-6">Yükleniyor…</p>}
           {error && <p className="text-center py-6 text-red-500">{error}</p>}
@@ -158,42 +163,44 @@ export default function SectionStyleThreeHomeTwo({
                       }}
                     />
                     <div className="product-card-details flex justify-center h-[150px] items-center relative px-4">
-                      <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 group-hover:bottom-[20px] transition-all duration-300 ease-in-out">
-                        <button
-                          type="button"
-                          onClick={() => handleAddToCart(p.id)}
-                          className="yellow-btn w-full h-full cursor-pointer"
-                        >
-                          Sepete Ekle
-                        </button>
-                        <div className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border">
-                          <div className="flex justify-between items-center w-full">
-                            <button
-                              onClick={() => decrement(p.id)}
-                              className="px-2"
-                            >
-                              –
-                            </button>
-                            <input
-                              type="number"
-                              min={1}
-                              value={inputValues[p.id] ?? "1"}
-                              onChange={(e) =>
-                                handleManualChange(p.id, e.target.value)
-                              }
-                              onFocus={() => handleFocus(p.id)}
-                              onBlur={() => handleBlur(p.id)}
-                              className="w-14 text-center border-none outline-none"
-                            />
-                            <button
-                              onClick={() => increment(p.id)}
-                              className="px-2"
-                            >
-                              +
-                            </button>
+                      {!clickedIds.has(p.id) && (
+                        <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 opacity-0 group-hover:bottom-[20px] group-hover:opacity-100 transition-all duration-300 ease-in-out">
+                          <button
+                            type="button"
+                            onClick={() => handleAddToCart(p)}
+                            className="yellow-btn w-full h-full cursor-pointer"
+                          >
+                            Sepete Ekle
+                          </button>
+                          <div className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border">
+                            <div className="flex justify-between items-center w-full">
+                              <button
+                                onClick={() => decrement(p.id)}
+                                className="px-2"
+                              >
+                                –
+                              </button>
+                              <input
+                                type="number"
+                                min={1}
+                                value={inputValues[p.id] ?? "1"}
+                                onChange={(e) =>
+                                  handleManualChange(p.id, e.target.value)
+                                }
+                                onFocus={() => handleFocus(p.id)}
+                                onBlur={() => handleBlur(p.id)}
+                                className="w-14 text-center border-none outline-none"
+                              />
+                              <button
+                                onClick={() => increment(p.id)}
+                                className="px-2"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       <div className="text-center">
                         <Link to={`/homepage/product/${p.id}`}>
