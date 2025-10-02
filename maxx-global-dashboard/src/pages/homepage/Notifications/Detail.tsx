@@ -11,11 +11,6 @@ import "../../../assets/homepage.css";
 
 export default function NotificationsPage() {
   const [items, setItems] = useState<NotificationRow[] | null>(null);
-  const fetchNotifications = async (signal?: AbortSignal) => {
-    const res = await listNotifications({ signal });
-    const content = Array.isArray(res?.content) ? res.content : [];
-    setItems(content);
-  };
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {

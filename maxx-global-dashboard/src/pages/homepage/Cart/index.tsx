@@ -76,7 +76,7 @@ export default function Cart({ className, type }: CartProps) {
           <ul>
             {items.map(({ product, qty }) => {
               const price = product.prices?.[0];
-              const lineTotal = price ? price.amount * qty : 0;
+
               return (
                 <li
                   key={product.id}

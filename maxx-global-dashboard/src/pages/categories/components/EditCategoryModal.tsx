@@ -162,7 +162,9 @@ export default function EditCategoryModal({
             // Birden fazla validation hatası
             if (Array.isArray(data.errors)) {
               errorMessage = `<ul class="text-start mb-0">
-                ${data.errors.map((error) => `<li>${error}</li>`).join("")}
+                ${data.errors
+                  .map((error: string) => `<li>${error}</li>`)
+                  .join("")}
               </ul>`;
               isHtml = true;
             } else if (typeof data.errors === "object") {

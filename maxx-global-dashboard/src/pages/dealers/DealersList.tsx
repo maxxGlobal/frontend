@@ -15,44 +15,8 @@ import DealersTable from "./components/Table";
 import DeleteDealerModal from "./components/DeleteDealerModal";
 import EditDealerModal from "./components/EditDealerModal";
 
-import type { SortDirection } from "../../types/paging";
-
 type Page<T> = PageResponse<T>;
-function toPage<T>(rows: T[], page: number, size: number): PageResponse<T> {
-  const totalElements = rows.length;
-  const totalPages = Math.max(1, Math.ceil(totalElements / size));
-  const from = page * size;
-  return {
-    content: rows.slice(from, from + size),
-    totalElements,
-    totalPages,
-    number: page,
-    size,
-    first: page === 0,
-    last: page >= totalPages - 1,
-  };
-}
-function sortRows<T extends Record<string, any>>(
-  rows: T[],
-  key: keyof T,
-  dir: "asc" | "desc"
-) {
-  const copy = [...rows];
-  copy.sort((a, b) => {
-    const av = a?.[key];
-    const bv = b?.[key];
-    // null/undefined en sona gitsin
-    if (av == null && bv == null) return 0;
-    if (av == null) return 1;
-    if (bv == null) return -1;
 
-    const sa = String(av);
-    const sb = String(bv);
-    const cmp = sa.localeCompare(sb, "tr", { sensitivity: "base" });
-    return dir === "asc" ? cmp : -cmp;
-  });
-  return copy;
-}
 const DEFAULT_PAGE = 0;
 const DEFAULT_SIZE = 10;
 

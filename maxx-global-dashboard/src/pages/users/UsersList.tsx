@@ -29,7 +29,7 @@ export default function UsersList() {
     error,
     selectedDealerName,
     page,
-    size,
+
     sortBy,
   } = state;
   const {
@@ -37,7 +37,6 @@ export default function UsersList() {
     setActiveOnly,
     setQ,
     setPage,
-    onChangeSize,
     toggleSort,
     sortIcon,
     refresh,

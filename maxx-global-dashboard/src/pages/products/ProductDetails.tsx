@@ -1,5 +1,5 @@
 // src/pages/products/ProductDetails.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import ProductGallery from "../products/components/ProductGallery";
 import { getProductById } from "../../services/products/getById";
@@ -7,17 +7,8 @@ import { useTranslation } from "react-i18next";
 
 import type { ProductDetail } from "../../services/products/getById";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
-const FALLBACK_IMG = "src/assets/img/resim-yok.jpg";
 function capitalize(str: string = ""): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function absolutify(url?: string | null): string {
-  if (!url) return FALLBACK_IMG;
-  if (url.startsWith("http")) return url;
-  if (/^\/uploads?\//i.test(url)) return `${API_BASE}${url}`;
-  return url || FALLBACK_IMG;
 }
 
 export default function ProductDetails() {

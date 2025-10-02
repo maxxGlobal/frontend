@@ -126,34 +126,7 @@ export default function DiscountsList() {
   };
 
   // ---- helpers: rozetler ----
-  function namesFrom<T extends { id: number; name?: string }>(arr?: T[]) {
-    const list = Array.isArray(arr) ? arr : [];
-    return list.map((x) => (x.name?.trim() ? x.name : `#${x.id}`));
-  }
-  function renderBadges<T extends { id: number; name?: string }>(
-    arr?: T[],
-    max = 3
-  ) {
-    const all = namesFrom(arr);
-    const shown = all.slice(0, max);
-    const rest = all.slice(max);
-    const restTitle = rest.join(", ");
 
-    return (
-      <div className="d-flex flex-wrap gap-1" title={all.join(", ")}>
-        {shown.map((n, i) => (
-          <span key={i} className="bg-success border-0">
-            {n}
-          </span>
-        ))}
-        {rest.length > 0 && (
-          <span className="bg-success border-0" title={restTitle}>
-            +{rest.length}
-          </span>
-        )}
-      </div>
-    );
-  }
   const statusBadge = (s?: string | null) =>
     s === "AKTİF" ? (
       <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
@@ -296,10 +269,18 @@ export default function DiscountsList() {
 
                           <td>
                             <div className="sherah-table__product-content">
-                              {d.applicableProducts && d.applicableProducts.length > 0 ? (
-                                <PopoverBadgeProduct items={d.applicableProducts} type="product" />
-                              ) : d.applicableCategories && d.applicableCategories.length > 0 ? (
-                                <PopoverBadgeProduct items={d.applicableCategories} type="category" />
+                              {d.applicableProducts &&
+                              d.applicableProducts.length > 0 ? (
+                                <PopoverBadgeProduct
+                                  items={d.applicableProducts}
+                                  badgeType="product"
+                                />
+                              ) : d.applicableCategories &&
+                                d.applicableCategories.length > 0 ? (
+                                <PopoverBadgeProduct
+                                  items={d.applicableCategories}
+                                  badgeType="category"
+                                />
                               ) : (
                                 <span className="text-muted">-</span>
                               )}
@@ -309,7 +290,9 @@ export default function DiscountsList() {
                           <td>
                             <div className="sherah-table__product-content">
                               {d.applicableDealers?.length ? (
-                                <PopoverBadgeDealer items={d.applicableDealers} />
+                                <PopoverBadgeDealer
+                                  items={d.applicableDealers}
+                                />
                               ) : (
                                 <span className="text-muted">-</span>
                               )}
@@ -390,8 +373,9 @@ export default function DiscountsList() {
                       <ul className="pagination">
                         {/* Önceki */}
                         <li
-                          className={`paginate_button page-item previous ${pageData?.first ? "disabled" : ""
-                            }`}
+                          className={`paginate_button page-item previous ${
+                            pageData?.first ? "disabled" : ""
+                          }`}
                         >
                           <a
                             href="#"
@@ -411,8 +395,9 @@ export default function DiscountsList() {
                           (_, i) => (
                             <li
                               key={i}
-                              className={`paginate_button page-item ${i === (pageData?.number ?? 0) ? "active" : ""
-                                }`}
+                              className={`paginate_button page-item ${
+                                i === (pageData?.number ?? 0) ? "active" : ""
+                              }`}
                             >
                               <a
                                 href="#"
@@ -430,8 +415,9 @@ export default function DiscountsList() {
 
                         {/* Sonraki */}
                         <li
-                          className={`paginate_button page-item next ${pageData?.last ? "disabled" : ""
-                            }`}
+                          className={`paginate_button page-item next ${
+                            pageData?.last ? "disabled" : ""
+                          }`}
                         >
                           <a
                             href="#"

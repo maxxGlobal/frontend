@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listSimpleProducts } from "../../services/stock/simple";
 import { getStockMovementsByProduct } from "../../services/stock/movements";
@@ -6,7 +6,9 @@ import type { StockMovementResponse } from "../../types/stock";
 import type { PageResponse } from "../../types/paging";
 
 export default function MovementsByProduct() {
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
   const [page, setPage] = useState(0);
   const [size] = useState(20);
 
@@ -17,35 +19,43 @@ export default function MovementsByProduct() {
   });
 
   // Stok hareketleri
-const { data: movementsData, isLoading: movementsLoading } = useQuery<PageResponse<StockMovementResponse>>({
-  queryKey: ["stock-movements", selectedProductId, page, size],
-  queryFn: () => getStockMovementsByProduct(selectedProductId!, page, size),
-  enabled: !!selectedProductId,
-});
+  const { data: movementsData, isLoading: movementsLoading } = useQuery<
+    PageResponse<StockMovementResponse>
+  >({
+    queryKey: ["stock-movements", selectedProductId, page, size],
+    queryFn: () => getStockMovementsByProduct(selectedProductId!, page, size),
+    enabled: !!selectedProductId,
+  });
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("tr-TR") + " " + date.toLocaleTimeString("tr-TR", { 
-      hour: "2-digit", 
-      minute: "2-digit" 
-    });
+    return (
+      date.toLocaleDateString("tr-TR") +
+      " " +
+      date.toLocaleTimeString("tr-TR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
   };
 
   return (
     <div className="sherah-dsinner">
-<div className="row mg-top-30">
-  <div className="col-12 sherah-flex-between">
-    <div className="sherah-breadcrumb">
-      <h2 className="sherah-breadcrumb__title">Ürün Bazlı Stok Hareketleri</h2>
-      <ul className="sherah-breadcrumb__list">
-        <li>
-          <a href="/dashboard">Ana Sayfa</a>
-        </li>
-        <li className="active">Stok İşlemleri</li>
-      </ul>
-    </div>
-  </div>
-</div>
+      <div className="row mg-top-30">
+        <div className="col-12 sherah-flex-between">
+          <div className="sherah-breadcrumb">
+            <h2 className="sherah-breadcrumb__title">
+              Ürün Bazlı Stok Hareketleri
+            </h2>
+            <ul className="sherah-breadcrumb__list">
+              <li>
+                <a href="/dashboard">Ana Sayfa</a>
+              </li>
+              <li className="active">Stok İşlemleri</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       {/* Ürün Seçimi */}
       <div className="sherah-page-inner sherah-default-bg sherah-border mg-top-30">
@@ -57,7 +67,9 @@ const { data: movementsData, isLoading: movementsLoading } = useQuery<PageRespon
                 className="sherah-wc__form-input"
                 value={selectedProductId || ""}
                 onChange={(e) => {
-                  setSelectedProductId(e.target.value ? Number(e.target.value) : null);
+                  setSelectedProductId(
+                    e.target.value ? Number(e.target.value) : null
+                  );
                   setPage(0);
                 }}
                 disabled={productsLoading}
@@ -83,7 +95,7 @@ const { data: movementsData, isLoading: movementsLoading } = useQuery<PageRespon
               {movementsData && ` (${movementsData.totalElements} kayıt)`}
             </h3>
           </div>
-          
+
           {movementsLoading ? (
             <div className="text-center p-4">
               <div className="spinner-border" role="status">
@@ -120,7 +132,8 @@ const { data: movementsData, isLoading: movementsLoading } = useQuery<PageRespon
                         {movement.referenceType && (
                           <span className="text-muted">
                             {movement.referenceType}
-                            {movement.referenceId && ` #${movement.referenceId}`}
+                            {movement.referenceId &&
+                              ` #${movement.referenceId}`}
                           </span>
                         )}
                       </td>
@@ -140,39 +153,59 @@ const { data: movementsData, isLoading: movementsLoading } = useQuery<PageRespon
               <div className="col-sm-12 col-md-12">
                 <div className="dataTables_paginate paging_simple_numbers justify-content-end">
                   <ul className="pagination">
-                    <li className={`paginate_button page-item previous ${movementsData.first ? "disabled" : ""}`}>
+                    <li
+                      className={`paginate_button page-item previous ${
+                        movementsData.first ? "disabled" : ""
+                      }`}
+                    >
                       <a
                         href="#"
                         className="page-link"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (!movementsData.first) setPage(p => Math.max(0, p - 1));
+                          if (!movementsData.first)
+                            setPage((p) => Math.max(0, p - 1));
                         }}
                       >
                         <i className="fas fa-angle-left" />
                       </a>
                     </li>
-                    {Array.from({ length: movementsData.totalPages }, (_, i) => (
-                      <li key={i} className={`paginate_button page-item ${i === movementsData.number ? "active" : ""}`}>
-                        <a
-                          href="#"
-                          className="page-link"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setPage(i);
-                          }}
+                    {Array.from(
+                      { length: movementsData.totalPages },
+                      (_, i) => (
+                        <li
+                          key={i}
+                          className={`paginate_button page-item ${
+                            i === movementsData.number ? "active" : ""
+                          }`}
                         >
-                          {i + 1}
-                        </a>
-                      </li>
-                    ))}
-                    <li className={`paginate_button page-item next ${movementsData.last ? "disabled" : ""}`}>
+                          <a
+                            href="#"
+                            className="page-link"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setPage(i);
+                            }}
+                          >
+                            {i + 1}
+                          </a>
+                        </li>
+                      )
+                    )}
+                    <li
+                      className={`paginate_button page-item next ${
+                        movementsData.last ? "disabled" : ""
+                      }`}
+                    >
                       <a
                         href="#"
                         className="page-link"
                         onClick={(e) => {
                           e.preventDefault();
-                          if (!movementsData.last) setPage(p => Math.min(movementsData.totalPages - 1, p + 1));
+                          if (!movementsData.last)
+                            setPage((p) =>
+                              Math.min(movementsData.totalPages - 1, p + 1)
+                            );
                         }}
                       >
                         <i className="fas fa-angle-right" />

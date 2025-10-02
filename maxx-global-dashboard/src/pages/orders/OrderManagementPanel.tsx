@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
-import { useNavigate ,useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { listAdminOrders } from "../../services/orders/listAdminOrders";
 import { approveOrder } from "../../services/orders/approve";
 import { rejectOrder } from "../../services/orders/reject";
@@ -27,28 +27,30 @@ const ORDER_STATUSES = [
 
 export default function OrderManagementPanel() {
   const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams(); // YENİ
+  const [searchParams, setSearchParams] = useSearchParams(); // YENİ
 
   const [orders, setOrders] = useState<PageResponse<OrderResponse> | null>(
     null
   );
   const [dealers, setDealers] = useState<SimpleDealer[]>([]);
   const [loading, setLoading] = useState(false);
- const [page, setPage] = useState(() => 
-    Math.max(0, parseInt(searchParams.get('page') || '1', 10) - 1)
+  const [page, setPage] = useState(() =>
+    Math.max(0, parseInt(searchParams.get("page") || "1", 10) - 1)
   );
   const [size] = useState(10);
 
   // Filtre state'leri
- const [selectedStatus, setSelectedStatus] = useState(() => 
-    searchParams.get('status') || ''
+  const [selectedStatus, setSelectedStatus] = useState(
+    () => searchParams.get("status") || ""
   );
- const [selectedDealerId, setSelectedDealerId] = useState<number | null>(() => {
-    const dealerId = searchParams.get('dealerId');
-    return dealerId ? parseInt(dealerId, 10) : null;
-  });
-  const [searchTerm, setSearchTerm] = useState(() => 
-    searchParams.get('search') || ''
+  const [selectedDealerId, setSelectedDealerId] = useState<number | null>(
+    () => {
+      const dealerId = searchParams.get("dealerId");
+      return dealerId ? parseInt(dealerId, 10) : null;
+    }
+  );
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get("search") || ""
   );
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -68,15 +70,18 @@ export default function OrderManagementPanel() {
     loadDealers();
   }, []);
 
-const updateUrlParams = (updates: Record<string, string | number | null>) => {
+  const updateUrlParams = (updates: Record<string, string | number | null>) => {
     const newParams = new URLSearchParams(searchParams);
-    
+
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '') {
+      if (value === null || value === "") {
         newParams.delete(key);
-      } else if (key === 'page') {
+      } else if (key === "page") {
         // Sayfa numarasını 1-based yap (0 -> 1, 1 -> 2, vs.)
-        const pageValue = typeof value === 'number' ? value + 1 : parseInt(value.toString()) + 1;
+        const pageValue =
+          typeof value === "number"
+            ? value + 1
+            : parseInt(value.toString()) + 1;
         if (pageValue <= 1) {
           newParams.delete(key); // İlk sayfa için parametreyi silme
         } else {
@@ -86,11 +91,11 @@ const updateUrlParams = (updates: Record<string, string | number | null>) => {
         newParams.set(key, value.toString());
       }
     });
-    
-    setSearchParams(newParams);
-  }; 
 
- const handlePageChange = (newPage: number) => {
+    setSearchParams(newParams);
+  };
+
+  const handlePageChange = (newPage: number) => {
     setPage(newPage);
     updateUrlParams({ page: newPage });
   };
@@ -142,7 +147,7 @@ const updateUrlParams = (updates: Record<string, string | number | null>) => {
   }
 
   // Arama fonksiyonu
-   function handleSearch() {
+  function handleSearch() {
     setPage(0);
     updateUrlParams({ search: searchTerm, page: 0 });
   }
@@ -276,8 +281,11 @@ const updateUrlParams = (updates: Record<string, string | number | null>) => {
             <select
               className="form-select"
               value={selectedDealerId || ""}
-              onChange={(e) => handleDealerChange(e.target.value ? Number(e.target.value) : null)}
-
+              onChange={(e) =>
+                handleDealerChange(
+                  e.target.value ? Number(e.target.value) : null
+                )
+              }
             >
               <option value="">Tüm Bayiler</option>
               {dealers.map((dealer) => (
@@ -446,76 +454,79 @@ const updateUrlParams = (updates: Record<string, string | number | null>) => {
             </tbody>
           </table>
 
-         {orders && orders.totalElements > 0 && (
-  <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
-    <div className="d-flex justify-content-between align-items-center">
-      <ul className="pagination">
-        <li
-          className={`paginate_button page-item previous ${
-            orders?.first ? "disabled" : ""
-          }`}
-        >
-          <a
-            href="#"
-            className="page-link"
-            onClick={(e) => {
-              e.preventDefault();
-              if (!orders?.first) handlePageChange(Math.max(0, page - 1));
-            }}
-          >
-            <i className="fas fa-angle-left" />
-          </a>
-        </li>
-
-        {orders &&
-          Array.from(
-            { length: Math.min(orders.totalPages, 5) },
-            (_, i) => {
-              const pageNum = Math.max(0, page - 2) + i;
-              if (pageNum >= orders.totalPages) return null;
-              return (
-                <li
-                  key={pageNum}
-                  className={`paginate_button page-item ${
-                    pageNum === orders.number ? "active" : ""
-                  }`}
-                >
-                  <a
-                    href="#"
-                    className="page-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(pageNum);
-                    }}
+          {orders && orders.totalElements > 0 && (
+            <div className="dataTables_paginate paging_simple_numbers justify-content-end mt-3 px-3 pb-3">
+              <div className="d-flex justify-content-between align-items-center">
+                <ul className="pagination">
+                  <li
+                    className={`paginate_button page-item previous ${
+                      orders?.first ? "disabled" : ""
+                    }`}
                   >
-                    {pageNum + 1}
-                  </a>
-                </li>
-              );
-            }
-          )}
+                    <a
+                      href="#"
+                      className="page-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!orders?.first)
+                          handlePageChange(Math.max(0, page - 1));
+                      }}
+                    >
+                      <i className="fas fa-angle-left" />
+                    </a>
+                  </li>
 
-        <li
-          className={`paginate_button page-item next ${
-            orders?.last ? "disabled" : ""
-          }`}
-        >
-          <a
-            href="#"
-            className="page-link"
-            onClick={(e) => {
-              e.preventDefault();
-              if (!orders?.last)
-                handlePageChange(Math.min((orders?.totalPages ?? 1) - 1, page + 1));
-            }}
-          >
-            <i className="fas fa-angle-right" />
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-)}
+                  {orders &&
+                    Array.from(
+                      { length: Math.min(orders.totalPages, 5) },
+                      (_, i) => {
+                        const pageNum = Math.max(0, page - 2) + i;
+                        if (pageNum >= orders.totalPages) return null;
+                        return (
+                          <li
+                            key={pageNum}
+                            className={`paginate_button page-item ${
+                              pageNum === orders.number ? "active" : ""
+                            }`}
+                          >
+                            <a
+                              href="#"
+                              className="page-link"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handlePageChange(pageNum);
+                              }}
+                            >
+                              {pageNum + 1}
+                            </a>
+                          </li>
+                        );
+                      }
+                    )}
+
+                  <li
+                    className={`paginate_button page-item next ${
+                      orders?.last ? "disabled" : ""
+                    }`}
+                  >
+                    <a
+                      href="#"
+                      className="page-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!orders?.last)
+                          handlePageChange(
+                            Math.min((orders?.totalPages ?? 1) - 1, page + 1)
+                          );
+                      }}
+                    >
+                      <i className="fas fa-angle-right" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          )}
         </>
       )}
 

@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
 import AuthLayout from "../components/layout/AuthLayout";
 import LoginForm from "../components/login/LoginForm";

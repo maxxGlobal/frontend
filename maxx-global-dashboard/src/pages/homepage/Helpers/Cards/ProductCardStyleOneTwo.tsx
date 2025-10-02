@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import Compair from "../icons/Compair";
 import QuickViewIco from "../icons/QuickViewIco";
@@ -11,6 +10,9 @@ export type ProductData = {
   title: string;
   price: number | null | undefined;
   offer_price?: number | null;
+  categoryName?: string;
+  stockQuantity?: number | null;
+  unit?: string | null;
 };
 
 type ProductCardStyleOneTwoProps = {
@@ -30,6 +32,14 @@ export default function ProductCardStyleOneTwo({
     v != null
       ? Number(v).toLocaleString("tr-TR", { minimumFractionDigits: 2 })
       : "";
+  const priceNum =
+    typeof datas.price === "number" ? (datas.price as number) : null;
+  const offerPriceNum =
+    typeof datas.offer_price === "number"
+      ? (datas.offer_price as number)
+      : null;
+  const hasDiscount =
+    priceNum != null && offerPriceNum != null && offerPriceNum < priceNum;
 
   return (
     <div
@@ -70,18 +80,18 @@ export default function ProductCardStyleOneTwo({
 
           {/* Fiyatlar */}
           <div className="price flex justify-center space-x-2">
-            {datas.offer_price && datas.offer_price < datas.price ? (
+            {hasDiscount ? (
               <>
                 <span className="offer-price text-qred font-600 text-[18px]">
-                  {fmtPrice(datas.offer_price)}
+                  {fmtPrice(offerPriceNum)}
                 </span>
                 <span className="main-price text-qgray line-through font-600 text-[16px]">
-                  {fmtPrice(datas.price)}
+                  {fmtPrice(priceNum)}
                 </span>
               </>
             ) : (
               <span className="offer-price text-qblack font-600 text-[18px]">
-                {fmtPrice(datas.price)}
+                {fmtPrice(priceNum)}
               </span>
             )}
           </div>

@@ -6,7 +6,6 @@ import {
   downloadImportTemplate,
   exportDealerPrices,
   type ExcelImportResult,
-  type PriceExcelImportError,
 } from "../../../services/product-prices/excel";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -19,7 +18,7 @@ export default function ProductPriceExcelPanel({ dealerId }: Props) {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [summary, setSummary] = useState<ExcelImportResult | null>(null);
+  const [_summary, setSummary] = useState<ExcelImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Excel indirme helper

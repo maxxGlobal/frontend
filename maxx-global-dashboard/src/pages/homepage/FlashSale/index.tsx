@@ -46,24 +46,34 @@ function isPercentageDiscount(discountType: any): boolean {
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  products: Array<{ id: number; name: string; code: string; categoryName: string }>;
+  products: Array<{
+    id: number;
+    name: string;
+    code: string;
+    categoryName: string;
+  }>;
   discountName: string;
 }
 
-function ProductModal({ isOpen, onClose, products, discountName }: ProductModalProps) {
+function ProductModal({
+  isOpen,
+  onClose,
+  products,
+  discountName,
+}: ProductModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'auto';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "auto";
     };
   }, [isOpen, onClose]);
 
@@ -72,11 +82,11 @@ function ProductModal({ isOpen, onClose, products, discountName }: ProductModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 backdrop-blur-sm md:backdrop-blur transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden">
         {/* Header */}
@@ -88,8 +98,18 @@ function ProductModal({ isOpen, onClose, products, discountName }: ProductModalP
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -112,7 +132,8 @@ function ProductModal({ isOpen, onClose, products, discountName }: ProductModalP
                       {product.name}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      <span className="font-mono">{product.code}</span> • {product.categoryName}
+                      <span className="font-mono">{product.code}</span> •{" "}
+                      {product.categoryName}
                     </p>
                   </div>
                   <div className="ml-4 flex-shrink-0">
@@ -146,7 +167,12 @@ export default function FlashSale() {
   const [error, setError] = useState<string | null>(null);
   const [dealerCurrency, setDealerCurrency] = useState<string>("TRY");
   const [selectedDiscountProducts, setSelectedDiscountProducts] = useState<{
-    products: Array<{ id: number; name: string; code: string; categoryName: string }>;
+    products: Array<{
+      id: number;
+      name: string;
+      code: string;
+      categoryName: string;
+    }>;
     discountName: string;
   } | null>(null);
 
@@ -174,9 +200,9 @@ export default function FlashSale() {
           return;
         }
         const discountList = await listDiscountsByDealer(dealerId);
-const activeDiscounts = discountList.filter(
-  (d) => d.isActive === true && !d.isExpired && !d.isNotYetStarted
-);
+        const activeDiscounts = discountList.filter(
+          (d) => d.isActive === true && !d.isExpired && !d.isNotYetStarted
+        );
         setDiscounts(activeDiscounts);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
@@ -199,7 +225,7 @@ const activeDiscounts = discountList.filter(
       map.get(d.name)!.push(d);
     });
 
-    return Array.from(map.entries()).map(([name, list]) => {
+    return Array.from(map.entries()).map(([_, list]) => {
       const base = list[0];
       return {
         ...base,
@@ -237,7 +263,7 @@ const activeDiscounts = discountList.filter(
   const handleShowProducts = (discount: any) => {
     setSelectedDiscountProducts({
       products: discount.allProducts || [],
-      discountName: discount.name
+      discountName: discount.name,
     });
   };
 
@@ -321,7 +347,8 @@ const activeDiscounts = discountList.filter(
                               {discount.name}
                             </h3>
                             <p className="text-gray-600 mt-1">
-                              {discount.description || "Özel indirim kampanyası"}
+                              {discount.description ||
+                                "Özel indirim kampanyası"}
                             </p>
                           </div>
                         </div>
@@ -337,7 +364,9 @@ const activeDiscounts = discountList.filter(
                                   getDaysLeft(discount.endDate).includes(
                                     "2 gün"
                                   ) ||
-                                  getDaysLeft(discount.endDate).includes("3 gün")
+                                  getDaysLeft(discount.endDate).includes(
+                                    "3 gün"
+                                  )
                                 ? "bg-orange-100 text-orange-800"
                                 : "bg-green-100 text-green-800"
                             }`}
@@ -437,7 +466,9 @@ const activeDiscounts = discountList.filter(
                             </h4>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Başlangıç:</span>
+                                <span className="text-gray-600">
+                                  Başlangıç:
+                                </span>
                                 <span className="font-medium">
                                   {new Date(
                                     discount.startDate
@@ -447,9 +478,9 @@ const activeDiscounts = discountList.filter(
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Bitiş:</span>
                                 <span className="font-medium">
-                                  {new Date(discount.endDate).toLocaleDateString(
-                                    "tr-TR"
-                                  )}
+                                  {new Date(
+                                    discount.endDate
+                                  ).toLocaleDateString("tr-TR")}
                                 </span>
                               </div>
                             </div>

@@ -9,6 +9,13 @@ export type ApiCategoryListItem = {
   createdAt?: string | null;
   status?: string | null;
 };
+export type ApiCategoryTreeItem = {
+  id: number;
+  name: string;
+  parentId?: number | null;
+  hasChildren?: boolean;
+  children?: ApiCategoryTreeItem[] | null;
+};
 
 /** /categories (page.content) -> CategoryRow[] */
 export function normalizeCategoryList(

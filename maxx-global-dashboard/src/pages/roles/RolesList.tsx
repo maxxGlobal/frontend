@@ -51,7 +51,7 @@ export default function RolesList() {
   const [all, setAll] = useState<RoleRow[]>([]);
   const [q, setQ] = useState("");
   const [page, setPage] = useState(DEFAULT_PAGE);
-  const [size, setSize] = useState(DEFAULT_SIZE);
+  const [size, _setSize] = useState(DEFAULT_SIZE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -60,7 +60,7 @@ export default function RolesList() {
   const [editTarget, setEditTarget] = useState<RoleRow | null>(null);
 
   const [forceDelete, setForceDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [_deleting, setDeleting] = useState(false);
 
   const [lastDeleted, setLastDeleted] = useState<{
     id: number;
@@ -75,7 +75,12 @@ export default function RolesList() {
         setLoading(true);
         setError(null);
         const rows = await listRoles();
-        setAll(rows);
+        setAll(
+          rows.map((r) => ({
+            ...r,
+            status: r.status ?? "",
+          }))
+        );
       } catch (e) {
         setError("Roller yüklenirken bir hata oluştu.");
       } finally {

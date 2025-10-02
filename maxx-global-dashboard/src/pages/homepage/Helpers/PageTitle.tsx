@@ -9,7 +9,7 @@ export interface PageTitleProps {
   breadcrumb: Crumb[]; // ✅ string[] yerine Crumb[]
 }
 
-const PageTitle: React.FC<PageTitleProps> = ({ title, breadcrumb }) => {
+const PageTitle: React.FC<PageTitleProps> = ({ title }) => {
   return (
     <div className="page-title-wrapper bg-[#FFFAEF] w-full h-[173px] py-10">
       <div className="container-x mx-auto">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMedicalIcon } from "../../../assets/icons/MedicalIcons";
 import { listAllCategories } from "../../../services/categories/listAll";

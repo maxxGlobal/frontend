@@ -1,5 +1,4 @@
 // src/pages/products/ProductPriceManagement.tsx
-import React from "react";
 import ProductPriceManagementPanel from "./components/ProductPriceManagementPanel";
 
 export default function ProductPriceManagement() {

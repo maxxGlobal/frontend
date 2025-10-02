@@ -1,19 +1,22 @@
 // src/components/PopoverBadge.tsx
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 type PopoverBadgeProductProps = {
   items: { id: number; name?: string }[];
-  type: "product" | "category";
+  badgeType: "product" | "category";
 };
 
-export default function PopoverBadgeProduct({ items, type }: PopoverBadgeProductProps) {
+export default function PopoverBadgeProduct({
+  items,
+  badgeType,
+}: PopoverBadgeProductProps) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const count = items?.length ?? 0;
   if (count === 0) return <span className="text-muted">-</span>;
 
-  const label = type === "product" ? "Ürünler" : "Kategoriler"; 
+  const label = badgeType === "product" ? "Ürünler" : "Kategoriler";
   return (
     <div ref={wrapperRef} className="position-relative d-inline-block">
       <button
@@ -47,7 +50,11 @@ export default function PopoverBadgeProduct({ items, type }: PopoverBadgeProduct
             <strong className="small mb-0 text-secondary">
               {label} ({count})
             </strong>
-            <button type="button" className="btn btn-sm bg-danger" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              className="btn btn-sm bg-danger"
+              onClick={() => setOpen(false)}
+            >
               Kapat
             </button>
           </div>

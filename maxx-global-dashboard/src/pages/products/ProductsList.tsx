@@ -1,5 +1,5 @@
 // src/pages/catalog/ProductList.tsx
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CategorySidebar from "../products/components/CategorySidebar";
@@ -16,7 +16,6 @@ import { listProductsBySearch } from "../../services/products/search";
 import { listAllCategories } from "../../services/categories/listAll";
 import { deleteProduct } from "../../services/products/delete";
 import { restoreProduct } from "../../services/products/restore";
-import { listActiveCategories } from "../../services/categories/listActive";
 
 import {
   buildCategoryTree,
@@ -58,8 +57,8 @@ export default function ProductList() {
   const [selectedCat, setSelectedCat] = useState<number | null>(null);
 
   const [q, setQ] = useState("");
-  const [sort, setSort] = useState<"top" | "popular" | "newest">("top");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [sort, _setSort] = useState<"top" | "popular" | "newest">("top");
+  const [statusFilter, _setStatusFilter] = useState<StatusFilter>("ALL");
   const [debouncedQ, setDebouncedQ] = useState(""); // ✅ Yeni debounced state
 
   const [page, setPage] = useState(0);
@@ -372,10 +371,7 @@ export default function ProductList() {
               try {
                 const restored = await restoreProduct(row.id);
                 // UI normalizasyon: status "AKTİF" olsun
-                const status =
-                  (restored as any).status === "ACTIVE"
-                    ? "AKTİF"
-                    : (restored as any).status;
+
                 setData((prev): PageResponse<ProductRow> => {
                   let content = prev.content.map(
                     (r): ProductRow =>

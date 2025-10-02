@@ -17,9 +17,6 @@ export default function FilterPanel({
   setActiveOnly,
   inStockOnly,
   setInStockOnly,
-  size,
-  onChangeSize,
-  onRefresh,
 }: Props) {
   return (
     <div className="filter-panel">

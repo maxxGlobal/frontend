@@ -29,7 +29,7 @@ export interface Dealer {
   status?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  preferredCurrency: string;
+  preferredCurrency?: string | null;
   users?: DealerUserLite[];
 }
 

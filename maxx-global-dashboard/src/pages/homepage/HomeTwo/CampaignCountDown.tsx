@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 type CampaignCountDownProps = {
   className?: string;
+  lastDate: string | Date;
 };
 
 export default function CampaignCountDown({

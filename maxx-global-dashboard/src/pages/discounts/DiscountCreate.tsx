@@ -50,7 +50,9 @@ export default function DiscountCreate() {
   const [categoryIds, setCategoryIds] = useState<number[]>([]); // ✅ YENİ
 
   // İndirim türü seçimi (ürün/kategori/genel)
-  const [discountScope, setDiscountScope] = useState<"general" | "product" | "category">("general");
+  const [discountScope, setDiscountScope] = useState<
+    "general" | "product" | "category"
+  >("general");
 
   // Filtre (checkbox listesinde arama)
   const [productFilter, setProductFilter] = useState("");
@@ -151,11 +153,19 @@ export default function DiscountCreate() {
 
     // İndirim kapsamı kontrolü
     if (discountScope === "product" && productIds.length === 0) {
-      Swal.fire("Uyarı", "Ürün bazlı indirim için en az bir ürün seçmelisiniz.", "warning");
+      Swal.fire(
+        "Uyarı",
+        "Ürün bazlı indirim için en az bir ürün seçmelisiniz.",
+        "warning"
+      );
       return;
     }
     if (discountScope === "category" && categoryIds.length === 0) {
-      Swal.fire("Uyarı", "Kategori bazlı indirim için en az bir kategori seçmelisiniz.", "warning");
+      Swal.fire(
+        "Uyarı",
+        "Kategori bazlı indirim için en az bir kategori seçmelisiniz.",
+        "warning"
+      );
       return;
     }
 
@@ -191,20 +201,24 @@ export default function DiscountCreate() {
       discountValue: Number(discountValue),
       startDate: ensureSeconds(startDate),
       endDate: ensureSeconds(endDate),
-      productIds: discountScope === "product" ? Array.from(new Set(productIds)) : [],
+      productIds:
+        discountScope === "product" ? Array.from(new Set(productIds)) : [],
       dealerIds: Array.from(new Set(dealerIds)),
-      categoryIds: discountScope === "category" ? Array.from(new Set(categoryIds)) : [],
+      categoryIds:
+        discountScope === "category" ? Array.from(new Set(categoryIds)) : [],
       isActive,
-      minimumOrderAmount: minimumOrderAmount.trim() === "" ? undefined : Number(minimumOrderAmount),
-      maximumDiscountAmount: maximumDiscountAmount.trim() === "" ? undefined : Number(maximumDiscountAmount),
+      minimumOrderAmount:
+        minimumOrderAmount.trim() === ""
+          ? undefined
+          : Number(minimumOrderAmount),
+      maximumDiscountAmount:
+        maximumDiscountAmount.trim() === ""
+          ? undefined
+          : Number(maximumDiscountAmount),
       usageLimit: ul,
       usageLimitPerCustomer: ulpc,
 
       // ✅ Eksik alanlar için default değerler
-      autoApply: true,
-      priority: 0,
-      stackable: false,
-      discountCode: undefined
     };
 
     try {
@@ -314,11 +328,17 @@ export default function DiscountCreate() {
           {/* ✅ YENİ - İndirim Kapsamı Seçimi */}
           <div className="col-12">
             <div className="form-group">
-              <label className="sherah-wc__form-label mb-3">İndirim Kapsamı *</label>
+              <label className="sherah-wc__form-label mb-3">
+                İndirim Kapsamı *
+              </label>
 
               {/* Modern Button Group Style */}
               <div className="discount-scope-selector">
-                <div className="btn-group w-100" role="group" aria-label="İndirim Kapsamı">
+                <div
+                  className="btn-group w-100"
+                  role="group"
+                  aria-label="İndirim Kapsamı"
+                >
                   <input
                     type="radio"
                     className="btn-check"
@@ -329,7 +349,9 @@ export default function DiscountCreate() {
                     onChange={(e) => setDiscountScope(e.target.value as any)}
                   />
                   <label
-                    className={`btn btn-outline-primary ${discountScope === "general" ? "active" : ""}`}
+                    className={`btn btn-outline-primary ${
+                      discountScope === "general" ? "active" : ""
+                    }`}
                     htmlFor="scopeGeneral"
                   >
                     <div className="d-flex align-items-center justify-content-center">
@@ -351,7 +373,9 @@ export default function DiscountCreate() {
                     onChange={(e) => setDiscountScope(e.target.value as any)}
                   />
                   <label
-                    className={`btn btn-outline-primary ${discountScope === "product" ? "active" : ""}`}
+                    className={`btn btn-outline-primary ${
+                      discountScope === "product" ? "active" : ""
+                    }`}
                     htmlFor="scopeProduct"
                   >
                     <div className="d-flex align-items-center justify-content-center">
@@ -373,7 +397,9 @@ export default function DiscountCreate() {
                     onChange={(e) => setDiscountScope(e.target.value as any)}
                   />
                   <label
-                    className={`btn btn-outline-primary ${discountScope === "category" ? "active" : ""}`}
+                    className={`btn btn-outline-primary ${
+                      discountScope === "category" ? "active" : ""
+                    }`}
                     htmlFor="scopeCategory"
                   >
                     <div className="d-flex align-items-center justify-content-center">
@@ -388,7 +414,7 @@ export default function DiscountCreate() {
               </div>
 
               {/* Custom CSS - Bu stilleri CSS dosyanıza ekleyin */}
-              <style jsx>{`
+              <style>{`
       .discount-scope-selector {
         .btn-group {
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -598,7 +624,9 @@ export default function DiscountCreate() {
                     <button
                       type="button"
                       className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
-                      onClick={() => selectAll(filteredCategories, setCategoryIds)}
+                      onClick={() =>
+                        selectAll(filteredCategories, setCategoryIds)
+                      }
                       disabled={optsLoading || filteredCategories.length === 0}
                     >
                       Tümünü Seç
@@ -726,7 +754,9 @@ export default function DiscountCreate() {
                           type="checkbox"
                           id={`dealer_${d.id}`}
                           checked={checked}
-                          onChange={() => toggleId(dealerIds, d.id, setDealerIds)}
+                          onChange={() =>
+                            toggleId(dealerIds, d.id, setDealerIds)
+                          }
                         />
                         <label
                           className="form-check-label"

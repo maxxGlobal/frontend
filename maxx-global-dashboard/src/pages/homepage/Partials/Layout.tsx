@@ -5,8 +5,6 @@ import Drawer from "../Mobile/Drawer";
 import Footer from "./Footers/FooterTwo";
 import Header from "./Headers/HeaderFour";
 
-import FooterFour from "./Footers/FooterFour/index";
-
 type LayoutProps = {
   children: ReactNode;
   childrenClasses?: string;

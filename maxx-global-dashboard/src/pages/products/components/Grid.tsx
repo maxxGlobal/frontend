@@ -43,8 +43,6 @@ export default function ProductsGrid({
           p.categoryName ??
           (p.categoryId != null ? categoriesMap?.[p.categoryId] : undefined) ??
           "-";
-        const status = p.status ?? (p.isActive ? "AKTİF" : "SİLİNDİ");
-        const isDeleted = status === "SİLİNDİ";
 
         // Kart tıklaması -> Detay
         const canOpen = !!onView;

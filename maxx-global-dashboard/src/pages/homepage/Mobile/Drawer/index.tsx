@@ -1,19 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ThinLove from "../../Helpers/icons/ThinLove";
 import Close from "../../Helpers/icons/Close";
 import Search from "../../Helpers/icons/Search";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  getUnreadCount,
-  markAllNotificationsRead,
-} from "../../../../services/notifications/header";
+import { getUnreadCount } from "../../../../services/notifications/header";
 import { listAllCategories } from "../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../assets/icons/MedicalIcons";
 import { getFavoriteCount } from "../../../../services/favorites/count";
 import { BiChevronRight } from "react-icons/bi";
 import Bell from "../../Helpers/icons/Bell";
-import { listNotifications } from "../../../../services/notifications/list";
 import NotificationCart from "../../Notifications/Cart";
 
 import {
@@ -47,18 +43,6 @@ function collectDescendantsIds(node: CatNode): number[] {
   return out;
 }
 
-function countNodes(nodes: CatNode[]): number {
-  let c = 0;
-  const walk = (arr: CatNode[]) => {
-    for (const n of arr) {
-      c += 1;
-      if (n.children?.length) walk(n.children);
-    }
-  };
-  walk(nodes);
-  return c;
-}
-
 export default function Drawer({ className, open, action }: DrawerProps) {
   const { data: wishlistCount = 0 } = useQuery({
     queryKey: ["favoriteCount"],
@@ -73,7 +57,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
 
   const [categoryToggle, setToggle] = useState(false);
   const [roots, setRoots] = useState<CatNode[]>([]);
-  const [elementsSize, setSize] = useState("0px");
+  // const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
   const [tab, setTab] = useState<"category" | "menu">("category");
@@ -101,10 +85,13 @@ export default function Drawer({ className, open, action }: DrawerProps) {
   useEffect(() => {
     if (categoryToggle) {
       const el = listRef.current;
-      if (el) setSize(`${el.scrollHeight}px`);
-      else setSize(`${Math.max(1, countNodes(roots)) * 42}px`);
+      if (el) {
+        // setSize(`${el.scrollHeight}px`);
+      } else {
+        // setSize(`${Math.max(1, countNodes(roots)) * 42}px`);
+      }
     } else {
-      setSize("0px");
+      // setSize("0px");
     }
   }, [categoryToggle, roots]);
 

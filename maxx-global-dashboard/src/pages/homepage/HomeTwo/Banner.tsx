@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import ProductCardStyleOne from "../Helpers/Cards/ProductCardStyleOne";
 import { listRandomProducts } from "../../../services/products/random";
 import type { ProductRow } from "../../../types/product";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
@@ -82,7 +81,7 @@ export default function Banner({ className }: BannerProps) {
                   data-aos="fade-left"
                   className="xl:w-1/2 w-full h-[600px] bg-white rounded-xl relative rounded-md overflow-hidden lg:mt-0 mt-5"
                 >
-                  {products.slice(1, 3).map((p, idx) => (
+                  {products.slice(1, 3).map((p) => (
                     <div
                       key={p.id}
                       className="relative w-full h-full rounded-md overflow-hidden"

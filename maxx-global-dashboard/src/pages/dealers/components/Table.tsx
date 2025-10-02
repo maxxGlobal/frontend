@@ -26,17 +26,6 @@ export default function DealersTable({
   onDetail,
 }: Props) {
   const navigate = useNavigate();
-  const fmtDate = (iso?: string) => {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mi = String(d.getMinutes()).padStart(2, "0");
-    return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
-  };
-
   const statusBadge = (s?: string | null) =>
     s === "AKTİF" ? (
       <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
@@ -50,22 +39,22 @@ export default function DealersTable({
   return (
     <div className="sherah-table p-0">
       <table className="sherah-table__main sherah-table__main-v3">
-       <thead className="sherah-table__head">
-  <tr>
-    <th
-      onClick={() => toggleSort("name")}
-      style={{ cursor: "pointer" }}
-    >
-      <span className="me-2">Ad</span>
-      {sortIcon("name")}
-    </th>
-    <th>E-posta</th>
-    <th>Telefon</th>
-    <th>Para Birimi</th> {/* ✅ Tek sütun */}
-    <th>Durum</th>
-    {canManage && <th>Aksiyon</th>}
-  </tr>
-</thead>
+        <thead className="sherah-table__head">
+          <tr>
+            <th
+              onClick={() => toggleSort("name")}
+              style={{ cursor: "pointer" }}
+            >
+              <span className="me-2">Ad</span>
+              {sortIcon("name")}
+            </th>
+            <th>E-posta</th>
+            <th>Telefon</th>
+            <th>Para Birimi</th> {/* ✅ Tek sütun */}
+            <th>Durum</th>
+            {canManage && <th>Aksiyon</th>}
+          </tr>
+        </thead>
 
         <tbody className="sherah-table__body">
           {data.content.length ? (
@@ -90,16 +79,19 @@ export default function DealersTable({
                     </p>
                   </div>
                 </td>
-                 <td>
-      <div className="sherah-table__product-content">
-        <p className="sherah-table__product-desc">
-          {d.preferredCurrency === "TRY" ? "TRY (₺)" : 
-           d.preferredCurrency === "USD" ? "USD ($)" : 
-           d.preferredCurrency === "EUR" ? "EUR (€)" : 
-           d.preferredCurrency || "—"}
-        </p>
-      </div>
-    </td>
+                <td>
+                  <div className="sherah-table__product-content">
+                    <p className="sherah-table__product-desc">
+                      {d.preferredCurrency === "TRY"
+                        ? "TRY (₺)"
+                        : d.preferredCurrency === "USD"
+                        ? "USD ($)"
+                        : d.preferredCurrency === "EUR"
+                        ? "EUR (€)"
+                        : d.preferredCurrency || "—"}
+                    </p>
+                  </div>
+                </td>
                 <td>
                   <div className="sherah-table__product-content">
                     {statusBadge(d.status)}

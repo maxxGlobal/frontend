@@ -1,5 +1,5 @@
 // src/pages/homepage/components/Navbar/index.tsx (senin dosyana göre yol)
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Arrow from "../../../Helpers/icons/Arrow";
 import { listAllCategories } from "../../../../../services/categories/listAll";

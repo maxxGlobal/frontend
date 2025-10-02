@@ -1,9 +1,7 @@
 // src/pages/orders/components/OrderDetailModal.tsx
-import React from "react";
+
 import Swal from "sweetalert2";
-import type { OrderResponse, EditOrderBody } from "../../../types/order";
-import { editOrder } from "../../../services/orders/edit";
-import { listSimpleDealers } from "../../../services/dealers/listSimple";
+import type { OrderResponse } from "../../../types/order";
 
 interface Props {
   open: boolean;
@@ -28,7 +26,6 @@ export default function OrderDetailModal({
     id,
     orderNumber,
     dealerName,
-    dealerId, // <- opsiyonel olabilir
     createdBy,
     orderDate,
     orderStatus,
@@ -84,47 +81,47 @@ export default function OrderDetailModal({
   }
 
   // 🛠 Düzenle: dealerId gerekiyor → yoksa simple listeden ad ile buluyoruz
-  async function handleEditClick() {
-    const reason = await getNote(
-      "Düzenleme Nedeni",
-      "Stok durumu nedeniyle güncellendi"
-    );
-    if (!reason) return;
+  // async function handleEditClick() {
+  //   const reason = await getNote(
+  //     "Düzenleme Nedeni",
+  //     "Stok durumu nedeniyle güncellendi"
+  //   );
+  //   if (!reason) return;
 
-    let resolvedDealerId: number | undefined = dealerId;
+  //   let resolvedDealerId: number | undefined = dealerId;
 
-    if (!resolvedDealerId) {
-      // dealerId backend listesinden gelmiyorsa, /dealers/simple ile adı eşleştir
-      try {
-        const dealers = await listSimpleDealers(); // [{id, name}]
-        const match = dealers.find((d) => d.name === dealerName);
-        if (match) resolvedDealerId = match.id;
-      } catch {
-        /* ignore; fallback aşağıda */
-      }
-    }
+  //   if (!resolvedDealerId) {
+  //     // dealerId backend listesinden gelmiyorsa, /dealers/simple ile adı eşleştir
+  //     try {
+  //       const dealers = await listSimpleDealers(); // [{id, name}]
+  //       const match = dealers.find((d) => d.name === dealerName);
+  //       if (match) resolvedDealerId = match.id;
+  //     } catch {
+  //       /* ignore; fallback aşağıda */
+  //     }
+  //   }
 
-    if (!resolvedDealerId) {
-      await Swal.fire(
-        "Hata",
-        "Dealer ID bulunamadı. Lütfen bayi bilgisini kontrol edin.",
-        "error"
-      );
-      return;
-    }
+  //   if (!resolvedDealerId) {
+  //     await Swal.fire(
+  //       "Hata",
+  //       "Dealer ID bulunamadı. Lütfen bayi bilgisini kontrol edin.",
+  //       "error"
+  //     );
+  //     return;
+  //   }
 
-    const body: EditOrderBody = {
-      dealerId: resolvedDealerId,
-      products: items.map((it) => ({
-        productPriceId: it.productPriceId,
-        quantity: it.quantity,
-      })),
-      discountId: null,
-      notes: notes ?? undefined, // null ise hiç gönderme
-    };
+  //   const body: EditOrderBody = {
+  //     dealerId: resolvedDealerId,
+  //     products: items.map((it) => ({
+  //       productPriceId: it.productPriceId,
+  //       quantity: it.quantity,
+  //     })),
+  //     discountId: null,
+  //     notes: notes ?? undefined, // null ise hiç gönderme
+  //   };
 
-    await safeAction(() => editOrder(id, reason, body), "Sipariş düzenlendi");
-  }
+  //   await safeAction(() => editOrder(id, reason, body), "Sipariş düzenlendi");
+  // }
 
   return (
     <>
