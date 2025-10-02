@@ -8,7 +8,6 @@ import { listSimpleDealers } from "../../../services/dealers/listSimple";
 import {
   downloadDealerTemplate,
   downloadImportTemplate,
-  exportDealerPrices,
   importPricesFromExcel,
   validatePriceExcel,
   downloadBlob,
@@ -109,34 +108,34 @@ export default function ProductPriceManagementPanel() {
   }
 
   // Export
-  async function handleExportDealerPrices() {
-    if (!selectedDealerId) {
-      MySwal.fire("Uyarı", "Lütfen bir bayi seçin", "warning");
-      return;
-    }
+  // async function handleExportDealerPrices() {
+  //   if (!selectedDealerId) {
+  //     MySwal.fire("Uyarı", "Lütfen bir bayi seçin", "warning");
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
-      const blob = await exportDealerPrices(selectedDealerId, activeOnly);
-      downloadBlob(blob, `bayi_${selectedDealerId}_fiyatlar.xlsx`);
+  //   try {
+  //     setLoading(true);
+  //     const blob = await exportDealerPrices(selectedDealerId, activeOnly);
+  //     downloadBlob(blob, `bayi_${selectedDealerId}_fiyatlar.xlsx`);
 
-      MySwal.fire({
-        icon: "success",
-        title: "Export Başarılı",
-        text: "Bayi fiyatları başarıyla dışa aktarıldı",
-        confirmButtonText: "Tamam",
-      });
-    } catch (e: any) {
-      MySwal.fire({
-        icon: "error",
-        title: "Export Hatası",
-        text: e.message,
-        confirmButtonText: "Tamam",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
+  //     MySwal.fire({
+  //       icon: "success",
+  //       title: "Export Başarılı",
+  //       text: "Bayi fiyatları başarıyla dışa aktarıldı",
+  //       confirmButtonText: "Tamam",
+  //     });
+  //   } catch (e: any) {
+  //     MySwal.fire({
+  //       icon: "error",
+  //       title: "Export Hatası",
+  //       text: e.message,
+  //       confirmButtonText: "Tamam",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
   // Import işlemi
   async function handleImport(isValidation = false) {

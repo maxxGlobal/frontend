@@ -2,7 +2,7 @@ type DiscountBannerProps = {
   className?: string;
 };
 
-export default function DiscountBanner({ className }: DiscountBannerProps) {
+export default function DiscountBanner({}: DiscountBannerProps) {
   return (
     <div className="discount-banner w-full h-[307px] bg-cover flex justify-center items-center bg-qh2-green ">
       <div className="text-qblack">

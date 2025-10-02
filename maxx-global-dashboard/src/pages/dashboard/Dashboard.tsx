@@ -5,7 +5,6 @@ import TopProductsChart from "./components/TopProductsChart";
 import TopDealersChart from "./components/TopDealersChart";
 import RevenueTrendChart from "./components/RevenueTrendChart";
 import MonthlyOrdersChart from "./components/MonthlyOrdersChart";
-import DiscountEffectivenessChart from "./components/DiscountEffectivenessChart";
 import { RefreshCw } from "lucide-react";
 import LowStockProductsPage from "../products/LowStockProductsPage";
 
@@ -87,7 +86,7 @@ export default function Dashboard() {
 
       {/* Rest of charts */}
       <RevenueTrendChart />
-      <MonthlyOrdersChart /> 
+      <MonthlyOrdersChart />
     </div>
   );
 }

@@ -1,6 +1,3 @@
-import { Link } from "react-router-dom";
-import Arrow from "../../../Helpers/icons/Arrow";
-import Selectbox from "../../../Helpers/Selectbox";
 type TopbarProps = {
   className?: string;
   compareCount?: number;

@@ -10,6 +10,23 @@ import type { ProductSimple } from "../../../types/product";
 import type { DealerSummary } from "../../../types/dealer";
 import type { CategoryRow } from "../../../types/category";
 
+type DiscountTypeCanonical = "PERCENTAGE" | "FIXED_AMOUNT";
+function normalizeDiscountType(input: unknown): DiscountTypeCanonical {
+  const raw = String(input ?? "").trim();
+
+  // Zaten beklenen değerlerse direkt döndür
+  if (raw === "PERCENTAGE" || raw === "FIXED_AMOUNT") {
+    return raw;
+  }
+
+  // Yerelleştirilmiş/serbest değerleri eşle
+  const u = raw.toLocaleUpperCase("tr-TR");
+  if (u.includes("YÜZ") || u.includes("PERC")) return "PERCENTAGE";
+  if (u.includes("SAB") || u.includes("FIX")) return "FIXED_AMOUNT";
+
+  // Emniyetli varsayılan
+  return "PERCENTAGE";
+}
 // Yardımcılar
 function toInputLocal(iso: string | undefined) {
   if (!iso) return "";
@@ -36,9 +53,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   // Form alanları (prefill)
   const [name, setName] = useState(target.name ?? "");
   const [description, setDescription] = useState(target.description ?? "");
-  const [discountType, setDiscountType] = useState<
-    "PERCENTAGE" | "FIXED_AMOUNT"
-  >(target.discountType);
+  const [discountType, setDiscountType] = useState<DiscountTypeCanonical>(
+    normalizeDiscountType((target as any).discountType)
+  );
   const [discountValue, setDiscountValue] = useState<number>(
     target.discountValue ?? 0
   );
@@ -85,25 +102,26 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   );
 
   // İndirim kapsamı belirleme (mevcut veriye göre)
-  const [discountScope, setDiscountScope] = useState<"general" | "product" | "category">(() => {
+  const [discountScope, setDiscountScope] = useState<
+    "general" | "product" | "category"
+  >(() => {
     const hasProducts = idsOf(target.applicableProducts).length > 0;
-    const hasCategories = idsOf((target as any).applicableCategories).length > 0;
-    
+    const hasCategories =
+      idsOf((target as any).applicableCategories).length > 0;
+
     if (hasCategories) return "category";
     if (hasProducts) return "product";
     return "general";
   });
 
-  // Filtreler
   const [productFilter, setProductFilter] = useState("");
   const [dealerFilter, setDealerFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState(""); // ✅ YENİ
+  const [categoryFilter, setCategoryFilter] = useState("");
 
-  // Hedef değişirse formu güncelle
   useEffect(() => {
     setName(target.name ?? "");
     setDescription(target.description ?? "");
-    setDiscountType(target.discountType);
+    setDiscountType(normalizeDiscountType((target as any).discountType));
     setDiscountValue(target.discountValue ?? 0);
     setStartDate(toInputLocal(target.startDate));
     setEndDate(toInputLocal(target.endDate));
@@ -132,8 +150,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
 
     // İndirim kapsamını yeniden belirle
     const hasProducts = idsOf(target.applicableProducts).length > 0;
-    const hasCategories = idsOf((target as any).applicableCategories).length > 0;
-    
+    const hasCategories =
+      idsOf((target as any).applicableCategories).length > 0;
+
     if (hasCategories) setDiscountScope("category");
     else if (hasProducts) setDiscountScope("product");
     else setDiscountScope("general");
@@ -151,7 +170,7 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
         ]);
         prods.sort((a, b) => a.name.localeCompare(b.name));
         dealers.sort((a, b) => a.name.localeCompare(b.name));
-        
+
         setProductOpts(prods);
         setDealerOpts(dealers);
         setCategoryOpts(categories); // ✅ YENİ
@@ -232,11 +251,19 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
 
     // İndirim kapsamı kontrolü
     if (discountScope === "product" && productIds.length === 0) {
-      Swal.fire("Uyarı", "Ürün bazlı indirim için en az bir ürün seçmelisiniz.", "warning");
+      Swal.fire(
+        "Uyarı",
+        "Ürün bazlı indirim için en az bir ürün seçmelisiniz.",
+        "warning"
+      );
       return;
     }
     if (discountScope === "category" && categoryIds.length === 0) {
-      Swal.fire("Uyarı", "Kategori bazlı indirim için en az bir kategori seçmelisiniz.", "warning");
+      Swal.fire(
+        "Uyarı",
+        "Kategori bazlı indirim için en az bir kategori seçmelisiniz.",
+        "warning"
+      );
       return;
     }
 
@@ -272,9 +299,11 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       startDate: ensureSeconds(startDate),
       endDate: ensureSeconds(endDate),
       // İndirim kapsamına göre ID'leri gönder
-      productIds: discountScope === "product" ? Array.from(new Set(productIds)) : [],
+      productIds:
+        discountScope === "product" ? Array.from(new Set(productIds)) : [],
       dealerIds: Array.from(new Set(dealerIds)),
-      categoryIds: discountScope === "category" ? Array.from(new Set(categoryIds)) : [], // ✅ YENİ
+      categoryIds:
+        discountScope === "category" ? Array.from(new Set(categoryIds)) : [], // ✅ YENİ
       isActive,
       minimumOrderAmount:
         minimumOrderAmount.trim() === ""
@@ -403,7 +432,10 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                       checked={discountScope === "general"}
                       onChange={(e) => setDiscountScope(e.target.value as any)}
                     />
-                    <label className="form-check-label" htmlFor="scopeGeneralEdit">
+                    <label
+                      className="form-check-label"
+                      htmlFor="scopeGeneralEdit"
+                    >
                       Genel (Tüm Ürünler)
                     </label>
                   </div>
@@ -417,7 +449,10 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                       checked={discountScope === "product"}
                       onChange={(e) => setDiscountScope(e.target.value as any)}
                     />
-                    <label className="form-check-label" htmlFor="scopeProductEdit">
+                    <label
+                      className="form-check-label"
+                      htmlFor="scopeProductEdit"
+                    >
                       Ürün Bazlı
                     </label>
                   </div>
@@ -431,7 +466,10 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                       checked={discountScope === "category"}
                       onChange={(e) => setDiscountScope(e.target.value as any)}
                     />
-                    <label className="form-check-label" htmlFor="scopeCategoryEdit">
+                    <label
+                      className="form-check-label"
+                      htmlFor="scopeCategoryEdit"
+                    >
                       Kategori Bazlı
                     </label>
                   </div>
@@ -480,7 +518,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                           onClick={() =>
                             selectAll(filteredProducts, setProductIds)
                           }
-                          disabled={optsLoading || filteredProducts.length === 0}
+                          disabled={
+                            optsLoading || filteredProducts.length === 0
+                          }
                         >
                           Tümünü Seç
                         </button>
@@ -514,7 +554,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                       ) : (
                         filteredProducts.map((p) => {
                           const checked = productIds.includes(p.id);
-                          const label = p.code ? `${p.name} (${p.code})` : p.name;
+                          const label = p.code
+                            ? `${p.name} (${p.code})`
+                            : p.name;
                           return (
                             <div className="form-check" key={p.id}>
                               <input
@@ -559,7 +601,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                           onClick={() =>
                             selectAll(filteredCategories, setCategoryIds)
                           }
-                          disabled={optsLoading || filteredCategories.length === 0}
+                          disabled={
+                            optsLoading || filteredCategories.length === 0
+                          }
                         >
                           Tümünü Seç
                         </button>

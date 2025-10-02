@@ -1,5 +1,3 @@
-// src/pages/Helpers/Cards/ProductCardStyleOne.tsx
-import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
@@ -50,7 +48,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   const [quantity, setQuantity] = useState<number>(1);
   const [inputValue, setInputValue] = useState<string>("1");
   const [hiddenAfterClick, setHiddenAfterClick] = useState(false);
-  
+
   const increment = () => {
     setQuantity((p) => {
       const n = p + 1;
@@ -73,7 +71,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     const num = parseInt(val, 10);
     if (!isNaN(num) && num >= 1) setQuantity(num);
   };
-  
+
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setTimeout(() => {
       try {
@@ -85,7 +83,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       setInputValue("");
     }
   };
-  
+
   const handleBlur = () => {
     if (inputValue.trim() === "") {
       setInputValue(String(quantity || 1));
@@ -134,7 +132,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   }
 
   // Miktar alanları için event propagation'ı durdur
-  const stopPropagation = (e: React.MouseEvent | React.FocusEvent | React.ChangeEvent) => {
+  const stopPropagation = (
+    e: React.MouseEvent | React.FocusEvent | React.ChangeEvent
+  ) => {
     e.stopPropagation();
   };
 
@@ -143,10 +143,12 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     // React Router ile yönlendirme yap ki state korunsun
     const currentUrl = new URL(window.location.href);
     const searchParams = currentUrl.searchParams.toString();
-    const productUrl = `/homepage/product/${d.id}${searchParams ? `?${searchParams}` : ''}`;
-    
+    const productUrl = `/homepage/product/${d.id}${
+      searchParams ? `?${searchParams}` : ""
+    }`;
+
     // Navigate kullanarak yönlendirme yap
-    window.history.pushState(null, '', productUrl);
+    window.history.pushState(null, "", productUrl);
     window.location.href = productUrl;
   };
 
@@ -263,9 +265,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
           </div>
         )}
       </div>
-      
+
       {/* Favori butonu */}
-      <div 
+      <div
         className="quick-access-btns flex flex-col space-y-2 absolute group-hover:right-4 -right-10 top-2 transition-all duration-300"
         onClick={stopPropagation}
       >

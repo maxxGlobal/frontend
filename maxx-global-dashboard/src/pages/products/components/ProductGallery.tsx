@@ -1,5 +1,5 @@
 // ProductGallery.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type ImgItem = { id: number | string; url: string; isPrimary?: boolean };
 

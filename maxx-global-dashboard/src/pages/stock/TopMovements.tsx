@@ -128,19 +128,17 @@ export default function TopMovements() {
                 </tr>
               </thead>
               <tbody className="sherah-table__body">
-                {topProducts.map((products) =>
-                  products.map((product: TopMovementProduct, index: number) => (
-                    <tr key={product.productId}>
-                      <td className="text-center">{index + 1}</td>
-                      <td>{product.productCode}</td>
-                      <td>{product.productName}</td>
-                      <td className="text-center">{product.totalMovements}</td>
-                      <td className="text-center">
-                        {product.totalQuantity.toLocaleString("tr-TR")}
-                      </td>
-                    </tr>
-                  ))
-                )}
+                {topProducts.map((product, index) => (
+                  <tr key={product.productId}>
+                    <td className="text-center">{index + 1}</td>
+                    <td>{product.productCode}</td>
+                    <td>{product.productName}</td>
+                    <td className="text-center">{product.totalMovements}</td>
+                    <td className="text-center">
+                      {product.totalQuantity.toLocaleString("tr-TR")}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -1,4 +1,3 @@
-import React from "react";
 import LayoutHomeTwo from "../Partials/LayoutHomeTwo";
 import SectionStyleThreeHomeTwo from "../Helpers/SectionStyleThreeHomeTwo";
 import ViewMoreTitle from "../Helpers/ViewMoreTitle";
@@ -9,15 +8,6 @@ import WhatsAppButton from "../Whatsapp/WhatsAppButton";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../assets/homepage.css";
-
-type Product = {
-  id: number;
-  title: string;
-  price: string;
-  offer_price?: string;
-  image: string;
-  [key: string]: any;
-};
 
 export default function HomeTwo() {
   // const { products } = datas as { products: Product[] };

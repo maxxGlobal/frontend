@@ -1,16 +1,11 @@
 // src/components/header/Header.tsx - Enhanced with useAuth
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import HeaderBell from "../../pages/notifications/HeaderBell";
-import { useAuth } from "../../hooks/useAuth"; // ✅ Hook'u import edin
+import { useAuth } from "../../hooks/useAuth";
 
 export default function Header() {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
   const [openMsg, setOpenMsg] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-
-  // ✅ useAuth hook'unu kullanın
   const { user, logout } = useAuth();
 
   const msgRef = useRef<HTMLDivElement | null>(null);

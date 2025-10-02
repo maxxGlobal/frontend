@@ -15,7 +15,7 @@ type Props = {
 
 export default function UsersTable({
   data,
-  sortBy,
+
   sortIcon,
   toggleSort,
   fmtDate,
@@ -23,8 +23,10 @@ export default function UsersTable({
   onAskDelete,
   onAskEdit,
 }: Props) {
-  const canDelete = hasPermission({ anyOf: ["SYSTEM_ADMIN", "USER_READ", "USER_MANAGE"] });
-    const deleted = "SİLİNDİ";
+  const canDelete = hasPermission({
+    anyOf: ["SYSTEM_ADMIN", "USER_READ", "USER_MANAGE"],
+  });
+  const deleted = "SİLİNDİ";
   return (
     <div className="sherah-table p-0">
       <table
@@ -146,7 +148,7 @@ export default function UsersTable({
                         {/* edit icon */}
                         <i className="fa-regular fa-pen-to-square" />
                       </a>
-                      {canDelete && u.status !== deleted  && (
+                      {canDelete && u.status !== deleted && (
                         <a
                           href="#"
                           onClick={(e) => {

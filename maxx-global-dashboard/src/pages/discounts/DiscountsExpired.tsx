@@ -1,6 +1,6 @@
 // src/pages/discounts/DiscountsExpired.tsx
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listExpiredDiscounts } from "../../services/discounts/expired";
 import type { Discount } from "../../types/discount";
@@ -23,7 +23,6 @@ function formatTimeSince(endIso?: string) {
 }
 
 export default function DiscountsExpired() {
-  const navigate = useNavigate();
   const [rows, setRows] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -136,7 +135,10 @@ export default function DiscountsExpired() {
                     <td>
                       <div className="sherah-table__product-content">
                         {d.applicableProducts?.length ? (
-                          <PopoverBadgeProduct items={d.applicableProducts} />
+                          <PopoverBadgeProduct
+                            items={d.applicableProducts}
+                            badgeType="product"
+                          />
                         ) : (
                           <span className="text-muted">-</span>
                         )}

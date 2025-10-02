@@ -1,6 +1,6 @@
 // src/pages/notifications/AdminSentNotificationsList.tsx
-import { useEffect, useMemo, useState } from "react";
-import Select from "react-select";
+import { useEffect, useState } from "react";
+
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
@@ -14,7 +14,7 @@ import type {
 
 const MySwal = withReactContent(Swal);
 
-type TypeOpt = { value: string; label: string };
+// type TypeOpt = { value: string; label: string };
 
 // Öncelik -> TR
 function trPriority(p?: string | null) {
@@ -33,12 +33,12 @@ function trPriority(p?: string | null) {
 
 export default function AdminSentNotificationsList() {
   // filtreler
-  const [q, setQ] = useState("");
-  const [typeValue, setTypeValue] = useState<string>("");
+  const [q, _setQ] = useState("");
+  const [typeValue, _setTypeValue] = useState<string>("");
 
   // sayfalama
   const [page, setPage] = useState(0); // 0-tabanlı
-  const [size, setSize] = useState(20); // API için gerekli ama UI RolesList ile aynı
+  const [size, _setSize] = useState(20); // API için gerekli ama UI RolesList ile aynı
 
   // data
   const [rows, setRows] = useState<NotificationRow[]>([]);
@@ -47,22 +47,19 @@ export default function AdminSentNotificationsList() {
   const [loading, setLoading] = useState(false);
 
   // type options
-  const [types, setTypes] = useState<NotificationType[]>([]);
-  const typeOptions: TypeOpt[] = useMemo(
-    () =>
-      [{ value: "", label: "Tümü" }].concat(
-        types
-          .map((t) => ({
-            value: t.name,
-            label: t.displayName || t.name,
-          }))
-          .sort((a, b) => a.label.localeCompare(b.label, "tr"))
-      ),
-    [types]
-  );
-
-  const selectedType =
-    typeOptions.find((t) => t.value === typeValue) || typeOptions[0];
+  const [_types, setTypes] = useState<NotificationType[]>([]);
+  // const typeOptions: TypeOpt[] = useMemo(
+  //   () =>
+  //     [{ value: "", label: "Tümü" }].concat(
+  //       types
+  //         .map((t) => ({
+  //           value: t.name,
+  //           label: t.displayName || t.name,
+  //         }))
+  //         .sort((a, b) => a.label.localeCompare(b.label, "tr"))
+  //     ),
+  //   [types]
+  // );
 
   async function load() {
     try {
@@ -124,11 +121,6 @@ export default function AdminSentNotificationsList() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, size]);
-
-  function applyFilters() {
-    setPage(0);
-    load();
-  }
 
   return (
     <div className="sherah-table p-0">

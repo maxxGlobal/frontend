@@ -23,9 +23,6 @@ export default function HeaderFour({
     localStorage.removeItem("user");
     navigate("/login");
   };
-  const handleSearch = (query: string) => {
-    navigate(`/homepage/all-products?search=${encodeURIComponent(query)}`);
-  };
   useEffect(() => {
     const update = () => setCartCount(getCart().length);
 

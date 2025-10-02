@@ -1,4 +1,3 @@
-import React from "react";
 import QuickViewIco from "../icons/QuickViewIco";
 import ThinLove from "../icons/ThinLove";
 import Compair from "../icons/Compair";

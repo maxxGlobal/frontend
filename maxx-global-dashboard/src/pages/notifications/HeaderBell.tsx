@@ -7,14 +7,10 @@ import NotificationIcon from "./NotificationIcon"; // dosya yolunu doğru ayarla
 
 import {
   getUnreadCount,
-  getNotificationSummary,
   markAllNotificationsRead,
 } from "../../services/notifications/header";
 import api from "../../lib/api";
-import type {
-  NotificationSummary,
-  NotificationRow,
-} from "../../types/notifications";
+import type { NotificationRow } from "../../types/notifications";
 
 const MySwal = withReactContent(Swal);
 
@@ -47,14 +43,6 @@ function initialOf(n: NotificationRow) {
 }
 
 /** Tip/kategoriye göre avatar rengi (çok sade) */
-function colorFor(n: NotificationRow) {
-  const cat = (n.typeCategory || "").toLowerCase();
-  if (cat.includes("order")) return "#3b82f6"; // mavi
-  if (cat.includes("warn") || cat.includes("high")) return "#f59e0b"; // amber
-  if (cat.includes("error")) return "#ef4444"; // kırmızı
-  if (cat.includes("success")) return "#10b981"; // yeşil
-  return "#6366f1"; // default indigo
-}
 
 export default function HeaderBell() {
   const qc = useQueryClient();
@@ -100,12 +88,12 @@ export default function HeaderBell() {
     // refetchInterval kaldırıldı - manuel yenileyeceğiz
   });
 
-  const summaryQ = useQuery({
-    queryKey: qkSummary,
-    queryFn: () => getNotificationSummary(),
-    staleTime: 5 * 60 * 1000, // 5 dakika fresh kalsin
-    // refetchInterval kaldırıldı
-  });
+  // const summaryQ = useQuery({
+  //   queryKey: qkSummary,
+  //   queryFn: () => getNotificationSummary(),
+  //   staleTime: 5 * 60 * 1000, // 5 dakika fresh kalsin
+  //   // refetchInterval kaldırıldı
+  // });
 
   const latestQ = useQuery({
     queryKey: qkLatest,
@@ -118,7 +106,7 @@ export default function HeaderBell() {
   });
 
   const unread = unreadQ.data ?? 0;
-  const summary: NotificationSummary | undefined = summaryQ.data;
+
   const latest: NotificationRow[] = latestQ.data ?? [];
 
   async function handleMarkAll() {
@@ -248,15 +236,24 @@ export default function HeaderBell() {
                   return (
                     <li
                       key={n.id}
-                      className={`notif-item ${unread ? "is-unread" : "is-read"
-                        }`}
+                      className={`notif-item ${
+                        unread ? "is-unread" : "is-read"
+                      }`}
                       onClick={() => handleOpen(n)}
                       role={n.actionUrl ? "button" : undefined}
                       style={{ cursor: n.actionUrl ? "pointer" : "default" }}
                     >
-                      <div className="flex items-center justify-center" style={{ width: 32, height: 32 }} aria-hidden>
+                      <div
+                        className="flex items-center justify-center"
+                        style={{ width: 32, height: 32 }}
+                        aria-hidden
+                      >
                         {n.icon ? (
-                          <NotificationIcon icon={n.icon} size={20} color="#555" />
+                          <NotificationIcon
+                            icon={n.icon}
+                            size={20}
+                            color="#555"
+                          />
                         ) : (
                           <span className="text-sm font-semibold text-gray-700">
                             {initialOf(n)}
@@ -266,9 +263,10 @@ export default function HeaderBell() {
 
                       <div className="notif-body">
                         <div className="notif-title">{n.title}</div>
-                        {n.message && <div className="notif-desc">{n.message}</div>}
+                        {n.message && (
+                          <div className="notif-desc">{n.message}</div>
+                        )}
                       </div>
-
 
                       <div className="notif-time">
                         {formatTimeAgo(n.createdAt)} önce

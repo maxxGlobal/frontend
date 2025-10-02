@@ -1,7 +1,5 @@
-import { useState } from "react";
 import CategoryCard from "./Cards/CategoryCard";
-import ProductCardStyleOne from "./Cards/ProductCardStyleOne";
-import DataIteration from "./DataIteration";
+
 import ViewMoreTitle from "./ViewMoreTitle";
 
 type Product = {
@@ -29,14 +27,12 @@ export default function SectionStyleOne({
   sectionTitle,
   seeMoreUrl,
   brands = [],
-  products = [],
+
   categoryBackground,
 }: SectionStyleOneProps) {
   const filterBrands = brands.filter(
     (value, index, array) => array.indexOf(value) === index
   );
-
-  const [productLength] = useState(3);
 
   return (
     <div data-aos="fade-up" className={`section-style-one ${className || ""}`}>
@@ -50,17 +46,6 @@ export default function SectionStyleOne({
                 brands={filterBrands}
               />
             </div>
-            <DataIteration
-              datas={products}
-              startLength={0}
-              endLength={productLength}
-            >
-              {({ datas }) => (
-                <div key={datas.id} className="item">
-                  <ProductCardStyleOne datas={datas} />
-                </div>
-              )}
-            </DataIteration>
           </div>
         </div>
       </ViewMoreTitle>

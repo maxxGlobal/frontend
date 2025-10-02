@@ -1,9 +1,9 @@
 // src/hooks/useAuth.ts
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isTokenExpired, performLogout } from '../lib/api';
-import { getCurrentUser } from '../services/auth/authService';
-import type { User } from '../types/auth';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired, performLogout } from "../lib/api";
+import { getCurrentUser } from "../services/auth/authService";
+import type { User } from "../types/auth";
 
 interface UseAuthReturn {
   user: User | null;
@@ -19,17 +19,17 @@ export function useAuth(): UseAuthReturn {
   const navigate = useNavigate();
 
   const checkTokenValidity = (): boolean => {
-    const token = localStorage.getItem("token");
-    
+    const token = localStorage.getItem("token") || "";
+
     if (!token || isTokenExpired(token)) {
       return false;
     }
-    
+
     return true;
   };
 
   const logout = () => {
-    performLogout(false); // logout fonksiyonunu çağır ama redirect'i kendimiz yapalım
+    performLogout("");
     setUser(null);
     navigate("/login", { replace: true });
   };
@@ -37,7 +37,7 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     const initializeAuth = () => {
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         setUser(null);
         setIsLoading(false);

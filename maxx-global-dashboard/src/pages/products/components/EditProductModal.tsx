@@ -225,14 +225,16 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             // Birden fazla validation hatası
             if (Array.isArray(data.errors)) {
               errorMessage = `<ul class="text-start mb-0">
-              ${data.errors.map((error) => `<li>${error}</li>`).join("")}
+              ${data.errors
+                .map((error: string) => `<li>${error}</li>`)
+                .join("")}
             </ul>`;
               isHtml = true;
             } else if (typeof data.errors === "object") {
               // Field-based validation errors
               const fieldErrors = Object.entries(data.errors)
                 .map(([field, msgs]) => {
-                  const fieldName = getFieldDisplayName(field);
+                  const fieldName = field;
                   const message = Array.isArray(msgs) ? msgs.join(", ") : msgs;
                   return `<li><strong>${fieldName}:</strong> ${message}</li>`;
                 })

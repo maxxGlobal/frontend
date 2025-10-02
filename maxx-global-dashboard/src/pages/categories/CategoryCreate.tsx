@@ -132,14 +132,14 @@ export default function CategoryCreate() {
           } else if (data?.title) {
             errorMessage = data.title;
           } else if (data?.errors) {
-            // Birden fazla validation hatası
             if (Array.isArray(data.errors)) {
               errorMessage = `<ul class="text-start mb-0">
-                ${data.errors.map((error) => `<li>${error}</li>`).join("")}
+                ${data.errors
+                  .map((error: string) => `<li>${error}</li>`)
+                  .join("")}
               </ul>`;
               isHtml = true;
             } else if (typeof data.errors === "object") {
-              // Field-based validation errors
               const fieldErrors = Object.entries(data.errors)
                 .map(([field, msgs]) => {
                   const fieldName = getFieldDisplayName(field);

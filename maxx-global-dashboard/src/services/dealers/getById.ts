@@ -1,7 +1,6 @@
 import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
 import type { Dealer } from "../../types/dealer";
-import { normalizeDealer } from "./_normalize";
 
 export async function getDealerById(id: number): Promise<Dealer> {
   const res = await api.get<ApiEnvelope<Dealer> | Dealer>(`/dealers/${id}`);

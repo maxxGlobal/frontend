@@ -16,16 +16,6 @@ function dedupeById<T extends { id: number }>(arr: T[]): T[] {
   for (const x of arr) m.set(x.id, x);
   return Array.from(m.values());
 }
-function statusBadge(d: Discount) {
-  const now = Date.now();
-  const s = d.startDate ? new Date(d.startDate).getTime() : 0;
-  const e = d.endDate ? new Date(d.endDate).getTime() : 0;
-  if (d.isValidNow || (s <= now && now <= e))
-    return <span className="badge bg-success">AKTİF</span>;
-  if (s > now)
-    return <span className="badge bg-warning text-dark">YAKLAŞAN</span>;
-  return <span className="badge bg-secondary">PASİF</span>;
-}
 
 export default function DiscountsByDealer() {
   const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
@@ -229,7 +219,10 @@ export default function DiscountsByDealer() {
                   </td>
                   <td>
                     {d.applicableProducts?.length ? (
-                      <PopoverBadgeProduct items={d.applicableProducts} />
+                      <PopoverBadgeProduct
+                        items={d.applicableProducts}
+                        badgeType="product"
+                      />
                     ) : (
                       <span className="text-muted">-</span>
                     )}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import ProductCardStyleOne from "../Helpers/Cards/ProductCardStyleOne";
 import Layout from "../Partials/Layout";
 import CategoriesSidebar from "./CategoriesSidebar";
@@ -19,26 +19,25 @@ export default function AllProductPage() {
   const [error, setError] = useState<string | null>(null);
   const size = 12;
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
-  
+  const [selectedMaterials] = useState<string[]>([]);
+
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
+
   // URL'den parametreleri al
   const catParam = searchParams.get("cat");
   const searchQuery = searchParams.get("search");
   const pageParam = searchParams.get("page");
-  
+
   const selectedCatId = catParam && catParam !== "0" ? Number(catParam) : null;
   const currentPage = pageParam ? Math.max(0, Number(pageParam) - 1) : 0; // URL'de 1-based, kod'da 0-based
 
   useEffect(() => {
     const controller = new AbortController();
     let isMounted = true; // Component mount durumunu takip et
-    
+
     (async () => {
       if (!isMounted) return; // Component unmount olduysa çık
-      
+
       setError(null);
       setLoading(true);
       setProducts(null);
@@ -71,7 +70,11 @@ export default function AllProductPage() {
           setTotalPages(pageRes.totalPages ?? 0);
         }
       } catch (e: any) {
-        if (isMounted && e.code !== "ERR_CANCELED" && !controller.signal.aborted) {
+        if (
+          isMounted &&
+          e.code !== "ERR_CANCELED" &&
+          !controller.signal.aborted
+        ) {
           setError("Ürünler getirilemedi");
           setProducts([]);
         }
@@ -81,7 +84,7 @@ export default function AllProductPage() {
         }
       }
     })();
-    
+
     return () => {
       isMounted = false;
       controller.abort();
@@ -105,7 +108,7 @@ export default function AllProductPage() {
       const newSearchParams = new URLSearchParams(searchParams.toString());
       newSearchParams.set("page", String(newPage + 1));
       setSearchParams(newSearchParams);
-      
+
       // Sayfanın en üstüne scroll
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -143,7 +146,7 @@ export default function AllProductPage() {
                       : `${visibleProducts.length} / ${totalPages * size} adet`}
                   </p>
                 </div>
-                
+
                 {/* Sayfa bilgisi göster */}
                 {totalPages > 1 && !loading && (
                   <div className="text-sm text-qgray">
@@ -188,37 +191,40 @@ export default function AllProductPage() {
                       >
                         Önceki
                       </button>
-                      
+
                       {/* Sayfa numaraları */}
                       <div className="flex space-x-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          let pageNum;
-                          if (totalPages <= 5) {
-                            pageNum = i;
-                          } else if (currentPage < 3) {
-                            pageNum = i;
-                          } else if (currentPage >= totalPages - 3) {
-                            pageNum = totalPages - 5 + i;
-                          } else {
-                            pageNum = currentPage - 2 + i;
+                        {Array.from(
+                          { length: Math.min(5, totalPages) },
+                          (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i;
+                            } else if (currentPage < 3) {
+                              pageNum = i;
+                            } else if (currentPage >= totalPages - 3) {
+                              pageNum = totalPages - 5 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`w-8 h-8 rounded text-sm transition-colors ${
+                                  pageNum === currentPage
+                                    ? "bg-qh2-green text-white"
+                                    : "bg-gray-100 text-qblack hover:bg-gray-200"
+                                }`}
+                              >
+                                {pageNum + 1}
+                              </button>
+                            );
                           }
-                          
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => handlePageChange(pageNum)}
-                              className={`w-8 h-8 rounded text-sm transition-colors ${
-                                pageNum === currentPage
-                                  ? "bg-qh2-green text-white"
-                                  : "bg-gray-100 text-qblack hover:bg-gray-200"
-                              }`}
-                            >
-                              {pageNum + 1}
-                            </button>
-                          );
-                        })}
+                        )}
                       </div>
-                      
+
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage + 1 >= totalPages}

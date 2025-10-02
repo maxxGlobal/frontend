@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type ImgItem = { id: number | string; url: string; isPrimary?: boolean };
 const PLACEHOLDER = "/src/assets/img/resim-yok.jpg";

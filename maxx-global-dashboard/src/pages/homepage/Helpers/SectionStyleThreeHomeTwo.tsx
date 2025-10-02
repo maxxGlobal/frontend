@@ -1,6 +1,6 @@
 // src/pages/SectionStyleThreeHomeTwo.tsx
 import { useEffect, useState } from "react";
-import { data, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 

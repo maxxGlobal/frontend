@@ -1,6 +1,6 @@
 // src/pages/discounts/DiscountsUpcoming.tsx
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
@@ -23,7 +23,6 @@ function formatTimeLeft(startIso?: string) {
 }
 
 export default function DiscountsUpcoming() {
-  const navigate = useNavigate();
   const [rows, setRows] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -136,7 +135,10 @@ export default function DiscountsUpcoming() {
                     <td>
                       <div className="sherah-table__product-content">
                         {d.applicableProducts?.length ? (
-                          <PopoverBadgeProduct items={d.applicableProducts} />
+                          <PopoverBadgeProduct
+                            items={d.applicableProducts}
+                            badgeType="product"
+                          />
                         ) : (
                           <span className="text-muted">-</span>
                         )}

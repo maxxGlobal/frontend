@@ -14,9 +14,6 @@ export default function FilterPanel({
   setQ,
   activeOnly,
   setActiveOnly,
-  size,
-  onChangeSize,
-  onRefresh,
 }: Props) {
   return (
     <div className="filter-panel">

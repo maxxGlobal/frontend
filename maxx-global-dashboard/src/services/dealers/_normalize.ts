@@ -31,10 +31,10 @@ export function normalizeDealer(raw: any): Dealer {
     email: raw.email ?? null,
     address: raw.address ?? null,
     status: raw.status ?? null,
-    // backend createdDate döndürüyor -> createdAt'e taşıyoruz
     createdAt: raw.createdAt ?? raw.created_date ?? raw.createdDate ?? null,
     updatedAt: raw.updatedAt ?? raw.updated_date ?? raw.updatedDate ?? null,
     users,
+    preferredCurrency: raw.preferredCurrency ?? null,
   };
 }
 

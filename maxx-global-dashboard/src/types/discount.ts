@@ -1,6 +1,10 @@
 // src/types/discount.ts
 
-export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | "Yüzdesel" | "Sabit Tutar";
+export type DiscountType =
+  | "PERCENTAGE"
+  | "FIXED_AMOUNT"
+  | "Yüzdesel"
+  | "Sabit Tutar";
 
 export interface DiscountProduct {
   id: number;
@@ -39,16 +43,18 @@ export interface Discount {
   endDate: string;
   applicableProducts: DiscountProduct[];
   applicableDealers: DiscountDealer[];
-  applicableCategories?: DiscountCategory[]; // ✅ YENİ - Kategori desteği
+  applicableCategories?: DiscountCategory[];
   isActive: boolean;
   isValidNow: boolean;
   minimumOrderAmount?: number;
   maximumDiscountAmount?: number;
   createdDate: string;
   updatedDate: string;
-  isExpired:boolean;
-  isNotYetStarted: boolean
+  isExpired: boolean;
+  isNotYetStarted: boolean;
   status: string;
+  usageCount?: number;
+  usageLimit?: number;
 }
 
 export interface DiscountCreateRequest {

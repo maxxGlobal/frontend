@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import DiscountBanner from "../HomeTwo/DiscountBanner";
 import Drawer from "../Mobile/Drawer";
 import Footer from "./Footers/FooterTwo";
 import HeaderFour from "./Headers/HeaderFour";

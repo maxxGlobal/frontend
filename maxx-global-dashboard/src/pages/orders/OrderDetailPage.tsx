@@ -1,12 +1,12 @@
 // src/pages/orders/OrderDetailPage.tsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOrderById } from "../../services/orders/getOrderById"; 
+import { getOrderById } from "../../services/orders/getOrderById";
 import { approveOrder } from "../../services/orders/approve";
 import { rejectOrder } from "../../services/orders/reject";
 import { shipOrder } from "../../services/orders/ship";
 import { downloadOrderPdf } from "../../services/orders/downloadPdf";
-import type { OrderResponse, EditOrderBody } from "../../types/order";
+import type { OrderResponse } from "../../types/order";
 import emailIconUrl from "../../assets/img/email.svg";
 import Swal from "sweetalert2";
 import EditOrderModal from "./components/EditOrderModal";
@@ -23,29 +23,27 @@ export default function OrderDetailPage() {
     null
   );
   useEffect(() => {
-  async function load() {
-    try {
-      setLoading(true);
-      const data = await getOrderById(Number(id));
-      setOrder(data);
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await getOrderById(Number(id));
+        setOrder(data);
 
-      // primaryImageUrl doğrudan order item içinden geliyor
-      const map: Record<number, string> = {};
-      data.items.forEach((it) => {
-        map[it.productId] =
-          it.primaryImageUrl ?? "/src/assets/img/resim-yok.jpg";
-      });
-      setImages(map);
-
-    } catch (error) {
-      Swal.fire("Hata", "Sipariş bulunamadı", "error");
-    } finally {
-      setLoading(false);
+        // primaryImageUrl doğrudan order item içinden geliyor
+        const map: Record<number, string> = {};
+        data.items.forEach((it) => {
+          map[it.productId] =
+            it.primaryImageUrl ?? "/src/assets/img/resim-yok.jpg";
+        });
+        setImages(map);
+      } catch (error) {
+        Swal.fire("Hata", "Sipariş bulunamadı", "error");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-  if (id) load();
-}, [id]);
-
+    if (id) load();
+  }, [id]);
 
   // Helper functions
   async function getNote(title: string, def: string) {

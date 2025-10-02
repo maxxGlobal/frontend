@@ -7,11 +7,11 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   // izinleri tekille
-  const allPermissions = useMemo(() => {
-    const s = new Set<string>();
-    me?.roles?.forEach((r) => r.permissions?.forEach((p) => s.add(p.name)));
-    return Array.from(s).sort();
-  }, [me]);
+  // const allPermissions = useMemo(() => {
+  //   const s = new Set<string>();
+  //   me?.roles?.forEach((r) => r.permissions?.forEach((p) => s.add(p.name)));
+  //   return Array.from(s).sort();
+  // }, [me]);
 
   useEffect(() => {
     (async () => {

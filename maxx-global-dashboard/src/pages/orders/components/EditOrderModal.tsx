@@ -1,5 +1,5 @@
 // src/pages/orders/components/EditOrderModal.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import type {
   EditOrderBody,
@@ -7,9 +7,12 @@ import type {
   OrderResponse,
 } from "../../../types/order";
 import { editOrder } from "../../../services/orders/edit";
-import { listSimpleProducts, type ProductSimple } from "../../../services/products/listSimple";
-import { getProductDealerPrice, type ProductDealerPriceResponse } from "../../../services/product-prices/getByProductAndDealer";
-
+import { listSimpleProducts } from "../../../services/products/listSimple";
+import {
+  getProductDealerPrice,
+  type ProductDealerPriceResponse,
+} from "../../../services/product-prices/getByProductAndDealer";
+type ProductSimple = Awaited<ReturnType<typeof listSimpleProducts>>[number];
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -28,11 +31,16 @@ export default function EditOrderModal({
   const [reason, setReason] = useState<string>("");
   const [notes, setNotes] = useState<string>(order.notes ?? "");
   const [items, setItems] = useState<OrderItem[]>(order.items);
-  
+
   // ✅ YENİ: Ürün ekleme için state'ler
-  const [availableProducts, setAvailableProducts] = useState<ProductSimple[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-  const [selectedProductPrice, setSelectedProductPrice] = useState<ProductDealerPriceResponse | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<ProductSimple[]>(
+    []
+  );
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+  const [selectedProductPrice, setSelectedProductPrice] =
+    useState<ProductDealerPriceResponse | null>(null);
   const [newItemQuantity, setNewItemQuantity] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
@@ -44,14 +52,14 @@ export default function EditOrderModal({
   useEffect(() => {
     async function loadProducts() {
       if (!open || !order) return;
-      
+
       try {
         setLoading(true);
         const products = await listSimpleProducts();
         setAvailableProducts(products);
       } catch (error) {
-        console.error('Error loading products:', error);
-        Swal.fire('Hata', 'Ürün listesi yüklenemedi', 'error');
+        console.error("Error loading products:", error);
+        Swal.fire("Hata", "Ürün listesi yüklenemedi", "error");
       } finally {
         setLoading(false);
       }
@@ -67,26 +75,39 @@ export default function EditOrderModal({
 
       try {
         setPriceLoading(true);
-        const priceData = await getProductDealerPrice(selectedProductId, order.dealerId);
-        
+        const priceData = await getProductDealerPrice(
+          selectedProductId,
+          order.dealerId
+        );
+
         // Currency kontrolü
-        const matchingPrice = priceData.prices.find(p => p.currency === order.currency);
+        const matchingPrice = priceData.prices.find(
+          (p) => p.currency === order.currency
+        );
         if (!matchingPrice) {
-          Swal.fire('Uyarı', `Bu ürün için ${order.currency} cinsinden fiyat bulunamadı`, 'warning');
+          Swal.fire(
+            "Uyarı",
+            `Bu ürün için ${order.currency} cinsinden fiyat bulunamadı`,
+            "warning"
+          );
           setSelectedProductPrice(null);
           return;
         }
 
         if (!priceData.isValidNow) {
-          Swal.fire('Uyarı', 'Bu ürünün fiyatı şu anda geçerli değil', 'warning');
+          Swal.fire(
+            "Uyarı",
+            "Bu ürünün fiyatı şu anda geçerli değil",
+            "warning"
+          );
           setSelectedProductPrice(null);
           return;
         }
 
         setSelectedProductPrice(priceData);
       } catch (error) {
-        console.error('Error loading product price:', error);
-        Swal.fire('Hata', 'Ürün fiyatı yüklenemedi', 'error');
+        console.error("Error loading product price:", error);
+        Swal.fire("Hata", "Ürün fiyatı yüklenemedi", "error");
         setSelectedProductPrice(null);
       } finally {
         setPriceLoading(false);
@@ -98,14 +119,18 @@ export default function EditOrderModal({
 
   // ✅ YENİ: Mevcut siparişte olmayan ürünleri filtrele
   const availableProductsFiltered = useMemo(() => {
-    const currentProductIds = items.map(item => item.productId);
-    return availableProducts.filter(product => !currentProductIds.includes(product.id));
+    const currentProductIds = items.map((item) => item.productId);
+    return availableProducts.filter(
+      (product) => !currentProductIds.includes(product.id)
+    );
   }, [availableProducts, items]);
 
   // ✅ YENİ: Seçilen ürünün fiyat bilgisi
   const selectedProductPriceAmount = useMemo(() => {
     if (!selectedProductPrice || !order) return null;
-    const matchingPrice = selectedProductPrice.prices.find(p => p.currency === order.currency);
+    const matchingPrice = selectedProductPrice.prices.find(
+      (p) => p.currency === order.currency
+    );
     return matchingPrice?.amount || null;
   }, [selectedProductPrice, order?.currency]);
 
@@ -125,8 +150,16 @@ export default function EditOrderModal({
 
   // ✅ YENİ: Yeni ürün ekleme fonksiyonu
   function handleAddNewItem() {
-    if (!selectedProductPrice || !selectedProductPriceAmount || newItemQuantity <= 0) {
-      Swal.fire('Uyarı', 'Lütfen geçerli bir ürün ve miktar seçiniz', 'warning');
+    if (
+      !selectedProductPrice ||
+      !selectedProductPriceAmount ||
+      newItemQuantity <= 0
+    ) {
+      Swal.fire(
+        "Uyarı",
+        "Lütfen geçerli bir ürün ve miktar seçiniz",
+        "warning"
+      );
       return;
     }
 
@@ -136,18 +169,18 @@ export default function EditOrderModal({
       productName: selectedProductPrice.productName,
       quantity: newItemQuantity,
       unitPrice: selectedProductPriceAmount,
-      totalPrice: selectedProductPriceAmount * newItemQuantity
+      totalPrice: selectedProductPriceAmount * newItemQuantity,
     };
 
-    setItems(prev => [...prev, newItem]);
+    setItems((prev) => [...prev, newItem]);
 
     // Reset form
     setSelectedProductId(null);
     setSelectedProductPrice(null);
     setNewItemQuantity(1);
     setShowAddSection(false);
-    
-    Swal.fire('Başarılı', 'Ürün siparişe eklendi', 'success');
+
+    Swal.fire("Başarılı", "Ürün siparişe eklendi", "success");
   }
 
   // Reset price when product selection changes
@@ -257,18 +290,20 @@ export default function EditOrderModal({
                 {showAddSection && (
                   <div className="card mt-2 p-3 bg-light">
                     <h6 className="mb-3">Yeni Ürün Ekle</h6>
-                    
+
                     <div className="row">
                       <div className="col-md-5">
                         <label className="form-label">Ürün</label>
                         <select
                           className="form-select"
                           value={selectedProductId || ""}
-                          onChange={(e) => handleProductChange(Number(e.target.value) || null)}
+                          onChange={(e) =>
+                            handleProductChange(Number(e.target.value) || null)
+                          }
                           disabled={loading}
                         >
                           <option value="">Ürün Seçin...</option>
-                          {availableProductsFiltered.map(product => (
+                          {availableProductsFiltered.map((product) => (
                             <option key={product.id} value={product.id}>
                               {product.name} ({product.code})
                             </option>
@@ -289,7 +324,9 @@ export default function EditOrderModal({
                               {selectedProductPriceAmount} {currency}
                             </span>
                           ) : selectedProductId ? (
-                            <span className="text-danger">Fiyat bulunamadı</span>
+                            <span className="text-danger">
+                              Fiyat bulunamadı
+                            </span>
                           ) : (
                             <span className="text-muted">Ürün seçin</span>
                           )}
@@ -303,7 +340,11 @@ export default function EditOrderModal({
                           className="form-control"
                           min={1}
                           value={newItemQuantity}
-                          onChange={(e) => setNewItemQuantity(Math.max(1, Number(e.target.value)))}
+                          onChange={(e) =>
+                            setNewItemQuantity(
+                              Math.max(1, Number(e.target.value))
+                            )
+                          }
                           disabled={loading || priceLoading}
                         />
                       </div>
@@ -315,7 +356,12 @@ export default function EditOrderModal({
                             type="button"
                             className="btn btn-success w-100"
                             onClick={handleAddNewItem}
-                            disabled={!selectedProductPrice || !selectedProductPriceAmount || loading || priceLoading}
+                            disabled={
+                              !selectedProductPrice ||
+                              !selectedProductPriceAmount ||
+                              loading ||
+                              priceLoading
+                            }
                           >
                             Ekle
                           </button>
@@ -328,12 +374,17 @@ export default function EditOrderModal({
                       <div className="row mt-2">
                         <div className="col-12">
                           <div className="alert alert-info small">
-                            <strong>Önizleme:</strong> {newItemQuantity} x {selectedProductPriceAmount} {currency} = {(newItemQuantity * selectedProductPriceAmount).toFixed(2)} {currency}
+                            <strong>Önizleme:</strong> {newItemQuantity} x{" "}
+                            {selectedProductPriceAmount} {currency} ={" "}
+                            {(
+                              newItemQuantity * selectedProductPriceAmount
+                            ).toFixed(2)}{" "}
+                            {currency}
                           </div>
                         </div>
                       </div>
                     )}
-                    
+
                     {availableProductsFiltered.length === 0 && (
                       <div className="alert alert-info mt-2">
                         <i className="fa fa-info-circle me-1"></i>

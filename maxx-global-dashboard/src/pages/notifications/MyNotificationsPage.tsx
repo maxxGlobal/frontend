@@ -77,7 +77,7 @@ export default function MyNotificationsListPage() {
   });
 
   const rows: NotificationRow[] = listQ.data?.content ?? [];
-  const totalElements = listQ.data?.totalElements ?? 0;
+
   const totalPages = Math.max(1, listQ.data?.totalPages ?? 1);
 
   const qc = useQueryClient();
