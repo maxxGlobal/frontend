@@ -11,7 +11,7 @@ import { listProductsByCategory } from "../../../services/products/listByCategor
 import { listProductsBySearch } from "../../../services/products/search";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 export default function AllProductPage() {
   const [products, setProducts] = useState<Product[] | null>(null);

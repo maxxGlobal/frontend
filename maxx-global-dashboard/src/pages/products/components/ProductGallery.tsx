@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 
 type ImgItem = { id: number | string; url: string; isPrimary?: boolean };
 
-const PLACEHOLDER = "/src/assets/img/resim-yok.jpg"; // kendi yolunu doğrula
+const PLACEHOLDER = "/assets/img/resim-yok.jpg"; // kendi yolunu doğrula
 
 type Props = {
   name?: string | null;

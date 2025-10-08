@@ -13,7 +13,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useCart } from "../Helpers/CartContext";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 const MySwal = withReactContent(Swal);
 export default function ProductPage() {

@@ -20,9 +20,9 @@ function useScopedCss(href: string) {
 export default function DashboardLayout() {
   const { isAuthenticated, isLoading, checkTokenValidity } = useAuth();
 
-  const indexCss = new URL("../../assets/css/index.css", import.meta.url).href;
-  const fontsCss = new URL("../../assets/css/fonts.css", import.meta.url).href;
-  const styleCss = new URL("../../assets/style.css", import.meta.url).href;
+  const indexCss = "/assets/css/index.css";
+  const fontsCss = "/assets/css/fonts.css";
+  const styleCss = "/assets/style.css";
 
   useScopedCss(indexCss);
   useScopedCss(fontsCss);

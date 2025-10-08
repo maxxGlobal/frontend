@@ -1,48 +1,48 @@
 
-@reference "../theme.css";
+/* reference to theme.css removed; ensure needed styles are loaded separately */
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-Black.ttf");
+  src: url("/assets/fonts/Inter-Black.ttf");
   font-weight: 900;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-Bold.ttf");
+  src: url("/assets/fonts/Inter-Bold.ttf");
   font-weight: 700;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-ExtraBold.ttf");
+  src: url("/assets/fonts/Inter-ExtraBold.ttf");
   font-weight: 800;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-ExtraLight.ttf");
+  src: url("/assets/fonts/Inter-ExtraLight.ttf");
   font-weight: 200;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-Light.ttf");
+  src: url("/assets/fonts/Inter-Light.ttf");
   font-weight: 300;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-Medium.ttf");
+  src: url("/assets/fonts/Inter-Medium.ttf");
   font-weight: 500;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-Regular.ttf");
+  src: url("/assets/fonts/Inter-Regular.ttf");
   font-weight: 400;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-SemiBold.ttf");
+  src: url("/assets/fonts/Inter-SemiBold.ttf");
   font-weight: 600;
 }
 @font-face {
   font-family: "Inter";
-  src: url("../assets/fonts/Inter-Thin.ttf");
+  src: url("/assets/fonts/Inter-Thin.ttf");
   font-weight: 100;
 }
 
@@ -84,8 +84,16 @@ html {
   font-weight: 900;
 }
 .container-x {
-  @apply md:px-6 px-2 w-full;
+  padding-left: 0.5rem; /* px-2 */
+  padding-right: 0.5rem; /* px-2 */
+  width: 100%; /* w-full */
   max-width: 1216px !important;
+}
+@media (min-width: 768px) { /* md */
+  .container-x {
+    padding-left: 1.5rem; /* md:px-6 */
+    padding-right: 1.5rem; /* md:px-6 */
+  }
 }
 .animate-right-dir {
   animation: rightDir 1s infinite;
@@ -103,15 +111,35 @@ html {
 }
 
 .yellow-btn {
-  @apply w-full text-[13px] text-qblacktext font-semibold bg-qyellow flex justify-center items-center h-full;
+  width: 100%;
+  font-size: 13px;
+  color: #222222; /* text-qblacktext */
+  font-weight: 600; /* font-semibold */
+  background-color: #FFBB38; /* bg-qyellow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
   line-height: 0;
 }
 .blue-btn {
-  @apply w-full text-[13px] text-white font-semibold bg-qh3-blue flex justify-center items-center h-full;
+  width: 100%;
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 600;
+  background-color: #2563eb; /* fallback for bg-qh3-blue */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
   line-height: 0;
 }
 .gray-btn {
-  @apply flex justify-center items-center text-sm font-semibold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 600; /* font-semibold */
   background: #f0f1f3;
 }
 
@@ -125,27 +153,31 @@ html {
 }
 /*TODO:  ========= home one ========= */
 .home-one .search-btn {
-  @apply bg-qyellow text-qblack;
+  background-color: #FFBB38; /* bg-qyellow */
+  color: #000000; /* text-qblack */
 }
 .home-one .cart-wrappwer {
-  @apply border-qyellow;
+  border-color: #FFBB38; /* border-qyellow */
 }
 /*TODO:  ========= home one end ========= */
 /*TODO:  ========= home two ========= */
 .home-two .search-btn {
-  @apply bg-qh2-green text-white;
+  background-color: #2D6F6D; /* bg-qh2-green */
+  color: #ffffff;
 }
 .home-four .search-btn {
-  @apply bg-qh4-pink text-qblack;
+  background-color: #FF5A8F; /* fallback for bg-qh4-pink */
+  color: #000000; /* text-qblack */
 }
 .home-four .cart-wrappwer {
-  @apply border-qh4-pink;
+  border-color: #FF5A8F; /* fallback for border-qh4-pink */
 }
 .home-five .search-btn {
-  @apply bg-qh5-bwhite text-qblack;
+  background-color: #F7F7F7; /* fallback for bg-qh5-bwhite */
+  color: #000000; /* text-qblack */
 }
 .home-five .cart-wrappwer {
-  @apply border-qh5-bwhite;
+  border-color: #F7F7F7; /* fallback for border-qh5-bwhite */
 }
 .home-two
   :is(
@@ -154,17 +186,31 @@ html {
     .product-row-card-style-one-two
   )
   .yellow-btn {
-  @apply bg-qh2-green text-white;
+  background-color: #2D6F6D; /* bg-qh2-green */
+  color: #ffffff;
 }
 .home-four .yellow-btn {
-  @apply bg-qh5-bwhite text-qblack;
+  background-color: #F7F7F7; /* bg-qh5-bwhite */
+  color: #000000; /* text-qblack */
 }
 /*TODO:  ========= home two end ========= */
 .search-input {
-  @apply w-full h-full focus:outline-none focus:ring-0 pl-5 text-xs font-medium placeholder:text-qgraytwo;
+  width: 100%;
+  height: 100%;
+  padding-left: 1.25rem; /* pl-5 */
+  font-size: 12px; /* text-xs */
+  font-weight: 500; /* font-medium */
+}
+.search-input:focus {
+  outline: none;
+  box-shadow: none; /* ring-0 */
+}
+.search-input::placeholder {
+  color: #9A9A9A; /* text-qgraytwo */
 }
 .black-btn {
-  @apply bg-qblack text-white;
+  background-color: #000000; /* qblack */
+  color: #ffffff;
 }
 .breadcrumb-wrapper span:last-child .sperator {
   display: none;
@@ -224,7 +270,9 @@ html {
   .my-select-box
   .my-select-box-btn
   > span {
-  @apply text-xs font-medium text-qblack;
+  font-size: 12px; /* text-xs */
+  font-weight: 500; /* font-medium */
+  color: #222222; /* text-qblack */
   text-transform: capitalize;
 }
 
@@ -559,10 +607,8 @@ html {
   transform: translate(2px, 2px);
 }
 
-.categories-btn:hover{
-  svg{
-    fill: #fff;
-  }
+.categories-btn:hover svg {
+  fill: #fff;
 }
 .banner-discount .banner-discount-btn:hover svg{
  filter: invert(1);

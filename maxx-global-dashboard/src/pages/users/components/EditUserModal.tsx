@@ -76,32 +76,42 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
   };
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setError(null);
+  e.preventDefault();
+  try {
+    setLoading(true);
+    setError(null);
 
-      // Password boşsa payload'dan çıkar (güncelleme yapmaz)
-      const payload = { ...form };
-      if (!payload.password?.trim()) {
-        delete payload.password;
-      }
+    const payload: any = {};
 
-      // Address boşsa payload'dan çıkar
-      if (!payload.address?.trim()) {
-        delete payload.address;
-      }
+    if (form.firstName?.trim()) payload.firstName = form.firstName.trim();
+    if (form.lastName?.trim()) payload.lastName = form.lastName.trim();
+    if (form.email?.trim()) payload.email = form.email.trim();
+    if (form.phoneNumber?.trim()) payload.phoneNumber = form.phoneNumber.trim();
+    if (form.address?.trim()) payload.address = form.address.trim();
+    if (form.password?.trim()) payload.password = form.password.trim();
+    if (form.status) payload.status = form.status;
 
-      await updateUser(target.id, payload);
-      onSaved(); // modal kapanışı + refresh
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message || "Güncelleme sırasında hata oluştu."
-      );
-    } finally {
-      setLoading(false);
+    // ✅ dealerId - sadece değer varsa ekle
+    if (form.dealerId && typeof form.dealerId === 'number') {
+      payload.dealerId = form.dealerId;
     }
-  };
+
+    // ✅ roleIds - ARRAY olarak gönder
+    if (form.roleId && typeof form.roleId === 'number') {
+      payload.roleIds = [form.roleId]; // ⭐ Burada array yap
+    }
+ 
+
+    await updateUser(target.id, payload);
+    onSaved();
+  } catch (err: any) {  
+    setError(
+      err?.response?.data?.message || "Güncelleme sırasında hata oluştu."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>

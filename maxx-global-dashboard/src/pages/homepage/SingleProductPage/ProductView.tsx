@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 type ImgItem = { id: number | string; url: string; isPrimary?: boolean };
-const PLACEHOLDER = "/src/assets/img/resim-yok.jpg";
+const PLACEHOLDER = "/assets/img/resim-yok.jpg";
 
 type Props = {
   name?: string | null;

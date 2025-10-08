@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMedicalIcon } from "../../../assets/icons/MedicalIcons";
+import { getMedicalIcon } from "../../../../public/assets/icons/MedicalIcons";
 import { listAllCategories } from "../../../services/categories/listAll";
 import {
   buildCategoryTree,

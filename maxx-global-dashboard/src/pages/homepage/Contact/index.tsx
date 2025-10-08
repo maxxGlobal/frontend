@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import Layout from "../Partials/Layout";
 import { getDealerById } from "../../../services/dealers/getById";
 import type { DealerRow } from "../../../types/dealer";
-import addressIcon from "../../../assets/img/address.svg";
-import emailIcon from "../../../assets/img/email-contact.svg";
-import phoneIcon from "../../../assets/img/phone.svg";
+const addressIcon = "/assets/img/address.svg";
+const emailIcon = "/assets/img/email-contact.svg";
+const phoneIcon = "/assets/img/phone.svg";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 function getDealerIdFromLocal(): number | null {
   const userStr = localStorage.getItem("user");

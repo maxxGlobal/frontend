@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { getUnreadCount } from "../../../../services/notifications/header";
 import { listAllCategories } from "../../../../services/categories/listAll";
-import { getMedicalIcon } from "../../../../assets/icons/MedicalIcons";
+import { getMedicalIcon } from "../../../../../public/assets/icons/MedicalIcons";
 import { getFavoriteCount } from "../../../../services/favorites/count";
 import { BiChevronRight } from "react-icons/bi";
 import Bell from "../../Helpers/icons/Bell";

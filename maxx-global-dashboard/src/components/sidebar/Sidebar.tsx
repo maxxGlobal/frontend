@@ -1,6 +1,6 @@
 // src/components/sidebar/Sidebar.tsx
 import { NavLink } from "react-router-dom";
-import logo from "../../assets/img/medintera-logo.png";
+const logo = "/assets/img/medintera-logo.png";
 import { menuItems, type MenuItem } from "../config/menuConfig";
 import { hasPermission, type PermissionFlags } from "../../utils/permissions";
 

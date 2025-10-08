@@ -3,9 +3,9 @@ import PageTitle from "../Helpers/PageTitle";
 import type { Crumb } from "../Helpers/PageTitle";
 import Layout from "../Partials/Layout";
 import { Helmet } from "react-helmet-async";
-import AboutImage from "../../../assets/img/about.png";
+const AboutImage = "/assets/img/about.png";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 const crumbs: Crumb[] = [
   { name: "home", path: "/homepage" },

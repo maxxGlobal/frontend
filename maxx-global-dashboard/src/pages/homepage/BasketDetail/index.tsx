@@ -21,7 +21,7 @@ import Swal from "sweetalert2";
 import { Helmet } from "react-helmet-async";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 type OrderProductRequest = {
   productPriceId: number;

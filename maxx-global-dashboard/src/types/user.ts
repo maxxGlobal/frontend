@@ -39,7 +39,7 @@ export interface RegisterUserRequest {
   password: string;
   address?: string;
   phoneNumber?: string;
-  dealerId: number;
+  dealerId?: number;
   roleId: number;
 }
 

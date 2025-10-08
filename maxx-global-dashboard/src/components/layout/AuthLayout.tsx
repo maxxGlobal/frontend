@@ -15,7 +15,7 @@ function useScopedCss(href: string) {
 }
 
 export default function AuthLayout() {
-  const indexCss = new URL("../../assets/css/index.css", import.meta.url).href;
+  const indexCss = "/assets/css/index.css";
 
   useScopedCss(indexCss);
 

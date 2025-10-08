@@ -7,7 +7,7 @@ import CategoriesSection from "./CategoriesSection";
 import WhatsAppButton from "../Whatsapp/WhatsAppButton";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 export default function HomeTwo() {
   // const { products } = datas as { products: Product[] };

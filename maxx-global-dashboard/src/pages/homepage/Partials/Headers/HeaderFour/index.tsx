@@ -4,7 +4,7 @@ import Middlebar from "./Middlebar";
 import Navbar from "./Navbar";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "../../../../../assets/img/medintera-logo.png";
+const Logo = "/assets/img/medintera-logo.png";
 import { getCart } from "../../../../../services/cart/storage";
 
 type HeaderFourProps = {

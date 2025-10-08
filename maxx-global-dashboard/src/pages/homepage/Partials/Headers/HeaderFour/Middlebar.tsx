@@ -9,7 +9,7 @@ import ThinBag from "../../../Helpers/icons/ThinBag";
 import ThinLove from "../../../Helpers/icons/ThinLove";
 import Bell from "../../../Helpers/icons/Bell";
 import SearchBox from "../../../Helpers/SearchBox";
-import Logo from "../../../../../assets/img/medintera-logo.png";
+const Logo = "/assets/img/medintera-logo.png";
 
 import { getFavoriteCount } from "../../../../../services/favorites/count";
 import {

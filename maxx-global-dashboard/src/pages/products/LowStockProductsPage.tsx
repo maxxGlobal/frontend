@@ -52,7 +52,7 @@ export default function LowStockProductsPage() {
                     ) : (
                       <span className="text-muted">
                         <img
-                          src="/src/assets/img/resim-yok.jpg"
+                          src="/assets/img/resim-yok.jpg"
                           alt={p.name}
                           width={50}
                           className="border rounded-2"

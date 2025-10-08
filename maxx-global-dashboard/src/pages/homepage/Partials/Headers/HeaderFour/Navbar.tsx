@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Arrow from "../../../Helpers/icons/Arrow";
 import { listAllCategories } from "../../../../../services/categories/listAll";
-import { getMedicalIcon } from "../../../../../assets/icons/MedicalIcons";
+import { getMedicalIcon } from "../../../../../../public/assets/icons/MedicalIcons";
 import {
   buildCategoryTree,
   type CatNode,

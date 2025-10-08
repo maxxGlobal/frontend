@@ -7,7 +7,7 @@ import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 export default function NotificationsPage() {
   const [items, setItems] = useState<NotificationRow[] | null>(null);

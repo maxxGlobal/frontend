@@ -13,8 +13,7 @@ function setSecureCookie(name: string, value: string, days = 7) {
   const secureFlag = isProduction ? '; Secure' : '';
   
   document.cookie = `${name}=${encodeURIComponent(value)}; ${expires}; Path=/; SameSite=Strict${secureFlag}`;
-  
-  console.log(`🍪 Cookie set: ${name}`);
+   
 }
 
 function getCookie(name: string): string | null {
@@ -29,8 +28,7 @@ function deleteCookie(name: string) {
 export async function login(
   email: string,
   password: string
-): Promise<LoginResponse> {
-  console.log('🔐 Attempting login for:', email);
+): Promise<LoginResponse> { 
   
   try {
     const { data } = await api.post<LoginResponse>("/auth/login", {
@@ -38,11 +36,7 @@ export async function login(
       password,
     });
     
-    console.log('✅ Login successful:', {
-      user: data.user,
-      isDealer: data.isDealer,
-      dealerId: data.user?.dealer?.id
-    });
+   
     
     return data;
   } catch (error) {
@@ -51,10 +45,7 @@ export async function login(
   }
 }
 
-export function persistAuth(data: LoginResponse): void {
-  console.log('💾 Persisting auth data...');
-  console.log('User data to persist:', data.user);
-  console.log('Dealer info:', data.user?.dealer);
+export function persistAuth(data: LoginResponse): void { 
   
   const { token, user, isDealer } = data;
   
@@ -64,12 +55,14 @@ export function persistAuth(data: LoginResponse): void {
   
   // 2. ✅ User bilgisini localStorage'a kaydet (HomePage için kritik!)
   if (user) {
-    localStorage.setItem('user', JSON.stringify(user));
-    console.log('✅ User saved to localStorage');
+    localStorage.setItem('user', JSON.stringify(user)); 
     
     // Verify save
-    const savedUser = localStorage.getItem('user');
-    console.log('📦 Verification - Saved user:', savedUser);
+    const savedUser = localStorage.getItem('user'); 
+
+    if(savedUser){
+      savedUser.charAt(1);
+    }
     
     // SessionStorage'a da kaydet (opsiyonel)
     sessionStorage.setItem('user', JSON.stringify(user));
@@ -82,8 +75,7 @@ export function persistAuth(data: LoginResponse): void {
   
   // 4. isDealer flag'ini de sakla
   localStorage.setItem('isDealer', String(isDealer));
-  
-  console.log('✅ Auth data persisted successfully');
+   
 }
 
 export function logout(): void {
@@ -97,8 +89,7 @@ export function logout(): void {
   localStorage.removeItem('user');
   localStorage.removeItem('isDealer');
   sessionStorage.removeItem('user');
-  
-  console.log('✅ Logged out, storage cleared');
+   
   
   // Event gönder
   window.dispatchEvent(new CustomEvent('userLoggedOut'));
@@ -120,8 +111,7 @@ export function getCurrentUser(): User | null {
   const sessionUser = sessionStorage.getItem('user');
   if (sessionUser) {
     try {
-      const parsed = JSON.parse(sessionUser) as User;
-      console.log('👤 Current user from sessionStorage:', parsed);
+      const parsed = JSON.parse(sessionUser) as User; 
       return parsed;
     } catch (error) {
       console.error('❌ Failed to parse user from sessionStorage:', error);
@@ -175,14 +165,7 @@ export function isTokenValid(): boolean {
 export function isAuthenticated(): boolean {
   const tokenValid = isTokenValid();
   const user = getCurrentUser();
-  const authenticated = tokenValid && user !== null;
-  
-  console.log('🔐 Authentication check:', {
-    tokenValid,
-    hasUser: !!user,
-    authenticated
-  });
-  
+  const authenticated = tokenValid && user !== null; 
   return authenticated;
 }
 

@@ -7,7 +7,7 @@ import { rejectOrder } from "../../services/orders/reject";
 import { shipOrder } from "../../services/orders/ship";
 import { downloadOrderPdf } from "../../services/orders/downloadPdf";
 import type { OrderResponse } from "../../types/order";
-import emailIconUrl from "../../assets/img/email.svg";
+const emailIconUrl = "/assets/img/email.svg";
 import Swal from "sweetalert2";
 import EditOrderModal from "./components/EditOrderModal";
 
@@ -33,7 +33,7 @@ export default function OrderDetailPage() {
         const map: Record<number, string> = {};
         data.items.forEach((it) => {
           map[it.productId] =
-            it.primaryImageUrl ?? "/src/assets/img/resim-yok.jpg";
+            it.primaryImageUrl ?? "/assets/img/resim-yok.jpg";
         });
         setImages(map);
       } catch (error) {
@@ -321,10 +321,7 @@ export default function OrderDetailPage() {
                             <td>
                               <div className="sherah-table__product--thumb">
                                 <img
-                                  src={
-                                    images[it.productId] ??
-                                    "/src/assets/img/resim-yok.jpg"
-                                  }
+                              src={images[it.productId] ?? "/assets/img/resim-yok.jpg"}
                                   alt={it.productName}
                                   style={{
                                     width: 50,
@@ -398,7 +395,7 @@ export default function OrderDetailPage() {
                     <div className="sherah-vcard__body">
                       <div className="sherah-vcard__img">
                         <img
-                          src="/src/assets/img/user-default.png"
+                          src="/assets/img/user-default.png"
                           alt={order.createdBy.fullName}
                           style={{
                             width: 80,

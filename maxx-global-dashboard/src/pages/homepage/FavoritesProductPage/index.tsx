@@ -8,7 +8,7 @@ import type { Crumb } from "../Helpers/PageTitle";
 import { listProducts } from "../../../services/products/list";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 
 const crumbs: Crumb[] = [

@@ -6,8 +6,8 @@ import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import { CartProvider } from "./pages/homepage/Helpers/CartContext";
-import "./assets/css/fonts.css";
-import "./assets/style.css";
+import "../public/assets/css/fonts.css";
+import "../public/assets/style.css";
 
 const qc = new QueryClient();
 

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Facebook from "../../../Helpers/icons/Facebook";
 import Instagram from "../../../Helpers/icons/Instagram";
 import Youtube from "../../../Helpers/icons/Youtube";
-import Logo from "../../../../../assets/img/medintera-logo.png";
+const Logo = "/assets/img/medintera-logo.png";
 
 export default function Footer() {
   return (

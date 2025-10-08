@@ -79,7 +79,7 @@ export default function ProfilePage() {
                                   <img
                                     src={
                                       me.avatarUrl ||
-                                      "../../src/assets/img/user-default.png"
+                                      "/assets/img/user-default.png"
                                     }
                                     alt={fullName || "User"}
                                   />

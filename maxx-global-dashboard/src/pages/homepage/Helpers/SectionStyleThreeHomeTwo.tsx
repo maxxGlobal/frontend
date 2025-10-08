@@ -157,8 +157,8 @@ export default function SectionStyleThreeHomeTwo({
                     <div
                       className="product-card-img w-full h-[322px] mt-4 bg-center bg-no-repeat bg-cover"
                       style={{
-                        backgroundImage: `url(${
-                          p.primaryImageUrl || "/src/assets/image/resim-yok.jpg"
+                        backgroundImage: `url(${ 
+                          p.primaryImageUrl || "/assets/image/resim-yok.jpg"
                         })`,
                       }}
                     />

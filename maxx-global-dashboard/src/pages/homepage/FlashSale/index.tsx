@@ -8,7 +8,7 @@ import PageTitle from "../Helpers/PageTitle";
 import type { Crumb } from "../Helpers/PageTitle";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
-import "../../../assets/homepage.css";
+import "../../../../public/assets/homepage.css";
 
 const crumbs: Crumb[] = [
   { name: "home", path: "/homepage" },

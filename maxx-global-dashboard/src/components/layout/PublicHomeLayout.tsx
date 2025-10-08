@@ -28,8 +28,8 @@ function useScopedScript(src: string) {
 
 export default function PublicHomeLayout() {
   // Vite/webpack için asset yolu:
-  const homeCss = new URL("../../assets/homepage.css", import.meta.url).href;
-  const mainJs = new URL("../../assets/js/main.js", import.meta.url).href;
+  const homeCss = "/assets/homepage.css";
+  const mainJs = "/assets/js/main.js";
 
   useScopedAsset(homeCss);
   useScopedScript(mainJs);

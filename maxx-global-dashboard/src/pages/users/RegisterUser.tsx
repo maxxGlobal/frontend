@@ -34,7 +34,7 @@ export default function RegisterUser() {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [listsLoading, setListsLoading] = useState(true);
   const [listsError, setListsError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false); // ← yeni
+  const [showPassword, setShowPassword] = useState(false);
 
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -112,7 +112,7 @@ export default function RegisterUser() {
     setGlobalError(null);
     setFieldErrors({});
 
-    // ✅ dealerId artık opsiyonel
+    // dealerId artık opsiyonel
     const dealerIdNum = form.dealerId ? Number(form.dealerId) : undefined;
     const roleIdNum = Number(form.roleId);
 
@@ -132,8 +132,10 @@ export default function RegisterUser() {
         lastName: form.lastName,
         email: form.email,
         password: form.password,
-        address: form.address || undefined,
-        phoneNumber: form.phoneNumber || undefined,
+        // Address alanını her zaman string olarak gönder (boş da olsa)
+        address: form.address || "",
+        // PhoneNumber boş ise göndermeme veya boş string gönder
+        phoneNumber: form.phoneNumber || "",
         roleId: roleIdNum,
       };
 
@@ -318,9 +320,9 @@ export default function RegisterUser() {
                         >
                           <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
                           <path
-                            fill-rule="evenodd"
+                            fillRule="evenodd"
                             d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z"
-                            clip-rule="evenodd"
+                            clipRule="evenodd"
                           />
                         </svg>
                       )}

@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { login, persistAuth } from "../../services/auth/authService";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; 
+const medinteraLogo = "/assets/img/medintera-logo.png";
+const welcomeBg = "/assets/img/welcome-bg.png";
+const welcomeVector = "/assets/img/welcome-vector.png";
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -12,6 +15,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
 
   // ✅ Login'den önce hangi sayfadan geldiğini kontrol et
   const from = (location.state as any)?.from?.pathname || null;
@@ -46,9 +50,9 @@ export default function LoginForm() {
   };
 
   return (
-    <section
+<section
       className="sherah-wc sherah-wc__full sherah-bg-cover"
-      style={{ backgroundImage: "url('../src/assets/img/credential-bg.svg')" }}
+      
     >
       <div className="container-fluid p-0">
         <div className="row g-0">
@@ -56,24 +60,24 @@ export default function LoginForm() {
             <div
               className="sherah-wc__inner"
               style={{
-                backgroundImage: "url('../src/assets/img/welcome-bg.png')",
+                backgroundImage: `url(${welcomeBg})`,
               }}
             >
               <div className="sherah-wc__logo">
                 <a href="/">
-                  <img src="../src/assets/img/medintera-logo.png" alt="logo" />
+                  <img src={medinteraLogo} alt="logo" />
                 </a>
               </div>
               <div className="sherah-wc__middle">
                 <a href="/">
                   <img
-                    src="../src/assets/img/welcome-vector.png"
+                    src={welcomeVector}
                     alt="welcome"
                   />
                 </a>
               </div>
               <h2 className="sherah-wc__title">
-                Medintera <br /> Admin Panel'e Hoşgeldiniz
+                Medintera'ya <br /> Hoşgeldiniz
               </h2>
             </div>
           </div>
