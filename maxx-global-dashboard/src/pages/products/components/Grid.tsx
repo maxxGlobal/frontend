@@ -13,7 +13,9 @@ type Props = {
 };
 
 const API = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
-const PUBLIC_FALLBACK = "src/assets/img/resim-yok.jpg";
+
+// ✅ DÜZELTME: Public folder'dan doğru path
+const PUBLIC_FALLBACK = "/assets/img/resim-yok.jpg";
 
 const pickImageUrl = (u?: string | null) => {
   if (!u || u.trim() === "") return PUBLIC_FALLBACK;
@@ -44,7 +46,6 @@ export default function ProductsGrid({
           (p.categoryId != null ? categoriesMap?.[p.categoryId] : undefined) ??
           "-";
 
-        // Kart tıklaması -> Detay
         const canOpen = !!onView;
         const openDetail = () => onView && onView(p);
 
@@ -68,18 +69,22 @@ export default function ProductsGrid({
                   : undefined
               }
             >
-              {/* Görsel */}
+              {/* ✅ DÜZELTME: onError ile sonsuz döngüyü önle */}
               <div className="sherah-product-card__img pg-img">
                 <img
                   src={img}
                   alt={p.name}
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = PUBLIC_FALLBACK;
+                    const target = e.currentTarget as HTMLImageElement;
+                    // Eğer zaten fallback'e set ettiyse, tekrar set etme
+                    if (target.src !== window.location.origin + PUBLIC_FALLBACK) {
+                      target.onerror = null; // ✅ Sonsuz döngüyü önle
+                      target.src = PUBLIC_FALLBACK;
+                    }
                   }}
                 />
               </div>
 
-              {/* İçerik */}
               <div className="sherah-product-card__content sherah-dflex-column sherah-flex-gap-5">
                 <h4 className="sherah-product-card__title mb-2" title={p.name}>
                   <a
@@ -118,7 +123,6 @@ export default function ProductsGrid({
                   )}
                 </div>
 
-                {/* Aksiyonlar — 2 satır: (Detay/Resimler) + (Düzenle/Sil/Geri Yükle) */}
                 <div className="pg-actions">
                   <div className="pg-row d-block">
                     {onView && (

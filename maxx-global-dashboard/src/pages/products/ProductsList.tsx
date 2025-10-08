@@ -1,5 +1,5 @@
 // src/pages/catalog/ProductList.tsx
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CategorySidebar from "../products/components/CategorySidebar";
@@ -38,7 +38,6 @@ function makeDefaultPage<T>(size: number): PageResponse<T> {
 
 type StatusFilter = "ALL" | "AKTİF" | "SİLİNDİ";
 
-// Abort/cancel hatalarını ayırt et
 function isAbortError(err: any) {
   return (
     err?.name === "AbortError" ||
@@ -57,9 +56,9 @@ export default function ProductList() {
   const [selectedCat, setSelectedCat] = useState<number | null>(null);
 
   const [q, setQ] = useState("");
-  const [sort, _setSort] = useState<"top" | "popular" | "newest">("top");
-  const [statusFilter, _setStatusFilter] = useState<StatusFilter>("ALL");
-  const [debouncedQ, setDebouncedQ] = useState(""); // ✅ Yeni debounced state
+  const [sort] = useState<"top" | "popular" | "newest">("top");
+  const [statusFilter] = useState<StatusFilter>("ALL");
+  const [debouncedQ, setDebouncedQ] = useState("");
 
   const [page, setPage] = useState(0);
   const [size] = useState(12);
@@ -87,7 +86,7 @@ export default function ProductList() {
     const out: { id: number; label: string; name?: string }[] = [];
 
     nodes.forEach((n) => {
-      const indent = "\u00A0\u00A0".repeat(depth); // boşluk
+      const indent = "\u00A0\u00A0".repeat(depth);
 
       let emoji = "";
       if (depth === 0) emoji = "🗂️";
@@ -111,25 +110,43 @@ export default function ProductList() {
     return out;
   }
 
-  // Kategorileri yükle
-  async function loadCategories(signal?: AbortSignal) {
-    try {
-      const flat = await listAllCategories({ signal });
-      const tree = buildCategoryTree(flat);
-      setCats(tree);
+  // ✅ Kategorileri sadece bir kez yükle
+  useEffect(() => {
+    console.log("🔵 KATEGORI EFFECT ÇALIŞTI");
+    const controller = new AbortController();
+    
+    async function loadCategories() {
+      try {
+        console.log("📂 Kategoriler yükleniyor...");
+        const flat = await listAllCategories({ signal: controller.signal });
+        const tree = buildCategoryTree(flat);
+        setCats(tree);
 
-      // Seviyeli listeyi oluştur
-      const leveled = flattenTreeToOptions(tree);
-      setCategories(leveled);
-    } catch (err) {
-      if (isAbortError(err)) return;
+        const leveled = flattenTreeToOptions(tree);
+        setCategories(leveled);
+        console.log("✅ Kategoriler yüklendi");
+      } catch (err) {
+        if (isAbortError(err)) return;
+        console.error("❌ Kategori yükleme hatası:", err);
+      }
     }
-  }
 
-  const fetchProducts = useCallback(
-    async (signal?: AbortSignal) => {
+    loadCategories();
+    return () => {
+      console.log("🔴 KATEGORI EFFECT CLEANUP");
+      controller.abort();
+    };
+  }, []); // Sadece ilk mount'ta çalışır
+
+  // ✅ Ürünleri yükle
+  useEffect(() => {
+    console.log("🟢 ÜRÜN EFFECT ÇALIŞTI", { debouncedQ, page, selectedCat });
+    const controller = new AbortController();
+    
+    async function fetchProducts() {
       setLoading(true);
       setListError(null);
+      
       try {
         const baseReq: PageRequest = {
           page,
@@ -140,49 +157,57 @@ export default function ProductList() {
 
         let res: PageResponse<ProductRow>;
 
-        // ✅ debouncedQ kullan, q değil
         if (debouncedQ && debouncedQ.trim() !== "") {
+          console.log("🔍 ARAMA isteği gönderiliyor:", debouncedQ);
           res = await listProductsBySearch(debouncedQ.trim(), baseReq, {
-            signal,
+            signal: controller.signal,
           });
         } else if (selectedCat) {
-          res = await listProductsByCategory(selectedCat, { signal });
+          console.log("📁 KATEGORİ isteği gönderiliyor:", selectedCat);
+          res = await listProductsByCategory(selectedCat, { 
+            signal: controller.signal 
+          });
         } else {
-          res = await listProducts(baseReq, { signal });
+          console.log("📋 TÜM ÜRÜNLER isteği gönderiliyor");
+          res = await listProducts(baseReq, { 
+            signal: controller.signal 
+          });
         }
 
+        console.log("✅ Ürünler alındı:", res.content.length);
         setData(res);
         setInitialLoad(false);
       } catch (e: any) {
-        if (isAbortError(e)) return;
+        if (isAbortError(e)) {
+          console.log("⚠️ İstek iptal edildi");
+          return;
+        }
+        console.error("❌ Ürün yükleme hatası:", e);
         setListError("Ürünler yüklenemedi.");
       } finally {
         setLoading(false);
       }
-    },
-    [debouncedQ, page, size, sort, selectedCat, statusFilter] // ✅ debouncedQ dependency
-  );
+    }
 
-  // İlk/bağımlı yüklemeler
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchProducts(controller.signal);
-    loadCategories(controller.signal);
-    return () => controller.abort();
-  }, [fetchProducts]);
+    fetchProducts();
+    return () => {
+      console.log("🔴 ÜRÜN EFFECT CLEANUP");
+      controller.abort();
+    };
+  }, [debouncedQ, page, size, sort, selectedCat]); // Sadece bu değerler değiştiğinde çalışır
 
+  // ✅ Debounce için
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Minimum 3 karakter veya boş string
       if (q.length >= 3 || q.length === 0) {
         setDebouncedQ(q);
-        setPage(0); // Arama değiştiğinde sayfa sıfırla
+        setPage(0);
       }
-    }, 500); // 500ms bekle
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [q]);
-  // Edit sonrası tek satırı liste üzerinde güncelle (optimistic keep)
+
   const patchRowWithUpdated = (updated: Product) => {
     const movedOut =
       selectedCat && updated.categoryId && selectedCat !== updated.categoryId;
@@ -223,21 +248,14 @@ export default function ProductList() {
 
   const handleSearchChange = (value: string) => {
     setQ(value);
-    // Eğer 3 karakterden az ise ve boş değilse, uyarı göster
-    if (value.length > 0 && value.length < 3) {
-      // İsteğe bağlı: kullanıcıya feedback ver
-      console.log("Minimum 3 karakter gerekli");
-    }
   };
 
-  // ✅ Temizleme fonksiyonu
   const clearSearch = () => {
     setQ("");
-    setDebouncedQ(""); // Hemen temizle
+    setDebouncedQ("");
     setPage(0);
   };
 
-  // Silme onayı (soft delete → status: SİLİNDİ, isActive: false)
   async function handleDeleteConfirm() {
     if (!deleting) return;
     try {
@@ -270,7 +288,6 @@ export default function ProductList() {
 
   return (
     <div className="row product-list">
-      {/* Sol Menü - Kategoriler */}
       <div className="col-xxl-3 col-lg-4 col-12">
         <CategorySidebar
           items={cats}
@@ -282,9 +299,7 @@ export default function ProductList() {
         />
       </div>
 
-      {/* Sağ taraf - Ürün listesi */}
       <div className="col-xxl-9 col-lg-8 col-12">
-        {/* Üst bar: arama + status filtre + ekle */}
         <div className="sherah-breadcrumb__right mg-top-30 d-flex flex-wrap gap-2 align-items-center justify-content-between">
           <div className="sherah-breadcrumb__right--first d-flex align-items-center gap-2">
             <div
@@ -312,7 +327,6 @@ export default function ProductList() {
               )}
             </div>
 
-            {/* ✅ Arama durumu göstergesi (isteğe bağlı) */}
             {q.length > 0 && q.length < 3 && (
               <small className="text-muted">En az 3 karakter girin</small>
             )}
@@ -323,24 +337,8 @@ export default function ProductList() {
                 Aranıyor...
               </small>
             )}
-
-            {/* Status Filter - mevcut kodunuz */}
-            {/* <select
-            className="form-select form-select-sm mt-2 p-2"
-            style={{ minWidth: 180, height: 46 }}
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value as StatusFilter);
-              setPage(0);
-            }}
-          >
-            <option value="ALL">Tümü</option>
-            <option value="AKTİF">Aktif</option>
-            <option value="SİLİNDİ">Silinen</option>
-          </select> */}
           </div>
 
-          {/* Ürün Ekle Butonu - mevcut kodunuz */}
           <div className="sherah-breadcrumb__right--second">
             <a href="/product-add" className="sherah-btn sherah-gbcolor">
               Ürün Ekle
@@ -348,7 +346,6 @@ export default function ProductList() {
           </div>
         </div>
 
-        {/* Grid / Spinner / Mesaj */}
         {loading ? (
           <div className="text-center vh-100 d-flex justify-content-center align-items-center">
             <div className="spinner-border" role="status">
@@ -370,7 +367,6 @@ export default function ProductList() {
             onRestore={async (row) => {
               try {
                 const restored = await restoreProduct(row.id);
-                // UI normalizasyon: status "AKTİF" olsun
 
                 setData((prev): PageResponse<ProductRow> => {
                   let content = prev.content.map(
@@ -392,9 +388,6 @@ export default function ProductList() {
                         : r
                   );
 
-                  // Eğer şu an "Silinen" filtresindeysek, geri yüklenen ürünü listeden çıkar
-                  // (çünkü artık aktif)
-                  // Aktif veya Tümü filtresinde isek listede kalır.
                   if (statusFilter === "SİLİNDİ") {
                     content = content.filter((r) => r.id !== row.id);
                   }
@@ -407,7 +400,6 @@ export default function ProductList() {
             }}
           />
         ) : (
-          // İlk başarılı fetch’ten sonra ve boşsa mesaj göster
           !initialLoad && (
             <div className="alert alert-primary" role="alert">
               Ürün Bulunamadı. Lütfen doğru ürünü aradığınıza emin olun.
@@ -415,7 +407,6 @@ export default function ProductList() {
           )
         )}
 
-        {/* Sayfalama */}
         {!loading && !listError && data?.totalPages > 0 && (
           <div className="row align-items-center mt-3">
             <div className="col-sm-12 col-md-12">
@@ -479,7 +470,6 @@ export default function ProductList() {
           </div>
         )}
 
-        {/* Düzenleme Modalı */}
         {editing && (
           <EditProductModal
             productId={editing.id}
@@ -492,7 +482,6 @@ export default function ProductList() {
           />
         )}
 
-        {/* Silme Modalı */}
         {deleting && (
           <DeleteProductModal
             target={deleting}
