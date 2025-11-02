@@ -4,6 +4,7 @@ import type {
   ProductImage,
   ProductStatus,
   ProductPrice,
+  ProductVariantSummary,
 } from "../../types/product";
 
 export type ApiProductListItem = {
@@ -31,6 +32,50 @@ function normalizePrices(raw: any): ProductPrice[] {
     currency: String(p?.currency ?? p?.currencyCode ?? "TRY"),
     amount: Number(p?.amount ?? p?.price ?? p?.value ?? 0),
   }));
+}
+
+function parseNullableNumber(value: any): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeVariants(
+  variants: any[] | null | undefined
+): ProductVariantSummary[] {
+  if (!Array.isArray(variants)) {
+    return [];
+  }
+
+  return variants.map((variant: any, index: number) => {
+    const id =
+      parseNullableNumber(
+        variant?.id ?? variant?.variantId ?? variant?.variantID
+      ) ?? index;
+    const stockQuantity = parseNullableNumber(
+      variant?.stockQuantity ?? variant?.stock ?? variant?.quantity
+    );
+
+    const sizeValue =
+      variant?.size ??
+      variant?.name ??
+      variant?.label ??
+      variant?.dimension ??
+      null;
+
+    const skuValue = variant?.sku ?? variant?.code ?? null;
+
+    return {
+      id: Number(id),
+      size: sizeValue != null ? String(sizeValue) : null,
+      sku: skuValue != null ? String(skuValue) : null,
+      stockQuantity:
+        stockQuantity != null ? Number(stockQuantity) : stockQuantity,
+      isDefault: Boolean(variant?.isDefault ?? variant?.default),
+    } as ProductVariantSummary;
+  });
 }
 export function normalizeProductList(rows: any[]): ProductRow[] {
   return (rows ?? []).map((r) => {
@@ -63,6 +108,17 @@ export function normalizeImages(arr: any[] | null | undefined): ProductImage[] {
 }
 
 export function normalizeProductDetail(raw: any): Product {
+  const normalizedVariants = normalizeVariants(raw?.variants);
+  const defaultVariantId =
+    parseNullableNumber(raw?.defaultVariantId ?? raw?.defaultVariant?.id) ??
+    null;
+
+  const defaultVariant = normalizedVariants.find((variant) => variant.isDefault);
+  const fallbackVariant =
+    defaultVariant ??
+    (normalizedVariants.length > 0 ? normalizedVariants[0] : null);
+  const derivedSize = raw?.size ?? fallbackVariant?.size ?? null;
+
   return {
     id: Number(raw?.id),
     name: String(raw?.name ?? ""),
@@ -71,7 +127,7 @@ export function normalizeProductDetail(raw: any): Product {
     categoryId: raw?.categoryId ?? null,
     categoryName: raw?.categoryName ?? null,
     material: raw?.material ?? null,
-    size: raw?.size ?? null,
+    size: derivedSize != null ? String(derivedSize) : null,
     diameter: raw?.diameter ?? null,
     angle: raw?.angle ?? null,
     sterile: raw?.sterile ?? null,
@@ -106,5 +162,7 @@ export function normalizeProductDetail(raw: any): Product {
     status: raw?.status ?? null,
 
     prices: normalizePrices(raw),
+    variants: normalizedVariants.length > 0 ? normalizedVariants : null,
+    defaultVariantId,
   };
 }
