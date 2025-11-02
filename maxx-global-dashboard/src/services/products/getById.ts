@@ -8,6 +8,21 @@ export interface ProductImage {
   isPrimary?: boolean;
 }
 
+export interface ProductPriceInfo {
+  productPriceId: number | null;
+  currency: string | null;
+  amount: number | null;
+}
+
+export interface ProductVariant {
+  id: number;
+  size: string | null;
+  sku?: string | null;
+  stockQuantity?: number | null;
+  isDefault?: boolean;
+  prices?: ProductPriceInfo[];
+}
+
 export interface ProductDetail {
   id: number;
   name: string;
@@ -37,6 +52,8 @@ export interface ProductDetail {
   isActive?: boolean;
   isInStock?: boolean;
   images?: ProductImage[];
+  variants?: ProductVariant[] | null;
+  defaultVariantId?: number | null;
 
   // Ek alanlar (opsiyonel – geriye dönük uyumlu)
   sterile?: boolean | null;
@@ -76,6 +93,12 @@ function pickRawImages(raw: any): any[] {
   if (Array.isArray(raw?.productImages?.content))
     return raw.productImages.content;
   return [];
+}
+
+function parseNumber(value: any): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
 }
 
 function getImageUrl(x: any): string {
@@ -119,6 +142,94 @@ const norm = (raw: any): ProductDetail => {
 
   const status = normalizeStatus(raw);
 
+  const variants: ProductVariant[] = Array.isArray(raw?.variants)
+    ? raw.variants
+        .map((variant: any, idx: number) => {
+          const id =
+            parseNumber(variant?.id ?? variant?.variantId ?? variant?.variantID) ??
+            idx;
+          const stockQuantity = parseNumber(
+            variant?.stockQuantity ?? variant?.stock ?? variant?.quantity
+          );
+          const prices: ProductPriceInfo[] = Array.isArray(variant?.prices)
+            ? variant.prices
+                .map((price: any) => {
+                  const amount = parseNumber(price?.amount ?? price?.price);
+                  const productPriceId = parseNumber(
+                    price?.productPriceId ?? price?.id ?? price?.priceId
+                  );
+                  const currency =
+                    price?.currency ??
+                    price?.currencyType ??
+                    price?.currencyCode ??
+                    price?.currency_code ??
+                    null;
+
+                  if (
+                    amount === null &&
+                    productPriceId === null &&
+                    currency === null
+                  ) {
+                    return null;
+                  }
+
+                  return {
+                    productPriceId,
+                    currency: currency ? String(currency) : null,
+                    amount,
+                  } as ProductPriceInfo;
+                })
+                .filter((p: ProductPriceInfo | null): p is ProductPriceInfo => !!p)
+            : [];
+
+          return {
+            id,
+            size:
+              variant?.size ??
+              variant?.name ??
+              variant?.label ??
+              variant?.dimension ??
+              null,
+            sku: variant?.sku ?? variant?.code ?? null,
+            stockQuantity,
+            isDefault: Boolean(variant?.isDefault ?? variant?.default),
+            prices,
+          } as ProductVariant;
+        })
+        .map((variant) => ({
+          ...variant,
+          size: variant.size != null ? String(variant.size) : null,
+        }))
+    : [];
+
+  const variantStockValues = variants
+    .map((variant) => variant.stockQuantity)
+    .filter((qty): qty is number => qty !== null && qty !== undefined);
+
+  const variantStockTotal =
+    variantStockValues.length > 0
+      ? variantStockValues.reduce((acc, qty) => acc + qty, 0)
+      : null;
+
+  const defaultVariantId = parseNumber(
+    raw?.defaultVariantId ?? raw?.defaultVariant?.id
+  );
+
+  const derivedStockQuantity =
+    raw?.stockQuantity ?? raw?.totalStockQuantity ?? variantStockTotal;
+
+  const derivedIsInStock =
+    typeof raw?.isInStock === "boolean"
+      ? Boolean(raw?.isInStock)
+      : derivedStockQuantity != null
+      ? derivedStockQuantity > 0
+      : undefined;
+
+  const defaultVariant =
+    (defaultVariantId != null
+      ? variants.find((variant) => variant.id === defaultVariantId)
+      : variants.find((variant) => variant.isDefault)) ?? variants[0];
+
   return {
     id: Number(raw?.id),
     name: String(raw?.name ?? raw?.productName ?? ""),
@@ -127,9 +238,12 @@ const norm = (raw: any): ProductDetail => {
     categoryId: raw?.categoryId ?? null,
     categoryName: raw?.categoryName ?? null,
     unit: raw?.unit ?? null,
-    stockQuantity: raw?.stockQuantity ?? null,
+    stockQuantity:
+      derivedStockQuantity != null
+        ? Number(derivedStockQuantity)
+        : null,
     material: raw?.material ?? null,
-    size: raw?.size ?? null,
+    size: raw?.size ?? defaultVariant?.size ?? null,
     diameter: raw?.diameter ?? null,
     angle: raw?.angle ?? null,
     weightGrams: raw?.weightGrams ?? null,
@@ -147,8 +261,10 @@ const norm = (raw: any): ProductDetail => {
     primaryImageUrl:
       raw?.primaryImageUrl ?? primaryFromObject ?? primaryFromList,
     isActive: !!raw?.isActive,
-    isInStock: !!raw?.isInStock,
+    isInStock: derivedIsInStock,
     images,
+    variants: variants.length > 0 ? variants : null,
+    defaultVariantId: defaultVariantId ?? null,
 
     sterile: raw?.sterile ?? null,
     singleUse: raw?.singleUse ?? null,

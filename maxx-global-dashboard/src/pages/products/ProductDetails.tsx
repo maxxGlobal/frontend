@@ -48,6 +48,51 @@ export default function ProductDetails() {
     return () => controller.abort();
   }, [idParam]);
 
+  const variants = product?.variants ?? [];
+
+  const stockInfo = useMemo(() => {
+    if (!product) {
+      return { isInStock: false, text: "Stok bilgisi mevcut değil" };
+    }
+
+    const variantStockValues = variants
+      .map((variant) => variant.stockQuantity)
+      .filter(
+        (qty): qty is number => qty !== null && qty !== undefined && !Number.isNaN(qty)
+      );
+
+    if (variantStockValues.length > 0) {
+      const total = variantStockValues.reduce((acc, qty) => acc + qty, 0);
+      return {
+        isInStock: total > 0,
+        text: total > 0 ? `${total} adet stokta` : "Stok yok",
+      };
+    }
+
+    const fallbackStockQuantity =
+      product.stockQuantity !== undefined ? product.stockQuantity : null;
+    const fallbackInStock =
+      typeof product.isInStock === "boolean"
+        ? product.isInStock
+        : fallbackStockQuantity != null
+        ? fallbackStockQuantity > 0
+        : false;
+
+    if (fallbackStockQuantity != null) {
+      return {
+        isInStock: fallbackInStock,
+        text: fallbackInStock
+          ? `${fallbackStockQuantity} adet stokta`
+          : "Stok yok",
+      };
+    }
+
+    return {
+      isInStock: fallbackInStock,
+      text: fallbackInStock ? "Stokta" : "Stok yok",
+    };
+  }, [product, variants]);
+
   const statusBadge = useMemo(() => {
     if (!product) return null;
     const statusTr =
@@ -144,12 +189,10 @@ export default function ProductDetails() {
               <p className="product-detail-body__stats">{statusBadge}</p>
               <p
                 className={`product-detail-body__stock mt-3 ${
-                  product!.isInStock ? "sherah-color3" : "text-danger"
+                  stockInfo.isInStock ? "sherah-color3" : "text-danger"
                 }`}
               >
-                {product!.isInStock
-                  ? `${product!.stockQuantity ?? 0} adet stokta`
-                  : "Stok yok"}
+                {stockInfo.text}
               </p>
 
               <div className="sherah-products-meta">
@@ -226,10 +269,12 @@ export default function ProductDetails() {
                         <td>Malzeme</td>
                         <td>{product!.material || "-"}</td>
                       </tr>
-                      <tr>
-                        <td>Boyut</td>
-                        <td>{product!.size || "-"}</td>
-                      </tr>
+                      {variants.length === 0 ? (
+                        <tr>
+                          <td>Boyut</td>
+                          <td>{product!.size || "-"}</td>
+                        </tr>
+                      ) : null}
                       <tr>
                         <td>Çap</td>
                         <td>{product!.diameter || "-"}</td>
@@ -268,6 +313,46 @@ export default function ProductDetails() {
                     </tbody>
                   </table>
                 </div>
+
+                {variants.length > 0 && (
+                  <div className="mt-4">
+                    <h5 className="fw-bold mb-3">Boyutlar</h5>
+                    <ul className="list-unstyled mb-0">
+                      {variants.map((variant, index) => {
+                        const labelParts = [variant.size, variant.sku]
+                          .filter(
+                            (value): value is string =>
+                              !!value && String(value).trim().length > 0
+                          )
+                          .map((value) => String(value));
+
+                        const label =
+                          labelParts.length > 0
+                            ? labelParts.join(" • ")
+                            : `Varyant ${index + 1}`;
+
+                        const stockText =
+                          variant.stockQuantity != null
+                            ? variant.stockQuantity > 0
+                              ? `${variant.stockQuantity} adet`
+                              : "Stok yok"
+                            : null;
+
+                        return (
+                          <li key={variant.id ?? `variant-${index}`} className="mb-2">
+                            <span className="fw-semibold">{label}</span>
+                            {variant.isDefault ? (
+                              <span className="badge bg-primary ms-2">Varsayılan</span>
+                            ) : null}
+                            {stockText ? (
+                              <span className="text-muted ms-2">{stockText}</span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="tab-pane fade" id="p_tab_2" role="tabpanel">

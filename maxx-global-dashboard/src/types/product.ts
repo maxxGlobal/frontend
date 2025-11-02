@@ -12,6 +12,22 @@ export interface ProductPrice {
   amount: number;
 }
 
+export interface ProductVariantSummary {
+  id: number;
+  size?: string | null;
+  sku?: string | null;
+  stockQuantity?: number | null;
+  isDefault?: boolean | null;
+}
+
+export interface ProductVariantInput {
+  id?: number;
+  size: string;
+  sku?: string;
+  stockQuantity?: number;
+  isDefault?: boolean | null;
+}
+
 export interface ProductRow {
   id: number;
   name: string;
@@ -60,6 +76,8 @@ export interface Product extends ProductRow {
   isExpired?: boolean | null;
   createdDate?: string | null;
   updatedDate?: string | null;
+  variants?: ProductVariantSummary[] | null;
+  defaultVariantId?: number | null;
 }
 
 export interface ProductCreateRequest {
@@ -93,6 +111,7 @@ export interface ProductCreateRequest {
   stockQuantity?: number;
   minimumOrderQuantity?: number;
   maximumOrderQuantity?: number;
+  variants?: ProductVariantInput[];
 }
 
 export interface ProductUpdateRequest extends Partial<ProductCreateRequest> {

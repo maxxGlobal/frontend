@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { updateProduct } from "../../../services/products/update";
 import { getProductById } from "../../../services/products/getById";
-import type { ProductUpdateRequest, Product } from "../../../types/product";
+import type {
+  ProductUpdateRequest,
+  Product,
+  ProductVariantInput,
+} from "../../../types/product";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import {
@@ -14,6 +18,15 @@ interface EditProductModalProps {
   categories: { id: number; name?: string; label?: string }[];
   onClose: () => void;
   onSaved: (updated?: Product) => void; // güncellenmiş ürünü geri gönder
+}
+
+interface VariantForm {
+  key: string;
+  id?: number | null;
+  size: string;
+  sku: string;
+  stockQuantity: string;
+  isDefault: boolean;
 }
 
 function fmtDate(d?: string | null) {
@@ -37,7 +50,14 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [bootLoading, setBootLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [variantForms, setVariantForms] = useState<VariantForm[]>([]);
+  const variantKeyRef = useRef(0);
   const MySwal = withReactContent(Swal);
+
+  const getNextVariantKey = () => {
+    variantKeyRef.current += 1;
+    return `variant-new-${variantKeyRef.current}-${Date.now()}`;
+  };
   // Ürün detayını çek
   useEffect(() => {
     setupTurkishValidation(); // Sadece modal içinde
@@ -90,6 +110,79 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         };
 
         setForm(f);
+
+        const defaultVariantId =
+          p.defaultVariantId != null && Number.isFinite(Number(p.defaultVariantId))
+            ? Number(p.defaultVariantId)
+            : null;
+
+        const mappedVariants = Array.isArray(p.variants)
+          ? p.variants.map((variant, index) => {
+              const rawId =
+                variant?.id !== null && variant?.id !== undefined
+                  ? Number(variant.id)
+                  : null;
+              const normalizedId =
+                rawId !== null && Number.isFinite(rawId) ? rawId : undefined;
+
+              const sizeValue =
+                variant?.size !== null && variant?.size !== undefined
+                  ? String(variant.size)
+                  : "";
+              const skuValue =
+                variant?.sku !== null && variant?.sku !== undefined
+                  ? String(variant.sku)
+                  : "";
+              const stockValue =
+                variant?.stockQuantity !== null &&
+                variant?.stockQuantity !== undefined &&
+                Number.isFinite(Number(variant.stockQuantity))
+                  ? String(Number(variant.stockQuantity))
+                  : "";
+
+              const key =
+                normalizedId !== undefined
+                  ? `variant-${normalizedId}`
+                  : `variant-temp-${Date.now()}-${index}`;
+
+              const matchesDefault =
+                defaultVariantId !== null &&
+                normalizedId !== undefined &&
+                normalizedId === defaultVariantId;
+
+              return {
+                key,
+                id: normalizedId,
+                size: sizeValue,
+                sku: skuValue,
+                stockQuantity: stockValue,
+                isDefault: Boolean(variant?.isDefault ?? matchesDefault),
+              } as VariantForm;
+            })
+          : [];
+
+        const normalizedVariants = mappedVariants.length
+          ? [...mappedVariants]
+          : [];
+
+        if (normalizedVariants.length > 0) {
+          variantKeyRef.current = Math.max(
+            variantKeyRef.current,
+            normalizedVariants.length
+          );
+        }
+
+        if (
+          normalizedVariants.length > 0 &&
+          !normalizedVariants.some((variant) => variant.isDefault)
+        ) {
+          normalizedVariants[0] = {
+            ...normalizedVariants[0],
+            isDefault: true,
+          };
+        }
+
+        setVariantForms(normalizedVariants);
       } catch (e) {
       } finally {
         setBootLoading(false);
@@ -105,7 +198,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         setupTurkishValidation(".modal");
       }, 100); // DOM'un render olmasını bekle
     }
-  }, [form, bootLoading]);
+  }, [form, bootLoading, variantForms.length]);
 
   const numberFields = new Set([
     "weightGrams",
@@ -114,6 +207,84 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     "minimumOrderQuantity",
     "maximumOrderQuantity",
   ]);
+
+  const handleVariantFieldChange = (
+    key: string,
+    field: "size" | "sku"
+  ) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      setVariantForms((prev) =>
+        prev.map((variant) =>
+          variant.key === key ? { ...variant, [field]: value } : variant
+        )
+      );
+    };
+
+  const handleVariantStockChange = (key: string) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      setVariantForms((prev) =>
+        prev.map((variant) => {
+          if (variant.key !== key) return variant;
+          if (rawValue === "") {
+            return { ...variant, stockQuantity: "" };
+          }
+
+          const parsed = Number(rawValue);
+          if (!Number.isFinite(parsed)) {
+            return variant;
+          }
+
+          const sanitized = parsed < 0 ? 0 : parsed;
+          return { ...variant, stockQuantity: String(sanitized) };
+        })
+      );
+    };
+
+  const handleAddVariant = () => {
+    setVariantForms((prev) => {
+      const nextVariant: VariantForm = {
+        key: getNextVariantKey(),
+        id: undefined,
+        size: "",
+        sku: "",
+        stockQuantity: "",
+        isDefault: prev.length === 0,
+      };
+
+      if (prev.length === 0) {
+        return [nextVariant];
+      }
+
+      return [...prev, nextVariant];
+    });
+  };
+
+  const handleRemoveVariant = (key: string) => {
+    setVariantForms((prev) => {
+      const filtered = prev.filter((variant) => variant.key !== key);
+      if (filtered.length === 0) {
+        return filtered;
+      }
+
+      if (!filtered.some((variant) => variant.isDefault)) {
+        const [first, ...rest] = filtered;
+        return [{ ...first, isDefault: true }, ...rest];
+      }
+
+      return filtered;
+    });
+  };
+
+  const handleSetDefaultVariant = (key: string) => {
+    setVariantForms((prev) =>
+      prev.map((variant) => ({
+        ...variant,
+        isDefault: variant.key === key,
+      }))
+    );
+  };
 
   const onChange = (
     e: React.ChangeEvent<
@@ -168,6 +339,53 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     setLoading(true);
     setError(null);
     try {
+      const sanitizedVariants: ProductVariantInput[] = variantForms
+        .map((variant): ProductVariantInput | null => {
+          const trimmedSize = variant.size.trim();
+          if (!trimmedSize) {
+            return null;
+          }
+
+          const trimmedSku = variant.sku.trim();
+          const stockRaw = variant.stockQuantity.trim();
+
+          let stockQuantity: number | undefined;
+          if (stockRaw !== "") {
+            const parsedStock = Number(stockRaw);
+            if (Number.isFinite(parsedStock)) {
+              stockQuantity = parsedStock < 0 ? 0 : parsedStock;
+            }
+          }
+
+          const parsedId =
+            variant.id !== null && variant.id !== undefined
+              ? Number(variant.id)
+              : undefined;
+          const normalizedId =
+            parsedId !== undefined && Number.isFinite(parsedId)
+              ? parsedId
+              : undefined;
+
+          return {
+            id: normalizedId,
+            size: trimmedSize,
+            sku: trimmedSku ? trimmedSku : undefined,
+            stockQuantity,
+            isDefault: variant.isDefault === true,
+          };
+        })
+        .filter((variant): variant is ProductVariantInput => variant !== null);
+
+      if (
+        sanitizedVariants.length > 0 &&
+        !sanitizedVariants.some((variant) => variant.isDefault)
+      ) {
+        sanitizedVariants[0] = {
+          ...sanitizedVariants[0],
+          isDefault: true,
+        };
+      }
+
       const payload: ProductUpdateRequest = {
         ...form,
         categoryId: Number(form.categoryId) || 0,
@@ -177,6 +395,32 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         minimumOrderQuantity: num(form.minimumOrderQuantity),
         maximumOrderQuantity: num(form.maximumOrderQuantity),
       };
+
+      payload.variants = sanitizedVariants;
+
+      if (sanitizedVariants.length > 0) {
+        const defaultVariantPayload =
+          sanitizedVariants.find((variant) => variant.isDefault) ??
+          sanitizedVariants[0];
+        if (defaultVariantPayload?.size) {
+          payload.size = defaultVariantPayload.size;
+        }
+
+        if (
+          payload.stockQuantity === undefined ||
+          payload.stockQuantity === null
+        ) {
+          const aggregateStock = sanitizedVariants.reduce((sum, variant) => {
+            const stock =
+              typeof variant.stockQuantity === "number"
+                ? variant.stockQuantity
+                : 0;
+            return sum + stock;
+          }, 0);
+
+          payload.stockQuantity = aggregateStock;
+        }
+      }
 
       const updated = await updateProduct(productId, payload);
       const chosenId = Number(payload.categoryId) || 0;
@@ -671,6 +915,100 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         onChange={onChange}
                         min={0}
                       />
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="border rounded p-3">
+                      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h6 className="mb-0">Varyantlar</h6>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={handleAddVariant}
+                          disabled={loading}
+                        >
+                          Varyant Ekle
+                        </button>
+                      </div>
+
+                      {variantForms.length === 0 ? (
+                        <p className="text-muted mb-0">
+                          Henüz varyant eklenmedi. "Varyant Ekle" butonu ile yeni
+                          varyantlar oluşturabilirsiniz.
+                        </p>
+                      ) : (
+                        <div className="d-flex flex-column gap-3">
+                          {variantForms.map((variant, index) => (
+                            <div key={variant.key} className="border rounded p-3">
+                              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <span className="fw-semibold">Varyant #{index + 1}</span>
+                                <div className="d-flex align-items-center gap-3 flex-wrap">
+                                  <div className="form-check mb-0">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      name="defaultVariant"
+                                      checked={variant.isDefault}
+                                      onChange={() => handleSetDefaultVariant(variant.key)}
+                                    />
+                                    <label className="form-check-label ms-1">
+                                      Varsayılan
+                                    </label>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => handleRemoveVariant(variant.key)}
+                                    disabled={loading}
+                                  >
+                                    Sil
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="row g-3">
+                                <div className="col-md-4 col-12">
+                                  <div className="form-group mb-0">
+                                    <label className="sherah-wc__form-label">
+                                      Boyut * {" "}
+                                      <small className="text-muted">(örn. 4.5mm)</small>
+                                    </label>
+                                    <input
+                                      className="sherah-wc__form-input"
+                                      value={variant.size}
+                                      onChange={handleVariantFieldChange(variant.key, "size")}
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-4 col-12">
+                                  <div className="form-group mb-0">
+                                    <label className="sherah-wc__form-label">SKU</label>
+                                    <input
+                                      className="sherah-wc__form-input"
+                                      value={variant.sku}
+                                      onChange={handleVariantFieldChange(variant.key, "sku")}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-4 col-12">
+                                  <div className="form-group mb-0">
+                                    <label className="sherah-wc__form-label">Stok</label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      className="sherah-wc__form-input"
+                                      value={variant.stockQuantity}
+                                      onChange={handleVariantStockChange(variant.key)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 

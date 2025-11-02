@@ -24,6 +24,7 @@ export default function ProductPage() {
   const [err, setErr] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [inputValue, setInputValue] = useState<string>("1");
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const increment = () => {
     setQuantity((prev) => {
       const next = prev + 1;
@@ -62,7 +63,32 @@ export default function ProductPage() {
         const p = await getProductById(idNum, { signal: controller.signal });
         setProduct(p);
         const cartItem = getCart().find((c) => c.id === idNum);
-        if (cartItem) setQuantity(cartItem.qty);
+        if (cartItem) {
+          setQuantity(cartItem.qty);
+          setInputValue(String(cartItem.qty));
+        } else {
+          setQuantity(1);
+          setInputValue("1");
+        }
+
+        let nextVariantId: number | null = null;
+        if (p.defaultVariantId !== undefined && p.defaultVariantId !== null) {
+          const num = Number(p.defaultVariantId);
+          nextVariantId = Number.isFinite(num) ? num : null;
+        }
+
+        if (nextVariantId === null && Array.isArray(p.variants) && p.variants.length) {
+          const defaultVariant = p.variants.find((v) => v.isDefault);
+          const candidate = defaultVariant ?? p.variants[0];
+          if (candidate?.id !== undefined && candidate?.id !== null) {
+            const num = Number(candidate.id);
+            if (Number.isFinite(num)) {
+              nextVariantId = num;
+            }
+          }
+        }
+
+        setSelectedVariantId(nextVariantId);
       } catch (e: any) {
         if (e?.name !== "CanceledError" && e?.name !== "AbortError") {
           setErr("Ürün detayı yüklenemedi.");
@@ -73,19 +99,6 @@ export default function ProductPage() {
     })();
     return () => controller.abort();
   }, [idParam]);
-  const handleAddToCart = () => {
-    if (!product) return;
-    addToCart(product.id, quantity);
-    updateQty(product.id, quantity);
-    refresh();
-    MySwal.fire({
-      icon: "success",
-      title: "Başarılı",
-      text: `${product.name} ürününden ${quantity} adet sepete eklendi`,
-      confirmButtonText: "Tamam",
-    });
-  };
-
   const statusBadge = useMemo(() => {
     if (!product) return null;
     const statusTr =
@@ -97,6 +110,130 @@ export default function ProductPage() {
       </span>
     );
   }, [product]);
+
+  const variants = product?.variants ?? [];
+
+  const variantOptions = useMemo(
+    () =>
+      variants.map((variant, index) => {
+        const labelParts = [variant.size, variant.sku]
+          .filter((val): val is string => !!val && String(val).trim().length > 0)
+          .map((val) => String(val));
+        const label =
+          labelParts.join(" • ") || `Varyant ${index + 1}`;
+        return {
+          id: variant.id,
+          label,
+        };
+      }),
+    [variants]
+  );
+
+  const selectedVariant = useMemo(() => {
+    if (!variants.length || selectedVariantId === null) return null;
+    return variants.find((variant) => variant.id === selectedVariantId) ?? null;
+  }, [variants, selectedVariantId]);
+
+  const selectedVariantLabel = useMemo(() => {
+    if (!selectedVariant) return "";
+    const parts = [selectedVariant.size, selectedVariant.sku]
+      .filter((val): val is string => !!val && String(val).trim().length > 0)
+      .map((val) => String(val));
+    return parts.join(" • ");
+  }, [selectedVariant]);
+
+  const selectedPrice = useMemo(() => {
+    if (!selectedVariant?.prices || !selectedVariant.prices.length) return null;
+    return (
+      selectedVariant.prices.find(
+        (price) => price.amount !== null && price.amount !== undefined
+      ) ?? selectedVariant.prices[0]
+    );
+  }, [selectedVariant]);
+
+  const formattedPrice = useMemo(() => {
+    if (!selectedPrice || selectedPrice.amount === null || selectedPrice.amount === undefined)
+      return null;
+    const amount = Number(selectedPrice.amount);
+    if (!Number.isFinite(amount)) return null;
+    const currency = selectedPrice.currency ?? "";
+    try {
+      if (currency) {
+        return new Intl.NumberFormat("tr-TR", {
+          style: "currency",
+          currency,
+        }).format(amount);
+      }
+      return amount.toLocaleString("tr-TR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    } catch {
+      return `${amount.toLocaleString("tr-TR")}${currency ? ` ${currency}` : ""}`;
+    }
+  }, [selectedPrice]);
+
+  const stockInfo = useMemo(() => {
+    if (!product) {
+      return { isInStock: false, text: "Stok bilgisi mevcut değil" };
+    }
+
+    const fallbackStockQuantity = product.stockQuantity ?? null;
+    const fallbackInStock =
+      typeof product.isInStock === "boolean"
+        ? product.isInStock
+        : fallbackStockQuantity != null
+        ? fallbackStockQuantity > 0
+        : false;
+
+    if (selectedVariant) {
+      const variantStock = selectedVariant.stockQuantity;
+      if (variantStock !== null && variantStock !== undefined) {
+        return {
+          isInStock: variantStock > 0,
+          text: variantStock > 0 ? `${variantStock} adet stokta` : "Stok yok",
+        };
+      }
+    }
+
+    if (fallbackStockQuantity != null) {
+      return {
+        isInStock: fallbackInStock,
+        text: fallbackInStock
+          ? `${fallbackStockQuantity} adet stokta`
+          : "Stok yok",
+      };
+    }
+
+    return {
+      isInStock: fallbackInStock,
+      text: fallbackInStock ? "Stokta" : "Stok yok",
+    };
+  }, [product, selectedVariant]);
+
+  const handleVariantChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (!value) {
+      setSelectedVariantId(null);
+      return;
+    }
+    const num = Number(value);
+    setSelectedVariantId(Number.isFinite(num) ? num : null);
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart(product.id, quantity);
+    updateQty(product.id, quantity);
+    refresh();
+    const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
+    MySwal.fire({
+      icon: "success",
+      title: "Başarılı",
+      text: `${product.name}${variantLabel} ürününden ${quantity} adet sepete eklendi`,
+      confirmButtonText: "Tamam",
+    });
+  };
 
   if (loading) {
     return (
@@ -165,14 +302,46 @@ export default function ProductPage() {
                       {product.description || "Ürün açıklaması mevcut değil."}
                     </p>
 
+                    {variantOptions.length > 0 && (
+                      <div className="mb-4">
+                        <label className="block text-sm font-semibold text-qblack mb-2">
+                          Varyant Seçimi
+                        </label>
+                        <select
+                          value={
+                            selectedVariantId !== null
+                              ? String(selectedVariantId)
+                              : ""
+                          }
+                          onChange={handleVariantChange}
+                          className="w-full border border-qgray-border px-3 py-2 text-sm outline-none"
+                        >
+                          <option value="">Varyant seçiniz</option>
+                          {variantOptions.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {formattedPrice ? (
+                      <p className="text-2xl font-semibold text-qblack mb-4">
+                        {formattedPrice}
+                      </p>
+                    ) : variantOptions.length > 0 ? (
+                      <p className="text-sm text-qgray mb-4">
+                        Seçili varyant için fiyat bilgisi bulunamadı.
+                      </p>
+                    ) : null}
+
                     <p
                       className={`text-xl font-medium mb-4 ${
-                        product.isInStock ? "sherah-color3" : "text-danger"
+                        stockInfo.isInStock ? "sherah-color3" : "text-danger"
                       }`}
                     >
-                      {product.isInStock
-                        ? `${product.stockQuantity ?? 0} adet stokta`
-                        : "Stok yok"}
+                      {stockInfo.text}
                     </p>
 
                     {/* Adet ve Sepete Ekle */}
@@ -245,8 +414,16 @@ export default function ProductPage() {
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">Boyut :</span>
-                        <span className="ms-2">{product.size || "-"}</span>
+                        <span className="ms-2">
+                          {selectedVariant?.size || product.size || "-"}
+                        </span>
                       </p>
+                      {selectedVariant && (
+                        <p className="text-[13px] text-qgray leading-7">
+                          <span className="text-qblack font-600">SKU :</span>
+                          <span className="ms-2">{selectedVariant.sku || "-"}</span>
+                        </p>
+                      )}
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">Çap :</span>
                         <span className="ms-2">{product.diameter || "-"}</span>

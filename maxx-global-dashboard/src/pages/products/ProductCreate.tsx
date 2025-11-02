@@ -1,8 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import { hasPermission } from "../../utils/permissions";
 import { createProduct } from "../../services/products/create";
-import type { ProductCreateRequest } from "../../types/product";
+import type {
+  ProductCreateRequest,
+  ProductVariantInput,
+} from "../../types/product";
 import { getAllCategoryOptions } from "../../services/categories/options";
 import type { CategoryOption } from "../../services/categories/_normalize";
 import { exportProductsToExcel } from "../../services/products/exportExcel";
@@ -60,6 +64,14 @@ function getFieldDisplayName(fieldName: string): string {
   };
 
   return fieldMap[fieldName] || fieldName;
+}
+
+interface VariantForm {
+  key: string;
+  size: string;
+  sku: string;
+  stockQuantity: string;
+  isDefault: boolean;
 }
 
 export default function ProductCreate() {
@@ -132,6 +144,103 @@ export default function ProductCreate() {
   const [pickedFile, setPickedFile] = useState<File | null>(null);
   const [userConfirmedDownloaded, setUserConfirmedDownloaded] = useState(false);
 
+  const variantKeyRef = useRef(0);
+  const createVariant = (isDefault = false): VariantForm => {
+    variantKeyRef.current += 1;
+    return {
+      key: `variant-${variantKeyRef.current}`,
+      size: "",
+      sku: "",
+      stockQuantity: "",
+      isDefault,
+    };
+  };
+
+  const [variantForms, setVariantForms] = useState<VariantForm[]>(() => [
+    createVariant(true),
+  ]);
+
+  const totalVariantStock = variantForms.reduce((sum, variant) => {
+    const parsed = Number(variant.stockQuantity);
+    if (!Number.isFinite(parsed)) {
+      return sum;
+    }
+    return sum + (parsed < 0 ? 0 : parsed);
+  }, 0);
+
+  const handleVariantFieldChange = (
+    key: string,
+    field: "size" | "sku"
+  ) =>
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      setVariantForms((prev) =>
+        prev.map((variant) =>
+          variant.key === key ? { ...variant, [field]: value } : variant
+        )
+      );
+    };
+
+  const handleVariantStockChange = (key: string) =>
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      setVariantForms((prev) =>
+        prev.map((variant) => {
+          if (variant.key !== key) return variant;
+          if (rawValue === "") {
+            return { ...variant, stockQuantity: "" };
+          }
+
+          const parsed = Number(rawValue);
+          if (!Number.isFinite(parsed)) {
+            return variant;
+          }
+
+          const sanitized = parsed < 0 ? 0 : parsed;
+          return { ...variant, stockQuantity: String(sanitized) };
+        })
+      );
+    };
+
+  const handleAddVariant = () => {
+    setVariantForms((prev) => {
+      const next = createVariant(prev.length === 0);
+      if (prev.length === 0) {
+        return [next];
+      }
+      return [...prev, next];
+    });
+  };
+
+  const handleRemoveVariant = (key: string) => {
+    setVariantForms((prev) => {
+      const filtered = prev.filter((variant) => variant.key !== key);
+      if (filtered.length === prev.length) {
+        return prev;
+      }
+
+      if (filtered.length === 0) {
+        return [createVariant(true)];
+      }
+
+      if (!filtered.some((variant) => variant.isDefault)) {
+        const [first, ...rest] = filtered;
+        return [{ ...first, isDefault: true }, ...rest];
+      }
+
+      return filtered;
+    });
+  };
+
+  const handleSetDefaultVariant = (key: string) => {
+    setVariantForms((prev) =>
+      prev.map((variant) => ({
+        ...variant,
+        isDefault: variant.key === key,
+      }))
+    );
+  };
+
   // ✅ useEffect'leri düzenleyin - çakışmaları önlemek için
   useEffect(() => {
     (async () => {
@@ -174,13 +283,56 @@ export default function ProductCreate() {
         throw new Error("Birim zorunludur (örn. 'adet').");
       if (!form.lotNumber || !form.lotNumber.trim())
         throw new Error("Lot numarası zorunludur.");
-      if (
-        form.stockQuantity === undefined ||
-        form.stockQuantity === null ||
-        Number.isNaN(Number(form.stockQuantity))
-      ) {
-        throw new Error("Stok adedi zorunludur.");
+
+      const sanitizedVariants: ProductVariantInput[] = variantForms
+        .map((variant): ProductVariantInput | null => {
+          const trimmedSize = variant.size.trim();
+          if (!trimmedSize) {
+            return null;
+          }
+
+          const trimmedSku = variant.sku.trim();
+          const stockRaw = variant.stockQuantity.trim();
+
+          let stockQuantity: number | undefined;
+          if (stockRaw !== "") {
+            const parsedStock = Number(stockRaw);
+            if (Number.isFinite(parsedStock)) {
+              stockQuantity = parsedStock < 0 ? 0 : parsedStock;
+            }
+          }
+
+          return {
+            size: trimmedSize,
+            sku: trimmedSku ? trimmedSku : undefined,
+            stockQuantity,
+            isDefault: variant.isDefault === true,
+          };
+        })
+        .filter((variant): variant is ProductVariantInput => variant !== null);
+
+      if (sanitizedVariants.length === 0) {
+        throw new Error(
+          "En az bir varyant eklemelisiniz ve her varyant için boyut alanı doldurulmalıdır."
+        );
       }
+
+      if (!sanitizedVariants.some((variant) => variant.isDefault)) {
+        sanitizedVariants[0] = {
+          ...sanitizedVariants[0],
+          isDefault: true,
+        };
+      }
+
+      const defaultVariant =
+        sanitizedVariants.find((variant) => variant.isDefault) ||
+        sanitizedVariants[0];
+
+      const aggregateVariantStock = sanitizedVariants.reduce((sum, variant) => {
+        const stock =
+          typeof variant.stockQuantity === "number" ? variant.stockQuantity : 0;
+        return sum + stock;
+      }, 0);
 
       // Payload hazırlama
       const payload: ProductCreateRequest = {
@@ -204,7 +356,7 @@ export default function ProductCreate() {
         lotNumber: form.lotNumber?.trim(),
         weightGrams: numOrUndef(form.weightGrams),
         shelfLifeMonths: numOrUndef(form.shelfLifeMonths),
-        stockQuantity: Number(form.stockQuantity),
+        stockQuantity: numOrUndef(form.stockQuantity),
         minimumOrderQuantity: numOrUndef(form.minimumOrderQuantity),
         maximumOrderQuantity: numOrUndef(form.maximumOrderQuantity),
         manufacturingDate: form.manufacturingDate || "",
@@ -215,6 +367,16 @@ export default function ProductCreate() {
         ceMarking: !!form.ceMarking,
         fdaApproved: !!form.fdaApproved,
       };
+
+      payload.variants = sanitizedVariants;
+
+      if (defaultVariant?.size) {
+        payload.size = defaultVariant.size;
+      }
+
+      if (payload.stockQuantity === undefined || payload.stockQuantity === null) {
+        payload.stockQuantity = aggregateVariantStock;
+      }
 
       const created = await createProduct(payload);
 
@@ -470,7 +632,7 @@ export default function ProductCreate() {
                     </div>
                   </div>
 
-                  {/* Birim & Stok & Lot */}
+                  {/* Birim & Lot */}
                   <div className="col-lg-3 col-md-12 col-12">
                     <div className="form-group">
                       <label className="sherah-wc__form-label">
@@ -489,33 +651,7 @@ export default function ProductCreate() {
                       </div>
                     </div>
                   </div>
-                  <div className="col-lg-3 col-md-12 col-12">
-                    <div className="form-group">
-                      <label className="sherah-wc__form-label">
-                        Stok Adedi *{" "}
-                        <small className="text-muted">(örn. 100)</small>
-                      </label>
-                      <div className="form-group__input">
-                        <input
-                          type="number"
-                          className="sherah-wc__form-input"
-                          value={form.stockQuantity ?? ""}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              stockQuantity:
-                                e.target.value === ""
-                                  ? (undefined as any)
-                                  : Number(e.target.value),
-                            })
-                          }
-                          min={0}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-6 col-md-6 col-12">
+                  <div className="col-lg-9 col-md-12 col-12">
                     <div className="form-group">
                       <label className="sherah-wc__form-label">
                         Lot Numarası *{" "}
@@ -533,6 +669,108 @@ export default function ProductCreate() {
                           required
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="border rounded p-3">
+                      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div>
+                          <h6 className="mb-0">Varyantlar</h6>
+                          <small className="text-muted">
+                            Toplam stok: <strong>{totalVariantStock}</strong>
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={handleAddVariant}
+                          disabled={saving}
+                        >
+                          Varyant Ekle
+                        </button>
+                      </div>
+
+                      {variantForms.length === 0 ? (
+                        <p className="text-muted mb-0">
+                          Henüz varyant eklenmedi. "Varyant Ekle" butonu ile yeni
+                          varyantlar oluşturabilirsiniz.
+                        </p>
+                      ) : (
+                        <div className="d-flex flex-column gap-3">
+                          {variantForms.map((variant, index) => (
+                            <div key={variant.key} className="border rounded p-3">
+                              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <span className="fw-semibold">Varyant #{index + 1}</span>
+                                <div className="d-flex align-items-center gap-3 flex-wrap">
+                                  <div className="form-check mb-0">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      name="defaultVariant"
+                                      checked={variant.isDefault}
+                                      onChange={() => handleSetDefaultVariant(variant.key)}
+                                    />
+                                    <label className="form-check-label ms-1">Varsayılan</label>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={() => handleRemoveVariant(variant.key)}
+                                    disabled={saving || variantForms.length === 1}
+                                  >
+                                    Sil
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="row g-3">
+                                <div className="col-md-4 col-12">
+                                  <div className="form-group mb-0">
+                                    <label className="sherah-wc__form-label">
+                                      Boyut * {" "}
+                                      <small className="text-muted">(örn. 4.5mm)</small>
+                                    </label>
+                                    <input
+                                      className="sherah-wc__form-input"
+                                      value={variant.size}
+                                      onChange={handleVariantFieldChange(variant.key, "size")}
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-4 col-12">
+                                  <div className="form-group mb-0">
+                                    <label className="sherah-wc__form-label">SKU</label>
+                                    <input
+                                      className="sherah-wc__form-input"
+                                      value={variant.sku}
+                                      onChange={handleVariantFieldChange(variant.key, "sku")}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="col-md-4 col-12">
+                                  <div className="form-group mb-0">
+                                    <label className="sherah-wc__form-label">Stok</label>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      className="sherah-wc__form-input"
+                                      value={variant.stockQuantity}
+                                      onChange={handleVariantStockChange(variant.key)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="text-muted small mb-0 mt-3">
+                        Varsayılan varyant, ürün detay sayfalarında başlangıç olarak
+                        gösterilecek boyutu belirler.
+                      </p>
                     </div>
                   </div>
 
