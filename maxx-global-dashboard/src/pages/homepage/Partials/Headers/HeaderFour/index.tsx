@@ -2,10 +2,9 @@ import { Link } from "react-router-dom";
 import ThinBag from "../../../Helpers/icons/ThinBag";
 import Middlebar from "./Middlebar";
 import Navbar from "./Navbar";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../../../Helpers/CartContext";
 const Logo = "/assets/img/medintera-logo.png";
-import { getCart } from "../../../../../services/cart/storage";
 
 type HeaderFourProps = {
   className?: string;
@@ -16,24 +15,14 @@ export default function HeaderFour({
   className,
   drawerAction,
 }: HeaderFourProps) {
-  const [cartCount, setCartCount] = useState<number>(() => getCart().length);
+  const { items } = useCart();
+  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
-  useEffect(() => {
-    const update = () => setCartCount(getCart().length);
-
-    update(); // ilk yükleme
-    window.addEventListener("storage", update); // başka sekme
-    window.addEventListener("cart:changed", update); // aynı sekme
-    return () => {
-      window.removeEventListener("storage", update);
-      window.removeEventListener("cart:changed", update);
-    };
-  }, []);
   return (
     <header className={`${className || ""} header-section-wrapper relative`}>
       <Middlebar className="quomodo-shop-middle-bar lg:block hidden" />
