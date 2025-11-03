@@ -75,8 +75,8 @@ export default function ProductDetails() {
       typeof product.isInStock === "boolean"
         ? product.isInStock
         : fallbackStockQuantity != null
-        ? fallbackStockQuantity > 0
-        : false;
+          ? fallbackStockQuantity > 0
+          : false;
 
     if (fallbackStockQuantity != null) {
       return {
@@ -188,9 +188,8 @@ export default function ProductDetails() {
               </h2>
               <p className="product-detail-body__stats">{statusBadge}</p>
               <p
-                className={`product-detail-body__stock mt-3 ${
-                  stockInfo.isInStock ? "sherah-color3" : "text-danger"
-                }`}
+                className={`product-detail-body__stock mt-3 ${stockInfo.isInStock ? "sherah-color3" : "text-danger"
+                  }`}
               >
                 {stockInfo.text}
               </p>
@@ -315,42 +314,54 @@ export default function ProductDetails() {
                 </div>
 
                 {variants.length > 0 && (
-                  <div className="mt-4">
-                    <h5 className="fw-bold mb-3">Boyutlar</h5>
-                    <ul className="list-unstyled mb-0">
-                      {variants.map((variant, index) => {
-                        const labelParts = [variant.size, variant.sku]
-                          .filter(
-                            (value): value is string =>
-                              !!value && String(value).trim().length > 0
-                          )
-                          .map((value) => String(value));
+                  <div className="mt-4"> 
+                    <div className="sherah-table p-0">
+                      <table className="product-overview-table">
+                        <thead>
+                          <tr>
+                            <th>Boyut</th>
+                            <th>Barkod No</th>
+                            <th>Stok Durumu</th>
+                            <th>Durum</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {variants.map((variant, index) => {
+                            const stockText =
+                              variant.stockQuantity != null
+                                ? variant.stockQuantity > 0
+                                  ? `${variant.stockQuantity} adet`
+                                  : "Stok yok"
+                                : "-";
 
-                        const label =
-                          labelParts.length > 0
-                            ? labelParts.join(" • ")
-                            : `Varyant ${index + 1}`;
-
-                        const stockText =
-                          variant.stockQuantity != null
-                            ? variant.stockQuantity > 0
-                              ? `${variant.stockQuantity} adet`
-                              : "Stok yok"
-                            : null;
-
-                        return (
-                          <li key={variant.id ?? `variant-${index}`} className="mb-2">
-                            <span className="fw-semibold">{label}</span>
-                            {variant.isDefault ? (
-                              <span className="badge bg-primary ms-2">Varsayılan</span>
-                            ) : null}
-                            {stockText ? (
-                              <span className="text-muted ms-2">{stockText}</span>
-                            ) : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                            return (
+                              <tr key={variant.id ?? `variant-${index}`}>
+                                <td>{variant.size || "-"}</td>
+                                <td>{variant.sku || "-"}</td>
+                                <td>
+                                  <span
+                                    className={
+                                      variant.stockQuantity && variant.stockQuantity > 0
+                                        ? "sherah-color3"
+                                        : "text-danger"
+                                    }
+                                  >
+                                    {stockText}
+                                  </span>
+                                </td>
+                                <td>
+                                  {variant.isDefault ? (
+                                    <span className="badge bg-primary">Varsayılan</span>
+                                  ) : (
+                                    "-"
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
