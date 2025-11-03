@@ -8,7 +8,7 @@ export async function getActiveCart(
   opts?: { signal?: AbortSignal }
 ): Promise<CartResponse> {
   const res = await api.get<ApiEnvelope<CartResponse> | CartResponse>(
-    "/cart",
+    "cart",
     {
       params: { dealerId },
       signal: opts?.signal,

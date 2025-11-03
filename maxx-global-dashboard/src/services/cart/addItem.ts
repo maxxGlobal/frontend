@@ -8,7 +8,7 @@ export async function addCartItem(
   opts?: { signal?: AbortSignal }
 ): Promise<CartResponse> {
   const res = await api.post<ApiEnvelope<CartResponse> | CartResponse>(
-    "/cart/items",
+    "cart/items",
     body,
     {
       signal: opts?.signal,
