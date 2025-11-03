@@ -11,13 +11,10 @@ import type { ReactNode } from "react";
 import type {
   CartItemRequest,
   CartItemResponse,
-  CartItemUpdateRequest,
   CartResponse,
 } from "../../../types/cart";
 import { getActiveCart } from "../../../services/cart/getActiveCart";
 import { addCartItem } from "../../../services/cart/addItem";
-import { updateCartItem } from "../../../services/cart/updateItem";
-import { removeCartItem } from "../../../services/cart/removeItem";
 
 function resolveDealerId(candidate?: number | null): number | null {
   if (typeof candidate === "number" && Number.isFinite(candidate) && candidate > 0) {
@@ -62,19 +59,6 @@ type AddItemOptions = {
   signal?: AbortSignal;
 };
 
-type UpdateItemOptions = {
-  itemId: number;
-  quantity: number;
-  dealerId?: number | null;
-  signal?: AbortSignal;
-};
-
-type RemoveItemOptions = {
-  itemId: number;
-  dealerId?: number | null;
-  signal?: AbortSignal;
-};
-
 export type CartContextType = {
   cart: CartResponse | null;
   items: CartItemResponse[];
@@ -84,8 +68,6 @@ export type CartContextType = {
   setDealerId: (dealerId: number | null) => void;
   refresh: (options?: RefreshOptions) => Promise<CartResponse | null>;
   addItem: (options: AddItemOptions) => Promise<CartResponse>;
-  updateItem: (options: UpdateItemOptions) => Promise<CartResponse>;
-  removeItem: (options: RemoveItemOptions) => Promise<CartResponse | null>;
 };
 
 const CartContext = createContext<CartContextType>({
@@ -97,12 +79,6 @@ const CartContext = createContext<CartContextType>({
   setDealerId: () => {},
   refresh: async () => null,
   addItem: async () => {
-    throw new Error("Cart context henüz hazırlanmadı.");
-  },
-  updateItem: async () => {
-    throw new Error("Cart context henüz hazırlanmadı.");
-  },
-  removeItem: async () => {
     throw new Error("Cart context henüz hazırlanmadı.");
   },
 });
@@ -242,48 +218,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     [dealerId]
   );
 
-  const updateItem = useCallback(
-    async (options: UpdateItemOptions): Promise<CartResponse> => {
-      const quantity = Math.max(1, Math.floor(options.quantity));
-      const targetDealerId = resolveDealerId(options.dealerId ?? dealerId);
-
-      if (!targetDealerId) {
-        throw new Error("Bayi bilgisi bulunamadı. Lütfen tekrar giriş yapın.");
-      }
-
-      const payload: CartItemUpdateRequest = {
-        quantity,
-      };
-
-      const response = await updateCartItem(options.itemId, payload, {
-        signal: options.signal,
-      });
-
-      const normalized = normalizeCart(response);
-      setCart(normalized);
-      setError(null);
-      return normalized;
-    },
-    [dealerId]
-  );
-
-  const removeItem = useCallback(
-    async (options: RemoveItemOptions): Promise<CartResponse | null> => {
-      const targetDealerId = resolveDealerId(options.dealerId ?? dealerId);
-
-      if (!targetDealerId) {
-        throw new Error("Bayi bilgisi bulunamadı. Lütfen tekrar giriş yapın.");
-      }
-
-      await removeCartItem(options.itemId, { signal: options.signal });
-
-      const refreshed = await refresh({ dealerId: targetDealerId });
-      setError(null);
-      return refreshed;
-    },
-    [dealerId, refresh]
-  );
-
   useEffect(() => {
     const controller = new AbortController();
     refresh({ signal: controller.signal }).catch((err) => {
@@ -307,21 +241,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       setDealerId,
       refresh,
       addItem,
-      updateItem,
-      removeItem,
     }),
-    [
-      cart,
-      items,
-      loading,
-      error,
-      dealerId,
-      setDealerId,
-      refresh,
-      addItem,
-      updateItem,
-      removeItem,
-    ]
+    [cart, items, loading, error, dealerId, setDealerId, refresh, addItem]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

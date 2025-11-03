@@ -6,10 +6,6 @@ export interface CartItemRequest {
   quantity: number;
 }
 
-export interface CartItemUpdateRequest {
-  quantity: number;
-}
-
 export interface CartItemResponse {
   id: number;
   productId: number;

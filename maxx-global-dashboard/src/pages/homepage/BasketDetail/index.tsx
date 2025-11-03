@@ -16,7 +16,6 @@ import {
 } from "../../../services/orders/calculate";
 import { createOrderWithValidation } from "../../../services/orders/create";
 import type { Discount } from "../../../types/discount";
-import type { CartItemResponse } from "../../../types/cart";
 
 function formatCurrency(amount: number | string | null | undefined, currency?: string | null) {
   if (amount === null || amount === undefined) return "-";
@@ -37,16 +36,7 @@ function formatCurrency(amount: number | string | null | undefined, currency?: s
 }
 
 export default function CartPage() {
-  const {
-    cart,
-    items,
-    loading,
-    error,
-    refresh,
-    dealerId: contextDealerId,
-    updateItem,
-    removeItem,
-  } = useCart();
+  const { cart, items, loading, error, refresh, dealerId: contextDealerId } = useCart();
   const [refreshing, setRefreshing] = useState(false);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [discountsLoading, setDiscountsLoading] = useState(false);
@@ -58,13 +48,6 @@ export default function CartPage() {
   const [previewData, setPreviewData] = useState<OrderCalculationResponse | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
-  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
-  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
-
-  const resetDiscountState = useCallback(() => {
-    setCalculationResult(null);
-    setSelectedDiscountId(null);
-  }, []);
 
   const activeDealerId = useMemo(() => {
     if (cart?.dealerId) return cart.dealerId;
@@ -76,7 +59,6 @@ export default function CartPage() {
     try {
       setRefreshing(true);
       await refresh();
-      resetDiscountState();
     } catch (err: any) {
       Swal.fire({
         icon: "error",
@@ -89,7 +71,7 @@ export default function CartPage() {
     } finally {
       setRefreshing(false);
     }
-  }, [refresh, resetDiscountState]);
+  }, [refresh]);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,116 +108,9 @@ export default function CartPage() {
   }, [activeDealerId]);
 
   useEffect(() => {
-    resetDiscountState();
-  }, [cart?.id, resetDiscountState]);
-
-  const handleQuantityChange = useCallback(
-    async (item: CartItemResponse, nextQuantity: number) => {
-      const safeQuantity = Math.max(1, Math.floor(nextQuantity));
-
-      if (!Number.isFinite(safeQuantity)) {
-        return;
-      }
-
-      if (safeQuantity === (item.quantity ?? 0)) {
-        return;
-      }
-
-      if (
-        typeof item.availableStock === "number" &&
-        item.availableStock > 0 &&
-        safeQuantity > item.availableStock
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Stok sınırı",
-          text: `Bu ürün için en fazla ${item.availableStock} adet ekleyebilirsiniz.`,
-          confirmButtonText: "Tamam",
-          confirmButtonColor: "#059669",
-        });
-        return;
-      }
-
-      try {
-        setUpdatingItemId(item.id);
-        await updateItem({ itemId: item.id, quantity: safeQuantity });
-        resetDiscountState();
-      } catch (err: any) {
-        console.error("Sepet öğesi güncellenirken hata oluştu:", err);
-        Swal.fire({
-          icon: "error",
-          title: "Miktar güncellenemedi",
-          text:
-            err?.response?.data?.message ||
-            err?.message ||
-            "Sepet öğesi güncellenirken bir hata oluştu.",
-        });
-      } finally {
-        setUpdatingItemId(null);
-      }
-    },
-    [resetDiscountState, updateItem]
-  );
-
-  const handleDecreaseQuantity = useCallback(
-    (item: CartItemResponse) => {
-      const next = Math.max(1, (item.quantity ?? 1) - 1);
-      void handleQuantityChange(item, next);
-    },
-    [handleQuantityChange]
-  );
-
-  const handleIncreaseQuantity = useCallback(
-    (item: CartItemResponse) => {
-      const next = Math.max(1, (item.quantity ?? 0) + 1);
-      void handleQuantityChange(item, next);
-    },
-    [handleQuantityChange]
-  );
-
-  const handleRemoveCartItem = useCallback(
-    async (item: CartItemResponse) => {
-      const result = await Swal.fire({
-        icon: "warning",
-        title: "Ürün sepetten kaldırılsın mı?",
-        text: `${item.productName ?? "Bu ürün"} sepetinizden çıkarılacaktır.`,
-        showCancelButton: true,
-        confirmButtonText: "Evet, kaldır",
-        cancelButtonText: "İptal",
-        confirmButtonColor: "#dc2626",
-        cancelButtonColor: "#6b7280",
-      });
-
-      if (!result.isConfirmed) {
-        return;
-      }
-
-      try {
-        setRemovingItemId(item.id);
-        await removeItem({ itemId: item.id });
-        resetDiscountState();
-        await Swal.fire({
-          icon: "success",
-          title: "Ürün kaldırıldı",
-          timer: 1200,
-          showConfirmButton: false,
-        });
-      } catch (err: any) {
-        console.error("Sepetten ürün çıkarılırken hata oluştu:", err);
-        Swal.fire({
-          icon: "error",
-          title: "Ürün kaldırılamadı",
-          text:
-            err?.response?.data?.message ||
-            err?.message ||
-            "Sepetten ürün silinirken bir hata oluştu.",
-        });
-      } finally {
-        setRemovingItemId(null);
-      }
-    },
-    [removeItem, resetDiscountState]
-  );
+    setCalculationResult(null);
+    setSelectedDiscountId(null);
+  }, [cart?.id]);
 
   const cartSubtotalValue = useMemo(() => {
     if (typeof cart?.subtotal === "number") {
@@ -372,8 +247,9 @@ export default function CartPage() {
   }, [buildOrderRequest, selectedDiscountId]);
 
   const handleClearDiscount = useCallback(() => {
-    resetDiscountState();
-  }, [resetDiscountState]);
+    setSelectedDiscountId(null);
+    setCalculationResult(null);
+  }, []);
 
   const displayedDiscountAmount = useMemo(() => {
     if (calculationResult) {
@@ -451,7 +327,8 @@ export default function CartPage() {
       });
       setShowPreviewModal(false);
       setPreviewData(null);
-      resetDiscountState();
+      setCalculationResult(null);
+      setSelectedDiscountId(null);
       await refresh();
     } catch (err: any) {
       console.error("Sipariş oluşturulamadı:", err);
@@ -466,7 +343,7 @@ export default function CartPage() {
     } finally {
       setCreatingOrder(false);
     }
-  }, [buildOrderRequest, refresh, resetDiscountState]);
+  }, [buildOrderRequest, refresh]);
 
   if (loading && !cart) {
     return (
@@ -532,89 +409,44 @@ export default function CartPage() {
                       <th className="px-6 py-3 text-center">Adet</th>
                       <th className="px-6 py-3 text-center">Birim Fiyat</th>
                       <th className="px-6 py-3 text-center">Tutar</th>
-                      <th className="px-6 py-3 text-center">İşlemler</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item) => {
-                      const isUpdating = updatingItemId === item.id;
-                      const isRemoving = removingItemId === item.id;
-                      const maxReached =
-                        typeof item.availableStock === "number" &&
-                        item.availableStock > 0 &&
-                        (item.quantity ?? 0) >= item.availableStock;
-
-                      return (
-                        <tr key={item.id} className="border-t border-[#EDEDED]">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-4">
-                              {item.imageUrl ? (
-                                <img
-                                  src={item.imageUrl}
-                                  alt={item.productName ?? "Ürün"}
-                                  className="w-16 h-16 object-cover rounded"
-                                />
-                              ) : (
-                                <div className="w-16 h-16 bg-gray-100 rounded" />
-                              )}
-                              <div>
-                                <p className="text-sm font-semibold text-qblack">
-                                  {item.productName ?? "Ürün"}
-                                </p>
-                                {item.variantSku && (
-                                  <p className="text-xs text-qgray">SKU: {item.variantSku}</p>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-center">{item.variantSize || "-"}</td>
-                          <td className="px-6 py-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleDecreaseQuantity(item)}
-                                disabled={isUpdating || (item.quantity ?? 1) <= 1}
-                                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                              >
-                                –
-                              </button>
-                              <span className="min-w-[42px] text-center font-semibold text-qblack">
-                                {item.quantity}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleIncreaseQuantity(item)}
-                                disabled={isUpdating || maxReached}
-                                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                              >
-                                +
-                              </button>
-                            </div>
-                            {typeof item.availableStock === "number" && item.availableStock >= 0 ? (
-                              <p className="text-xs text-gray-500 mt-1">
-                                Stok: {item.availableStock}
+                    {items.map((item) => (
+                      <tr key={item.id} className="border-t border-[#EDEDED]">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.productName ?? "Ürün"}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-100 rounded" />
+                            )}
+                            <div>
+                              <p className="text-sm font-semibold text-qblack">
+                                {item.productName ?? "Ürün"}
                               </p>
-                            ) : null}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            {formatCurrency(item.unitPrice, item.currency)}
-                          </td>
-                          <td className="px-6 py-4 text-center font-semibold text-qred">
-                            {formatCurrency(item.totalPrice, item.currency)}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveCartItem(item)}
-                              disabled={isRemoving || isUpdating}
-                              className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded hover:bg-red-600 disabled:opacity-50"
-                            >
-                              {isRemoving ? "Siliniyor..." : "Sil"}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                              {item.variantSku && (
+                                <p className="text-xs text-qgray">SKU: {item.variantSku}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">{item.variantSize || "-"}</td>
+                        <td className="px-6 py-4 text-center font-semibold text-qblack">
+                          {item.quantity}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {formatCurrency(item.unitPrice, item.currency)}
+                        </td>
+                        <td className="px-6 py-4 text-center font-semibold text-qred">
+                          {formatCurrency(item.totalPrice, item.currency)}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
