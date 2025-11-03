@@ -5,7 +5,6 @@ import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { listMyOrders } from "../../../services/orders/my-orders";
-import { addToCart, clearCart, updateQty } from "../../../services/cart/storage";
 import { Helmet } from "react-helmet-async";
 import Swal from "sweetalert2";
 import type {
@@ -15,6 +14,7 @@ import type {
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
 import { approveEditedOrder, rejectEditedOrder } from "../../../services/orders/approve-edited";
+import { useCart } from "../Helpers/CartContext";
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<OrderResponse[] | null>(null);
@@ -22,6 +22,7 @@ export default function MyOrdersPage() {
   const [reorderingOrderId, setReorderingOrderId] = useState<number | null>(null);
   const [processingOrderId, setProcessingOrderId] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { addItem, refresh } = useCart();
 
   // ✅ Siparişleri yükle
   const loadOrders = async () => {
@@ -52,7 +53,7 @@ export default function MyOrdersPage() {
         title: "Siparişi Tekrarla",
         html: `
           <p><strong>${order.orderNumber}</strong> numaralı siparişinizi tekrarlamak istediğinizden emin misiniz?</p>
-          <p class="text-sm text-gray-600 mt-2">Bu işlem mevcut sepetinizi temizleyecek ve bu siparişteki ${order.items.length} ürünü sepetinize ekleyecektir.</p>
+          <p class="text-sm text-gray-600 mt-2">Bu işlem mevcut sepetinize bu siparişteki ${order.items.length} ürünü ekleyecektir.</p>
         `,
         icon: "question",
         showCancelButton: true,
@@ -67,14 +68,15 @@ export default function MyOrdersPage() {
         return;
       }
 
-      clearCart();
-
       for (const item of order.items) {
-        await addToCart(item.productId, item.quantity, {
+        if (!item.productPriceId) continue;
+        await addItem({
           productPriceId: item.productPriceId,
+          quantity: item.quantity,
         });
-        updateQty(item.productId, item.quantity);
       }
+
+      await refresh();
 
       await Swal.fire({
         icon: "success",

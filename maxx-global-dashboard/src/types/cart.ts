@@ -9,15 +9,17 @@ export interface CartItemRequest {
 export interface CartItemResponse {
   id: number;
   productId: number;
+  productName: string | null;
+  productVariantId: number | null;
+  variantSku: string | null;
+  variantSize: string | null;
   productPriceId: number;
-  productName?: string | null;
   quantity: number;
-  unitPrice?: number | null;
-  totalPrice?: number | null;
-  currency?: string | null;
-  imageUrl?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  availableStock: number | null;
+  unitPrice: number | string;
+  totalPrice: number | string;
+  currency: string | null;
+  imageUrl: string | null;
 }
 
 export interface CartResponse {

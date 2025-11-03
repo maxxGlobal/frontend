@@ -8,10 +8,10 @@ import ViewMoreTitle from "./ViewMoreTitle";
 import ThinLove from "./icons/ThinLove";
 
 import { listPopularProducts } from "../../../services/products/popular";
-import { addToCart, updateQty } from "../../../services/cart/storage";
 import { addFavorite } from "../../../services/favorites/add";
 import { removeFavorite } from "../../../services/favorites/remove";
 import type { ProductRow } from "../../../types/product";
+import { useCart } from "./CartContext";
 
 type BannerProps = {
   className?: string;
@@ -34,6 +34,7 @@ export default function SectionStyleThreeHomeTwo({
   const [favorites, setFavorites] = useState<Record<number, boolean>>({});
   const [clickedIds, setClickedIds] = useState<Set<number>>(new Set());
   const qc = useQueryClient();
+  const { addItem } = useCart();
 
   useEffect(() => {
     (async () => {
@@ -110,8 +111,7 @@ export default function SectionStyleThreeHomeTwo({
     }
 
     try {
-      await addToCart(product.id, qty, { productPriceId: priceId });
-      updateQty(product.id, qty);
+      await addItem({ productPriceId: priceId, quantity: qty });
       setClickedIds((prev) => new Set(prev).add(product.id));
 
       await Swal.fire({

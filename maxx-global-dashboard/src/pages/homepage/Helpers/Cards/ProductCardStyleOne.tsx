@@ -5,7 +5,6 @@ import ThinLove from "../icons/ThinLove";
 import { addFavorite } from "../../../../services/favorites/add";
 import { removeFavorite } from "../../../../services/favorites/remove";
 import type { Product } from "../../../../types/product";
-import { addToCart } from "../../../../services/cart/storage";
 import { useCart } from "../../Helpers/CartContext";
 
 type Props = {
@@ -41,7 +40,7 @@ function matchesMaterials(prod: Product, selected: string[] = []) {
 export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   if (datas.status !== "AKTİF") return null;
   if (!matchesMaterials(datas, filterMaterials)) return null;
-  const { refresh } = useCart();
+  const { addItem } = useCart();
   const qc = useQueryClient();
   const d = datas;
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
@@ -108,8 +107,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     }
 
     try {
-      await addToCart(d.id, quantity, { productPriceId: priceId });
-      refresh();
+      await addItem({ productPriceId: priceId, quantity });
       setHiddenAfterClick(true);
       await Swal.fire({
         icon: "success",
