@@ -97,25 +97,48 @@ export default function SectionStyleThreeHomeTwo({
     setInputValues((prev) => ({ ...prev, [id]: String(safe) }));
   };
 
-  const handleAddToCart = (product: ProductRow) => {
+  const handleAddToCart = async (product: ProductRow) => {
     const qty = quantities[product.id] || 1;
-    addToCart(product.id, qty);
-    updateQty(product.id, qty);
-    setClickedIds((prev) => new Set(prev).add(product.id));
-
-    Swal.fire({
-      icon: "success",
-      title: "Sepete eklendi",
-      text: `${product.name} ürününden ${qty} adet sepete eklendi`,
-      confirmButtonText: "Tamam",
-    });
-    setTimeout(() => {
-      setClickedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(product.id);
-        return next;
+    const priceId = product.prices?.[0]?.productPriceId ?? null;
+    if (!priceId) {
+      Swal.fire({
+        icon: "error",
+        title: "Fiyat bulunamadı",
+        text: "Bu ürün için geçerli bir fiyat bulunamadı.",
       });
-    }, 500);
+      return;
+    }
+
+    try {
+      await addToCart(product.id, qty, { productPriceId: priceId });
+      updateQty(product.id, qty);
+      setClickedIds((prev) => new Set(prev).add(product.id));
+
+      await Swal.fire({
+        icon: "success",
+        title: "Sepete eklendi",
+        text: `${product.name} ürününden ${qty} adet sepete eklendi`,
+        confirmButtonText: "Tamam",
+      });
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Ürün sepete eklenirken bir hata oluştu.";
+      Swal.fire({
+        icon: "error",
+        title: "Hata",
+        text: message,
+      });
+    } finally {
+      setTimeout(() => {
+        setClickedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(product.id);
+          return next;
+        });
+      }, 500);
+    }
   };
 
   async function handleFavorite(id: number) {

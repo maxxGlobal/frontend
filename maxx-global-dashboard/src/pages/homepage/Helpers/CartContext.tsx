@@ -1,9 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { getCart } from "../../../services/cart/storage";
-
-// Sepetteki tek item tipi
-export type CartItem = { id: number; qty: number };
+import type { CartItem } from "../../../services/cart/storage";
 
 // Context’te tutulacak değerler
 export type CartContextType = {

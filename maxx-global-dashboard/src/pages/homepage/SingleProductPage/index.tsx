@@ -221,18 +221,40 @@ export default function ProductPage() {
     setSelectedVariantId(Number.isFinite(num) ? num : null);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    addToCart(product.id, quantity);
-    updateQty(product.id, quantity);
-    refresh();
-    const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
-    MySwal.fire({
-      icon: "success",
-      title: "Başarılı",
-      text: `${product.name}${variantLabel} ürününden ${quantity} adet sepete eklendi`,
-      confirmButtonText: "Tamam",
-    });
+    const priceId = selectedPrice?.productPriceId ?? null;
+    if (!priceId) {
+      MySwal.fire({
+        icon: "error",
+        title: "Fiyat bulunamadı",
+        text: "Bu ürün için geçerli bir fiyat seçiniz.",
+      });
+      return;
+    }
+
+    try {
+      await addToCart(product.id, quantity, { productPriceId: priceId });
+      updateQty(product.id, quantity);
+      refresh();
+      const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı",
+        text: `${product.name}${variantLabel} ürününden ${quantity} adet sepete eklendi`,
+        confirmButtonText: "Tamam",
+      });
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Sepete ürün eklenirken bir hata oluştu.";
+      MySwal.fire({
+        icon: "error",
+        title: "Hata",
+        text: message,
+      });
+    }
   };
 
   if (loading) {

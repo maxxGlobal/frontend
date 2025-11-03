@@ -94,18 +94,42 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
     }
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(d.id, quantity);
-    refresh();
-    setHiddenAfterClick(true);
-    Swal.fire({
-      icon: "success",
-      title: "Sepete eklendi",
-      text: `${d.name} ürününden ${quantity} adet sepete eklendi`,
-      confirmButtonText: "Tamam",
-    }).then(() => setHiddenAfterClick(false));
+    const priceId = d.prices?.[0]?.productPriceId ?? null;
+    if (!priceId) {
+      Swal.fire({
+        icon: "error",
+        title: "Fiyat bulunamadı",
+        text: "Bu ürün için fiyat bilgisi bulunamadı.",
+      });
+      return;
+    }
+
+    try {
+      await addToCart(d.id, quantity, { productPriceId: priceId });
+      refresh();
+      setHiddenAfterClick(true);
+      await Swal.fire({
+        icon: "success",
+        title: "Sepete eklendi",
+        text: `${d.name} ürününden ${quantity} adet sepete eklendi`,
+        confirmButtonText: "Tamam",
+      });
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Ürün sepete eklenirken bir hata oluştu.";
+      Swal.fire({
+        icon: "error",
+        title: "Hata",
+        text: message,
+      });
+    } finally {
+      setHiddenAfterClick(false);
+    }
   };
 
   async function handleFavorite(e: React.MouseEvent) {

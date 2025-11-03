@@ -5,7 +5,7 @@ import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { listMyOrders } from "../../../services/orders/my-orders";
-import { addToCart, clearCart } from "../../../services/cart/storage";
+import { addToCart, clearCart, updateQty } from "../../../services/cart/storage";
 import { Helmet } from "react-helmet-async";
 import Swal from "sweetalert2";
 import type {
@@ -68,7 +68,13 @@ export default function MyOrdersPage() {
       }
 
       clearCart();
-      order.items.forEach((item) => addToCart(item.productId, item.quantity));
+
+      for (const item of order.items) {
+        await addToCart(item.productId, item.quantity, {
+          productPriceId: item.productPriceId,
+        });
+        updateQty(item.productId, item.quantity);
+      }
 
       await Swal.fire({
         icon: "success",
@@ -79,13 +85,16 @@ export default function MyOrdersPage() {
       });
 
       navigate("/homepage/basket");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sipariş tekrarlama hatası:", error);
 
       Swal.fire({
         icon: "error",
         title: "Hata",
-        text: "Sipariş tekrarlanırken bir hata oluştu. Lütfen tekrar deneyiniz.",
+        text:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Sipariş tekrarlanırken bir hata oluştu. Lütfen tekrar deneyiniz.",
         confirmButtonText: "Tamam",
         confirmButtonColor: "#dc2626",
       });
