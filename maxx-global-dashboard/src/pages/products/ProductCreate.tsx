@@ -691,81 +691,112 @@ export default function ProductCreate() {
                         </button>
                       </div>
 
-                      {variantForms.length === 0 ? (
-                        <p className="text-muted mb-0">
-                          Henüz varyant eklenmedi. "Varyant Ekle" butonu ile yeni
-                          varyantlar oluşturabilirsiniz.
-                        </p>
-                      ) : (
-                        <div className="d-flex flex-column gap-3">
-                          {variantForms.map((variant, index) => (
-                            <div key={variant.key} className="border rounded p-3">
-                              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                                <span className="fw-semibold">Varyant #{index + 1}</span>
-                                <div className="d-flex align-items-center gap-3 flex-wrap">
-                                  <div className="form-check mb-0">
-                                    <input
-                                      className="form-check-input"
-                                      type="radio"
-                                      name="defaultVariant"
-                                      checked={variant.isDefault}
-                                      onChange={() => handleSetDefaultVariant(variant.key)}
-                                    />
-                                    <label className="form-check-label ms-1">Varsayılan</label>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={() => handleRemoveVariant(variant.key)}
-                                    disabled={saving || variantForms.length === 1}
-                                  >
-                                    Sil
-                                  </button>
-                                </div>
-                              </div>
+                     {variantForms.length === 0 ? (
+  <p className="text-muted mb-0">
+    Henüz varyant eklenmedi. "Varyant Ekle" butonu ile yeni
+    varyantlar oluşturabilirsiniz.
+  </p>
+) : (
+  <div className="d-flex flex-column gap-3">
+    {variantForms.map((variant, index) => (
+      <div key={variant.key} className="border rounded p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <span className="fw-semibold">Varyant #{index + 1}</span>
+          <div className="d-flex align-items-center gap-3 flex-wrap">
+            <div 
+              className="d-flex align-items-center gap-2 cursor-pointer"
+              onClick={() => handleSetDefaultVariant(variant.key)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  border: '2px solid #0d6efd',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: variant.isDefault ? '#0d6efd' : 'white',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                {variant.isDefault && (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+              <label 
+                className="mb-0"
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+              >
+                Varsayılan
+              </label>
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger"
+              onClick={() => handleRemoveVariant(variant.key)}
+              disabled={saving || variantForms.length === 1}
+            >
+              Sil
+            </button>
+          </div>
+        </div>
 
-                              <div className="row g-3">
-                                <div className="col-md-4 col-12">
-                                  <div className="form-group mb-0">
-                                    <label className="sherah-wc__form-label">
-                                      Boyut * {" "}
-                                      <small className="text-muted">(örn. 4.5mm)</small>
-                                    </label>
-                                    <input
-                                      className="sherah-wc__form-input"
-                                      value={variant.size}
-                                      onChange={handleVariantFieldChange(variant.key, "size")}
-                                      required
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-md-4 col-12">
-                                  <div className="form-group mb-0">
-                                    <label className="sherah-wc__form-label">SKU</label>
-                                    <input
-                                      className="sherah-wc__form-input"
-                                      value={variant.sku}
-                                      onChange={handleVariantFieldChange(variant.key, "sku")}
-                                    />
-                                  </div>
-                                </div>
-                                <div className="col-md-4 col-12">
-                                  <div className="form-group mb-0">
-                                    <label className="sherah-wc__form-label">Stok</label>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      className="sherah-wc__form-input"
-                                      value={variant.stockQuantity}
-                                      onChange={handleVariantStockChange(variant.key)}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+        <div className="row g-3">
+          <div className="col-md-4 col-12">
+            <div className="form-group mb-0">
+              <label className="sherah-wc__form-label">
+                Boyut * {" "}
+                <small className="text-muted">(örn. 4.5mm)</small>
+              </label>
+              <input
+                className="sherah-wc__form-input"
+                value={variant.size}
+                onChange={handleVariantFieldChange(variant.key, "size")}
+                required
+              />
+            </div>
+          </div>
+          <div className="col-md-4 col-12">
+            <div className="form-group mb-0">
+              <label className="sherah-wc__form-label">SKU</label>
+              <input
+                className="sherah-wc__form-input"
+                value={variant.sku}
+                onChange={handleVariantFieldChange(variant.key, "sku")}
+              />
+            </div>
+          </div>
+          <div className="col-md-4 col-12">
+            <div className="form-group mb-0">
+              <label className="sherah-wc__form-label">Stok</label>
+              <input
+                type="number"
+                min={0}
+                className="sherah-wc__form-input"
+                value={variant.stockQuantity}
+                onChange={handleVariantStockChange(variant.key)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
                       <p className="text-muted small mb-0 mt-3">
                         Varsayılan varyant, ürün detay sayfalarında başlangıç olarak

@@ -305,7 +305,7 @@ export default function ProductPage() {
                     {variantOptions.length > 0 && (
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-qblack mb-2">
-                          Varyant Seçimi
+                          Boy Seçimi
                         </label>
                         <select
                           value={
@@ -316,7 +316,7 @@ export default function ProductPage() {
                           onChange={handleVariantChange}
                           className="w-full border border-qgray-border px-3 py-2 text-sm outline-none"
                         >
-                          <option value="">Varyant seçiniz</option>
+                          <option value="">Boy seçiniz</option>
                           {variantOptions.map((option) => (
                             <option key={option.id} value={option.id}>
                               {option.label}

@@ -118,47 +118,47 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
         const mappedVariants = Array.isArray(p.variants)
           ? p.variants.map((variant, index) => {
-              const rawId =
-                variant?.id !== null && variant?.id !== undefined
-                  ? Number(variant.id)
-                  : null;
-              const normalizedId =
-                rawId !== null && Number.isFinite(rawId) ? rawId : undefined;
+            const rawId =
+              variant?.id !== null && variant?.id !== undefined
+                ? Number(variant.id)
+                : null;
+            const normalizedId =
+              rawId !== null && Number.isFinite(rawId) ? rawId : undefined;
 
-              const sizeValue =
-                variant?.size !== null && variant?.size !== undefined
-                  ? String(variant.size)
-                  : "";
-              const skuValue =
-                variant?.sku !== null && variant?.sku !== undefined
-                  ? String(variant.sku)
-                  : "";
-              const stockValue =
-                variant?.stockQuantity !== null &&
+            const sizeValue =
+              variant?.size !== null && variant?.size !== undefined
+                ? String(variant.size)
+                : "";
+            const skuValue =
+              variant?.sku !== null && variant?.sku !== undefined
+                ? String(variant.sku)
+                : "";
+            const stockValue =
+              variant?.stockQuantity !== null &&
                 variant?.stockQuantity !== undefined &&
                 Number.isFinite(Number(variant.stockQuantity))
-                  ? String(Number(variant.stockQuantity))
-                  : "";
+                ? String(Number(variant.stockQuantity))
+                : "";
 
-              const key =
-                normalizedId !== undefined
-                  ? `variant-${normalizedId}`
-                  : `variant-temp-${Date.now()}-${index}`;
+            const key =
+              normalizedId !== undefined
+                ? `variant-${normalizedId}`
+                : `variant-temp-${Date.now()}-${index}`;
 
-              const matchesDefault =
-                defaultVariantId !== null &&
-                normalizedId !== undefined &&
-                normalizedId === defaultVariantId;
+            const matchesDefault =
+              defaultVariantId !== null &&
+              normalizedId !== undefined &&
+              normalizedId === defaultVariantId;
 
-              return {
-                key,
-                id: normalizedId,
-                size: sizeValue,
-                sku: skuValue,
-                stockQuantity: stockValue,
-                isDefault: Boolean(variant?.isDefault ?? matchesDefault),
-              } as VariantForm;
-            })
+            return {
+              key,
+              id: normalizedId,
+              size: sizeValue,
+              sku: skuValue,
+              stockQuantity: stockValue,
+              isDefault: Boolean(variant?.isDefault ?? matchesDefault),
+            } as VariantForm;
+          })
           : [];
 
         const normalizedVariants = mappedVariants.length
@@ -310,9 +310,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       setForm((prev) =>
         prev
           ? {
-              ...prev,
-              [name]: value === "" ? undefined : num(value),
-            }
+            ...prev,
+            [name]: value === "" ? undefined : num(value),
+          }
           : prev
       );
       return;
@@ -323,10 +323,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
   const onDate =
     (field: "manufacturingDate" | "expiryDate") =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const v = e.target.value;
-      setForm((prev) => (prev ? { ...prev, [field]: v } : prev));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = e.target.value;
+        setForm((prev) => (prev ? { ...prev, [field]: v } : prev));
+      };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -470,8 +470,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             if (Array.isArray(data.errors)) {
               errorMessage = `<ul class="text-start mb-0">
               ${data.errors
-                .map((error: string) => `<li>${error}</li>`)
-                .join("")}
+                  .map((error: string) => `<li>${error}</li>`)
+                  .join("")}
             </ul>`;
               isHtml = true;
             } else if (typeof data.errors === "object") {
@@ -944,15 +944,44 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                               <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                                 <span className="fw-semibold">Varyant #{index + 1}</span>
                                 <div className="d-flex align-items-center gap-3 flex-wrap">
-                                  <div className="form-check mb-0">
-                                    <input
-                                      className="form-check-input"
-                                      type="radio"
-                                      name="defaultVariant"
-                                      checked={variant.isDefault}
-                                      onChange={() => handleSetDefaultVariant(variant.key)}
-                                    />
-                                    <label className="form-check-label ms-1">
+                                  <div
+                                    className="d-flex align-items-center gap-2 cursor-pointer"
+                                    onClick={() => handleSetDefaultVariant(variant.key)}
+                                    style={{ cursor: 'pointer' }}
+                                  >
+                                    <div
+                                      style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        border: '2px solid #0d6efd',
+                                        borderRadius: '4px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: variant.isDefault ? '#0d6efd' : 'white',
+                                        transition: 'all 0.2s ease',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      {variant.isDefault && (
+                                        <svg
+                                          width="14"
+                                          height="14"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="white"
+                                          strokeWidth="3"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        >
+                                          <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <label
+                                      className="mb-0"
+                                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                                    >
                                       Varsayılan
                                     </label>
                                   </div>
