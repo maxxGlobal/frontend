@@ -8,7 +8,6 @@ import {
   getProductById,
   type ProductDetail,
 } from "../../../services/products/getById";
-import { addToCart, updateQty, getCart } from "../../../services/cart/storage";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { useCart } from "../Helpers/CartContext";
@@ -18,7 +17,7 @@ import "../../../../public/assets/homepage.css";
 const MySwal = withReactContent(Swal);
 export default function ProductPage() {
   const { id: idParam } = useParams<{ id: string }>();
-  const { refresh } = useCart();
+  const { addItem, items } = useCart();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -62,14 +61,6 @@ export default function ProductPage() {
       try {
         const p = await getProductById(idNum, { signal: controller.signal });
         setProduct(p);
-        const cartItem = getCart().find((c) => c.id === idNum);
-        if (cartItem) {
-          setQuantity(cartItem.qty);
-          setInputValue(String(cartItem.qty));
-        } else {
-          setQuantity(1);
-          setInputValue("1");
-        }
 
         let nextVariantId: number | null = null;
         if (p.defaultVariantId !== undefined && p.defaultVariantId !== null) {
@@ -99,6 +90,22 @@ export default function ProductPage() {
     })();
     return () => controller.abort();
   }, [idParam]);
+  useEffect(() => {
+    const idNum = Number(idParam);
+    if (!Number.isFinite(idNum) || idNum <= 0) {
+      return;
+    }
+
+    const cartItem = items.find((item) => item.productId === idNum);
+    if (cartItem) {
+      setQuantity(cartItem.quantity);
+      setInputValue(String(cartItem.quantity));
+    } else {
+      setQuantity(1);
+      setInputValue("1");
+    }
+  }, [items, idParam]);
+
   const statusBadge = useMemo(() => {
     if (!product) return null;
     const statusTr =
@@ -221,18 +228,38 @@ export default function ProductPage() {
     setSelectedVariantId(Number.isFinite(num) ? num : null);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    addToCart(product.id, quantity);
-    updateQty(product.id, quantity);
-    refresh();
-    const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
-    MySwal.fire({
-      icon: "success",
-      title: "Başarılı",
-      text: `${product.name}${variantLabel} ürününden ${quantity} adet sepete eklendi`,
-      confirmButtonText: "Tamam",
-    });
+    const priceId = selectedPrice?.productPriceId ?? null;
+    if (!priceId) {
+      MySwal.fire({
+        icon: "error",
+        title: "Fiyat bulunamadı",
+        text: "Bu ürün için geçerli bir fiyat seçiniz.",
+      });
+      return;
+    }
+
+    try {
+      await addItem({ productPriceId: priceId, quantity });
+      const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
+      await MySwal.fire({
+        icon: "success",
+        title: "Başarılı",
+        text: `${product.name}${variantLabel} ürününden ${quantity} adet sepete eklendi`,
+        confirmButtonText: "Tamam",
+      });
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Sepete ürün eklenirken bir hata oluştu.";
+      MySwal.fire({
+        icon: "error",
+        title: "Hata",
+        text: message,
+      });
+    }
   };
 
   if (loading) {

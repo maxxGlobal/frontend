@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
@@ -17,8 +17,8 @@ import {
   markAllNotificationsRead,
 } from "../../../../../services/notifications/header";
 import { listNotifications } from "../../../../../services/notifications/list";
-import { getCart } from "../../../../../services/cart/storage";
 import type { NotificationRow } from "../../../../../types/notifications";
+import { useCart } from "../../../Helpers/CartContext";
 
 const MySwal = withReactContent(Swal);
 const qkUnread = ["notifications", "unreadCount"];
@@ -50,16 +50,8 @@ export default function Middlebar({ className }: { className?: string }) {
     refetchInterval: 60_000,
   });
 
-  const [cartCount, setCartCount] = useState(() => getCart().length);
-  useEffect(() => {
-    const update = () => setCartCount(getCart().length);
-    window.addEventListener("storage", update);
-    window.addEventListener("cart:changed", update);
-    return () => {
-      window.removeEventListener("storage", update);
-      window.removeEventListener("cart:changed", update);
-    };
-  }, []);
+  const { items: cartItems } = useCart();
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
