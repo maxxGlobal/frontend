@@ -7,6 +7,7 @@ import {
   updateQty,
   removeFromCart,
   clearCart,
+  syncCartFromBackend,
 } from "../../../services/cart/storage";
 import { fetchProductsByIds } from "../../../services/products/bulk";
 import { listDiscountsByDealer } from "../../../services/discounts/list-by-dealer";
@@ -113,6 +114,22 @@ export default function CartPage() {
 
     async function loadAll() {
       setInitLoading(true);
+
+      if (dealerId > 0) {
+        try {
+          await syncCartFromBackend({
+            dealerId,
+            signal: controller.signal,
+          });
+        } catch (error: any) {
+          if (
+            error?.name !== "AbortError" &&
+            error?.code !== "ERR_CANCELED"
+          ) {
+            console.error("Sepet bilgileri alınırken hata oluştu:", error);
+          }
+        }
+      }
 
       const cart = getCart();
       const ids = cart.map((c) => c.id);

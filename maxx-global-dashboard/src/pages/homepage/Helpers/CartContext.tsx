@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { getCart } from "../../../services/cart/storage";
+import {
+  getCart,
+  syncCartFromBackend,
+} from "../../../services/cart/storage";
 import type { CartItem } from "../../../services/cart/storage";
 
 // Context’te tutulacak değerler
@@ -22,11 +25,36 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const refresh = () => setItems(getCart());
 
-  // başka tablarda değişim olursa
   useEffect(() => {
-    const handler = () => setItems(getCart());
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
+    let disposed = false;
+
+    const update = () => {
+      if (!disposed) {
+        setItems(getCart());
+      }
+    };
+
+    window.addEventListener("storage", update);
+    window.addEventListener("cart:changed", update);
+
+    const controller = new AbortController();
+
+    syncCartFromBackend({ signal: controller.signal })
+      .catch((error: any) => {
+        if (disposed) return;
+        if (error?.name === "AbortError" || error?.code === "ERR_CANCELED") {
+          return;
+        }
+        console.error("Sepet bilgileri alınırken hata oluştu:", error);
+      })
+      .finally(update);
+
+    return () => {
+      disposed = true;
+      controller.abort();
+      window.removeEventListener("storage", update);
+      window.removeEventListener("cart:changed", update);
+    };
   }, []);
 
   return (

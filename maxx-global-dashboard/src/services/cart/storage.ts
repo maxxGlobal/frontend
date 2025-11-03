@@ -1,7 +1,9 @@
 // src/services/cart/storage.ts
+import { isAxiosError } from "axios";
 import { getCurrentUser } from "../auth/authService";
 import { addCartItem } from "./addItem";
-import type { CartItemRequest } from "../../types/cart";
+import { getActiveCart as fetchActiveCart } from "./getActiveCart";
+import type { CartItemRequest, CartResponse } from "../../types/cart";
 
 export type CartItem = {
   id: number;
@@ -66,6 +68,60 @@ export function getCart(): CartItem[] {
 export function setCart(items: CartItem[]) {
   localStorage.setItem(KEY, JSON.stringify(items));
   notify();
+}
+
+export async function syncCartFromBackend(
+  options?: { dealerId?: number | null; signal?: AbortSignal }
+): Promise<CartResponse | null> {
+  const dealerId = resolveDealerId(options?.dealerId ?? null);
+
+  if (!dealerId) {
+    return null;
+  }
+
+  try {
+    const cart = await fetchActiveCart(dealerId, { signal: options?.signal });
+
+    const normalizedItems: CartItem[] = Array.isArray(cart?.items)
+      ? (cart.items
+          .map((item) => {
+            const productId = Number((item as any)?.productId);
+            const quantity = Number((item as any)?.quantity);
+
+            if (!Number.isFinite(productId) || productId <= 0) {
+              return null;
+            }
+
+            if (!Number.isFinite(quantity) || quantity <= 0) {
+              return null;
+            }
+
+            const productPriceId =
+              (item as any)?.productPriceId !== undefined &&
+              (item as any)?.productPriceId !== null
+                ? Number((item as any)?.productPriceId)
+                : undefined;
+
+            return {
+              id: productId,
+              qty: quantity,
+              productPriceId,
+            } as CartItem;
+          })
+          .filter(Boolean) as CartItem[])
+      : [];
+
+    setCart(normalizedItems);
+
+    return cart;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 404) {
+      clearCart();
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 export async function addToCart(
