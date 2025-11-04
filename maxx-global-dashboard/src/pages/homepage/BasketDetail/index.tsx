@@ -789,7 +789,7 @@ export default function CartPage() {
                       disabled={loadingPreview || applyingDiscount}
                       className="w-full h-[50px] rounded-sm flex justify-center items-center bg-qh2-green text-white font-semibold disabled:opacity-50"
                     >
-                      {loadingPreview ? "Yükleniyor..." : "Siparişi Önizle"}
+                      {loadingPreview ? "Yükleniyor..." : "Sipariş Oluştur"}
                     </button>
                   </div>
                 </div>
@@ -804,7 +804,7 @@ export default function CartPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Sipariş Önizleme</h2>
+              <h2 className="text-xl font-bold text-gray-800">Siparişi Onayla</h2>
               <button
                 onClick={() => {
                   setShowPreviewModal(false);
@@ -928,7 +928,7 @@ export default function CartPage() {
                 disabled={creatingOrder}
                 className="flex-1 px-4 py-2 bg-qh2-green text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
               >
-                {creatingOrder ? "Sipariş Oluşturuluyor..." : "Siparişi Oluştur"}
+                {creatingOrder ? "Sipariş Oluşturuluyor..." : "Siparişi Onayla"}
               </button>
             </div>
           </div>

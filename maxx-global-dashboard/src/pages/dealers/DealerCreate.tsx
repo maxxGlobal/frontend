@@ -140,7 +140,7 @@ export default function DealerCreate() {
                       className="sherah-wc__form-input"
                       value={form.mobilePhone || ""}
                       onChange={(e) => set({ mobilePhone: e.target.value })}
-                      placeholder="+90 535 555 1234"
+                      placeholder="0 535 555 1234"
                       pattern="^[0-9+\\-\\s()]{8,20}$"
                       title="Lütfen geçerli bir telefon formatı girin."
                     />
