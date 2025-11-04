@@ -221,71 +221,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
         ) : (
           <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
         )}
-
-        {!hiddenAfterClick && (
-          <div
-            className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2
-               -bottom-20 opacity-0 group-hover:bottom-[20px] group-hover:opacity-100
-               transition-all duration-300"
-            onClick={stopPropagation}
-          >
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="yellow-btn w-full h-full cursor-pointer"
-            >
-              Sepete Ekle
-            </button>
-            <div
-              className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border"
-              onClick={stopPropagation}
-            >
-              <div className="flex justify-between items-center w-full">
-                <button
-                  onClick={(e) => {
-                    stopPropagation(e);
-                    decrement();
-                  }}
-                  type="button"
-                  className="text-base text-qgray px-2"
-                >
-                  –
-                </button>
-
-                <input
-                  type="number"
-                  min={1}
-                  value={inputValue}
-                  onChange={(e) => {
-                    stopPropagation(e);
-                    handleManualChange(e);
-                  }}
-                  onFocus={(e) => {
-                    stopPropagation(e);
-                    handleFocus(e);
-                  }}
-                  onBlur={(e) => {
-                    stopPropagation(e);
-                    handleBlur();
-                  }}
-                  onClick={stopPropagation}
-                  className="w-14 text-center border-none outline-none text-qblack"
-                />
-
-                <button
-                  onClick={(e) => {
-                    stopPropagation(e);
-                    increment();
-                  }}
-                  type="button"
-                  className="text-base text-qgray"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+ 
       </div>
 
       {/* Favori butonu */}

@@ -25,4 +25,4 @@ export type FavoriteResponse = {
   };
   timestamp: string;
   code: number;
-};
+}; 

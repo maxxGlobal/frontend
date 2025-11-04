@@ -186,44 +186,7 @@ export default function SectionStyleThreeHomeTwo({
                       }}
                     />
                     <div className="product-card-details flex justify-center h-[150px] items-center relative px-4">
-                      {!clickedIds.has(p.id) && (
-                        <div className="absolute flex w-[234px] h-[54px] left-1/2 -translate-x-1/2 -bottom-20 opacity-0 group-hover:bottom-[20px] group-hover:opacity-100 transition-all duration-300 ease-in-out">
-                          <button
-                            type="button"
-                            onClick={() => handleAddToCart(p)}
-                            className="yellow-btn w-full h-full cursor-pointer"
-                          >
-                            Sepete Ekle
-                          </button>
-                          <div className="w-[130px] h-full px-[10px] flex items-center border bg-white border-qgray-border">
-                            <div className="flex justify-between items-center w-full">
-                              <button
-                                onClick={() => decrement(p.id)}
-                                className="px-2"
-                              >
-                                –
-                              </button>
-                              <input
-                                type="number"
-                                min={1}
-                                value={inputValues[p.id] ?? "1"}
-                                onChange={(e) =>
-                                  handleManualChange(p.id, e.target.value)
-                                }
-                                onFocus={() => handleFocus(p.id)}
-                                onBlur={() => handleBlur(p.id)}
-                                className="w-14 text-center border-none outline-none"
-                              />
-                              <button
-                                onClick={() => increment(p.id)}
-                                className="px-2"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                       
 
                       <div className="text-center">
                         <Link to={`/homepage/product/${p.id}`}>

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+// src/pages/homepage/BasketDetail/index.tsx
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
@@ -16,6 +17,7 @@ import {
 } from "../../../services/orders/calculate";
 import { createOrderWithValidation } from "../../../services/orders/create";
 import type { Discount } from "../../../types/discount";
+import type { CartItemResponse } from "../../../types/cart";
 
 function formatCurrency(amount: number | string | null | undefined, currency?: string | null) {
   if (amount === null || amount === undefined) return "-";
@@ -36,7 +38,7 @@ function formatCurrency(amount: number | string | null | undefined, currency?: s
 }
 
 export default function CartPage() {
-  const { cart, items, loading, error, refresh, dealerId: contextDealerId } = useCart();
+  const { cart, items, loading, error, refresh, updateItem, removeItem, clearCart, dealerId: contextDealerId } = useCart();
   const [refreshing, setRefreshing] = useState(false);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [discountsLoading, setDiscountsLoading] = useState(false);
@@ -48,6 +50,133 @@ export default function CartPage() {
   const [previewData, setPreviewData] = useState<OrderCalculationResponse | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
+  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+
+  // Miktar güncelleme için debounce
+  const [localQuantities, setLocalQuantities] = useState<Record<number, number>>({});
+  const updateTimeoutRef = useRef<Record<number, NodeJS.Timeout>>({});
+
+  // İlk yüklemede local quantities'i ayarla
+  useEffect(() => {
+    const initial: Record<number, number> = {};
+    items.forEach(item => {
+      initial[item.id] = item.quantity;
+    });
+    setLocalQuantities(initial);
+  }, [items.length]); // Sadece items değiştiğinde
+
+  // ✅ Miktar güncelleme - debounced
+  const handleQtyChange = useCallback(
+    (item: CartItemResponse, newQuantity: number) => {
+      const quantity = Math.max(1, newQuantity);
+      
+      // Local state'i hemen güncelle (UI responsive olsun)
+      setLocalQuantities(prev => ({
+        ...prev,
+        [item.id]: quantity
+      }));
+      
+      // Önceki timeout'u temizle
+      if (updateTimeoutRef.current[item.id]) {
+        clearTimeout(updateTimeoutRef.current[item.id]);
+      }
+      
+      // 800ms sonra backend'e istek at
+      updateTimeoutRef.current[item.id] = setTimeout(async () => {
+        try {
+          setUpdatingItemId(item.id);
+          await updateItem(item.id, { quantity });
+          
+          // İndirim hesaplaması varsa temizle
+          setCalculationResult(null);
+          setSelectedDiscountId(null);
+        } catch (error: any) {
+          console.error("Miktar güncellenirken hata:", error);
+          
+          // Hata durumunda eski değere geri dön
+          setLocalQuantities(prev => ({
+            ...prev,
+            [item.id]: item.quantity
+          }));
+          
+          Swal.fire({
+            icon: "error",
+            title: "Güncelleme Hatası",
+            text: error?.response?.data?.message || error?.message || "Miktar güncellenirken bir hata oluştu.",
+            confirmButtonText: "Tamam",
+            confirmButtonColor: "#dc2626",
+          });
+        } finally {
+          setUpdatingItemId(null);
+          delete updateTimeoutRef.current[item.id];
+        }
+      }, 800); // 800ms debounce
+    },
+    [updateItem]
+  );
+
+
+  const handleRemove = useCallback(
+  async (item: CartItemResponse) => {
+    const result = await Swal.fire({
+      title: "Emin misiniz?",
+      text: `${item.productName} ürününü sepetten kaldırmak istediğinizden emin misiniz?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Evet, Kaldır",
+      cancelButtonText: "İptal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setRemovingItemId(item.id);
+      await removeItem(item.id);
+
+      // İndirim ve hesaplamaları temizle
+      setCalculationResult(null);
+      setSelectedDiscountId(null);
+
+      Swal.fire({
+        icon: "success",
+        title: "Ürün Kaldırıldı",
+        text: "Ürün sepetinizden başarıyla kaldırıldı.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error: any) {
+      console.error("Ürün kaldırılırken hata:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Silme Hatası",
+        text:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Ürün kaldırılırken bir hata oluştu.",
+        confirmButtonText: "Tamam",
+        confirmButtonColor: "#dc2626",
+      });
+    } finally {
+      setRemovingItemId(null);
+    }
+  },
+  [removeItem]
+);
+
+
+  // Cleanup - component unmount olduğunda timeout'ları temizle
+  useEffect(() => {
+    return () => {
+      Object.values(updateTimeoutRef.current).forEach(timeout => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
+
+  // Miktar güncelleme için loading state'leri
+  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null); 
 
   const activeDealerId = useMemo(() => {
     if (cart?.dealerId) return cart.dealerId;
@@ -73,6 +202,7 @@ export default function CartPage() {
     }
   }, [refresh]);
 
+  // İndirimleri yükle
   useEffect(() => {
     let cancelled = false;
 
@@ -107,6 +237,7 @@ export default function CartPage() {
     };
   }, [activeDealerId]);
 
+  // Sepet değiştiğinde hesaplamayı temizle
   useEffect(() => {
     setCalculationResult(null);
     setSelectedDiscountId(null);
@@ -139,6 +270,8 @@ export default function CartPage() {
     }
     return `Sepetim – ${cart.dealerName}`;
   }, [cart?.dealerName]);
+
+  
 
   const buildOrderRequest = useCallback(
     (includeDiscount: boolean): OrderRequest | null => {
@@ -329,7 +462,7 @@ export default function CartPage() {
       setPreviewData(null);
       setCalculationResult(null);
       setSelectedDiscountId(null);
-      await refresh();
+      await clearCart();
     } catch (err: any) {
       console.error("Sipariş oluşturulamadı:", err);
       Swal.fire({
@@ -343,7 +476,7 @@ export default function CartPage() {
     } finally {
       setCreatingOrder(false);
     }
-  }, [buildOrderRequest, refresh]);
+  }, [buildOrderRequest, clearCart]);
 
   if (loading && !cart) {
     return (
@@ -388,13 +521,56 @@ export default function CartPage() {
 
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-qblack">Sepet Özeti</h2>
-              <button
-                onClick={handleManualRefresh}
-                disabled={refreshing || loading}
-                className="px-4 py-2 bg-qh2-green text-white rounded disabled:opacity-50"
-              >
-                {refreshing || loading ? "Yenileniyor..." : "Sepeti Yenile"}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleManualRefresh}
+                  disabled={refreshing || loading}
+                  className="px-4 py-2 bg-qh2-green text-white rounded disabled:opacity-50 hover:bg-green-600 transition"
+                >
+                  {refreshing || loading ? "Yenileniyor..." : "Sepeti Yenile"}
+                </button>
+                {hasItems && (
+                  <button
+                    onClick={async () => {
+                      const result = await Swal.fire({
+                        title: "Sepeti Temizle",
+                        text: "Sepetteki tüm ürünleri kaldırmak istediğinizden emin misiniz?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Evet, Temizle",
+                        cancelButtonText: "İptal",
+                        confirmButtonColor: "#dc2626",
+                        cancelButtonColor: "#6b7280",
+                      });
+
+                      if (result.isConfirmed) {
+                        try {
+                          await clearCart();
+                          Swal.fire({
+                            icon: "success",
+                            title: "Sepet Temizlendi",
+                            text: "Tüm ürünler sepetten kaldırıldı.",
+                            timer: 1500,
+                            showConfirmButton: false,
+                          });
+                        } catch (error: any) {
+                          Swal.fire({
+                            icon: "error",
+                            title: "Hata",
+                            text: error?.response?.data?.message || error?.message || "Sepet temizlenirken bir hata oluştu.",
+                            confirmButtonText: "Tamam",
+                            confirmButtonColor: "#dc2626",
+                          });
+                        }
+                      }
+                    }}
+                    disabled={refreshing || loading}
+                    className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50 hover:bg-red-700 transition"
+                  >
+                    Sepeti Temizle
+                  </button>
+                )}
+              </div>
             </div>
 
             {!hasItems ? (
@@ -409,6 +585,7 @@ export default function CartPage() {
                       <th className="px-6 py-3 text-center">Adet</th>
                       <th className="px-6 py-3 text-center">Birim Fiyat</th>
                       <th className="px-6 py-3 text-center">Tutar</th>
+                      <th className="px-6 py-3 text-center">İşlem</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -436,14 +613,33 @@ export default function CartPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">{item.variantSize || "-"}</td>
-                        <td className="px-6 py-4 text-center font-semibold text-qblack">
-                          {item.quantity}
+                        <td className="px-6 py-4 text-center">
+                          <input
+                            type="number"
+                            min={1}
+                            value={localQuantities[item.id] ?? item.quantity}
+                            onChange={(e) => handleQtyChange(item, Number(e.target.value))}
+                            disabled={updatingItemId === item.id}
+                            className="w-20 border rounded px-2 py-1 text-center disabled:opacity-50"
+                          />
+                          {updatingItemId === item.id && (
+                            <span className="block text-xs text-gray-500 mt-1">Güncelleniyor...</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-center">
                           {formatCurrency(item.unitPrice, item.currency)}
                         </td>
                         <td className="px-6 py-4 text-center font-semibold text-qred">
                           {formatCurrency(item.totalPrice, item.currency)}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => handleRemove(item)}
+                            disabled={removingItemId === item.id}
+                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                          >
+                            {removingItemId === item.id ? "Kaldırılıyor..." : "Kaldır"}
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -453,156 +649,157 @@ export default function CartPage() {
             )}
 
             {hasItems && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-3 text-qblack">
-                  Uygulanabilir İndirimler
-                </h3>
-                {discountsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <LoaderStyleOne />
-                  </div>
-                ) : !discounts.length ? (
-                  <p className="text-sm text-qgray">
-                    Bu bayi için tanımlı indirim bulunamadı.
-                  </p>
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {discounts.map((discount) => (
-                      <button
-                        key={discount.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDiscountId((prev) =>
-                            prev === discount.id ? null : discount.id
-                          );
-                          setCalculationResult(null);
-                        }}
-                        className={`text-left border-2 rounded-lg p-4 transition bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-qh2-green ${
-                          selectedDiscountId === discount.id
-                            ? "border-qh2-green"
-                            : "border-transparent"
-                        }`}
-                      >
-                        <div className="text-xs uppercase font-semibold text-qh2-green mb-2">
-                          İndirim Kodu
-                        </div>
-                        <div className="text-base font-semibold text-qblack mb-1">
-                          {discount.name}
-                        </div>
-                        <div className="text-sm text-qh2-green font-semibold">
-                          {discount.discountValue}{" "}
-                          {discount.discountType === "Yüzdesel" ? "%" : currency}
-                        </div>
-                        {discount.description && (
-                          <div className="text-xs text-qgray mt-2">
-                            {discount.description}
+              <>
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-3 text-qblack">
+                    Uygulanabilir İndirimler
+                  </h3>
+                  {discountsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <LoaderStyleOne />
+                    </div>
+                  ) : !discounts.length ? (
+                    <p className="text-sm text-qgray">
+                      Bu bayi için tanımlı indirim bulunamadı.
+                    </p>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {discounts.map((discount) => (
+                        <button
+                          key={discount.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDiscountId((prev) =>
+                              prev === discount.id ? null : discount.id
+                            );
+                            setCalculationResult(null);
+                          }}
+                          className={`text-left border-2 rounded-lg p-4 transition bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-qh2-green ${
+                            selectedDiscountId === discount.id
+                              ? "border-qh2-green"
+                              : "border-transparent"
+                          }`}
+                        >
+                          <div className="text-xs uppercase font-semibold text-qh2-green mb-2">
+                            İndirim Kodu
                           </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-3 mt-4">
-                  <button
-                    onClick={handleApplyDiscount}
-                    disabled={
-                      applyingDiscount || !selectedDiscountId || !discounts.length
-                    }
-                    className="px-4 py-2 bg-qh2-green text-white rounded disabled:opacity-50"
-                  >
-                    {applyingDiscount ? "Hesaplanıyor..." : "İndirimi Uygula"}
-                  </button>
-                  {(selectedDiscountId || calculationResult) && (
-                    <button
-                      onClick={handleClearDiscount}
-                      disabled={applyingDiscount}
-                      className="px-4 py-2 bg-gray-400 text-white rounded disabled:opacity-50"
-                    >
-                      İndirimi Temizle
-                    </button>
+                          <div className="text-base font-semibold text-qblack mb-1">
+                            {discount.name}
+                          </div>
+                          <div className="text-sm text-qh2-green font-semibold">
+                            {discount.discountValue}{" "}
+                            {discount.discountType === "Yüzdesel" ? "%" : currency}
+                          </div>
+                          {discount.description && (
+                            <div className="text-xs text-qgray mt-2">
+                              {discount.description}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                </div>
-              </div>
-            )}
 
-            {calculationResult?.stockWarnings?.length ? (
-              <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded">
-                <h4 className="text-orange-800 font-semibold mb-2">Stok Uyarıları</h4>
-                <ul className="list-disc list-inside text-orange-700 text-sm space-y-1">
-                  {calculationResult.stockWarnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
-              <div className="border border-[#EDEDED] rounded p-6">
-                <h3 className="text-base font-semibold mb-4 text-qblack">Sipariş Bilgileri</h3>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-qgray">Ürün Sayısı</span>
-                  <span className="text-qblack font-medium">{totalItems}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-qgray">Ara Toplam</span>
-                  <span className="text-qblack font-semibold">
-                    {formatCurrency(subtotal, currency)}
-                  </span>
-                </div>
-                {displayedDiscountAmount > 0 && (
-                  <div className="flex justify-between text-sm mt-2 text-green-600">
-                    <span>İndirim</span>
-                    <span>-{formatCurrency(displayedDiscountAmount, currency)}</span>
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={handleApplyDiscount}
+                      disabled={
+                        applyingDiscount || !selectedDiscountId || !discounts.length
+                      }
+                      className="px-4 py-2 bg-qh2-green text-white rounded disabled:opacity-50"
+                    >
+                      {applyingDiscount ? "Hesaplanıyor..." : "İndirimi Uygula"}
+                    </button>
+                    {(selectedDiscountId || calculationResult) && (
+                      <button
+                        onClick={handleClearDiscount}
+                        disabled={applyingDiscount}
+                        className="px-4 py-2 bg-gray-400 text-white rounded disabled:opacity-50"
+                      >
+                        İndirimi Temizle
+                      </button>
+                    )}
                   </div>
-                )}
-                {calculationResult?.discountDescription && (
-                  <p className="text-xs text-qgray mt-2">
-                    {calculationResult.discountDescription}
-                  </p>
-                )}
-              </div>
-
-              <div className="border border-[#EDEDED] rounded p-6 bg-gray-50">
-                <h3 className="text-base font-semibold mb-4 text-qblack">Bayi Bilgileri</h3>
-                <div className="text-sm text-qgray">
-                  <p>
-                    <span className="font-medium text-qblack">Bayi:</span>{" "}
-                    {cart?.dealerName ?? "-"}
-                  </p>
-                  <p>
-                    <span className="font-medium text-qblack">Sepet Güncelleme:</span>{" "}
-                    {cart?.lastActivityAt
-                      ? new Date(cart.lastActivityAt).toLocaleString("tr-TR")
-                      : "-"}
-                  </p>
                 </div>
-              </div>
-            </div>
 
-            {hasItems && (
-              <div className="mt-6 flex justify-end">
-                <div className="w-full sm:w-[360px] border border-[#EDEDED] rounded p-6">
-                  <div className="flex justify-between text-base font-semibold text-qblack mb-2">
-                    <span>Genel Toplam</span>
-                    <span className="text-qred">
-                      {formatCurrency(displayedTotal, currency)}
-                    </span>
+                {calculationResult?.stockWarnings?.length ? (
+                  <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded">
+                    <h4 className="text-orange-800 font-semibold mb-2">Stok Uyarıları</h4>
+                    <ul className="list-disc list-inside text-orange-700 text-sm space-y-1">
+                      {calculationResult.stockWarnings.map((warning, index) => (
+                        <li key={index}>{warning}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <button
-                    onClick={handleShowPreview}
-                    disabled={loadingPreview || applyingDiscount}
-                    className="w-full h-[50px] rounded-sm flex justify-center items-center bg-qh2-green text-white font-semibold disabled:opacity-50"
-                  >
-                    {loadingPreview ? "Yükleniyor..." : "Siparişi Önizle"}
-                  </button>
+                ) : null}
+
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  <div className="border border-[#EDEDED] rounded p-6">
+                    <h3 className="text-base font-semibold mb-4 text-qblack">Sipariş Bilgileri</h3>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-qgray">Ürün Sayısı</span>
+                      <span className="text-qblack font-medium">{totalItems}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-qgray">Ara Toplam</span>
+                      <span className="text-qblack font-semibold">
+                        {formatCurrency(subtotal, currency)}
+                      </span>
+                    </div>
+                    {displayedDiscountAmount > 0 && (
+                      <div className="flex justify-between text-sm mt-2 text-green-600">
+                        <span>İndirim</span>
+                        <span>-{formatCurrency(displayedDiscountAmount, currency)}</span>
+                      </div>
+                    )}
+                    {calculationResult?.discountDescription && (
+                      <p className="text-xs text-qgray mt-2">
+                        {calculationResult.discountDescription}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="border border-[#EDEDED] rounded p-6 bg-gray-50">
+                    <h3 className="text-base font-semibold mb-4 text-qblack">Bayi Bilgileri</h3>
+                    <div className="text-sm text-qgray">
+                      <p>
+                        <span className="font-medium text-qblack">Bayi:</span>{" "}
+                        {cart?.dealerName ?? "-"}
+                      </p>
+                      <p>
+                        <span className="font-medium text-qblack">Sepet Güncelleme:</span>{" "}
+                        {cart?.lastActivityAt
+                          ? new Date(cart.lastActivityAt).toLocaleString("tr-TR")
+                          : "-"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                <div className="mt-6 flex justify-end">
+                  <div className="w-full sm:w-[360px] border border-[#EDEDED] rounded p-6">
+                    <div className="flex justify-between text-base font-semibold text-qblack mb-2">
+                      <span>Genel Toplam</span>
+                      <span className="text-qred">
+                        {formatCurrency(displayedTotal, currency)}
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleShowPreview}
+                      disabled={loadingPreview || applyingDiscount}
+                      className="w-full h-[50px] rounded-sm flex justify-center items-center bg-qh2-green text-white font-semibold disabled:opacity-50"
+                    >
+                      {loadingPreview ? "Yükleniyor..." : "Siparişi Önizle"}
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
       </div>
 
+      {/* Önizleme Modal */}
       {showPreviewModal && previewData && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">

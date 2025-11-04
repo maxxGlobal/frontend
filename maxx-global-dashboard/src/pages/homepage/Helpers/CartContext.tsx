@@ -1,251 +1,167 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { isAxiosError } from "axios";
-import type { ReactNode } from "react";
-import type {
-  CartItemRequest,
-  CartItemResponse,
-  CartResponse,
-} from "../../../types/cart";
+// src/pages/homepage/Helpers/CartContext.tsx
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { getActiveCart } from "../../../services/cart/getActiveCart";
 import { addCartItem } from "../../../services/cart/addItem";
+import { updateCartItem } from "../../../services/cart/updateItem";
+import { removeCartItem } from "../../../services/cart/removeItem";
+import { clearCart as clearCartService } from "../../../services/cart/clearCart";
+import type {
+  CartResponse,
+  CartItemResponse,
+  CartItemRequest,
+  CartItemUpdateRequest,
+} from "../../../types/cart";
 
-function resolveDealerId(candidate?: number | null): number | null {
-  if (typeof candidate === "number" && Number.isFinite(candidate) && candidate > 0) {
-    return candidate;
-  }
-
-  try {
-    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-    const userDealerId = storedUser?.dealer?.id;
-    if (
-      typeof userDealerId === "number" &&
-      Number.isFinite(userDealerId) &&
-      userDealerId > 0
-    ) {
-      return userDealerId;
-    }
-  } catch {
-    /* empty */
-  }
-
-  const storedDealerId =
-    localStorage.getItem("dealerId") ?? localStorage.getItem("selectedDealerId");
-  if (storedDealerId) {
-    const parsed = Number(storedDealerId);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
-
-  return null;
-}
-
-type RefreshOptions = {
-  dealerId?: number | null;
-  signal?: AbortSignal;
-};
-
-type AddItemOptions = {
-  productPriceId: number;
-  quantity?: number;
-  dealerId?: number | null;
-  signal?: AbortSignal;
-};
-
-export type CartContextType = {
+interface CartContextValue {
   cart: CartResponse | null;
   items: CartItemResponse[];
   loading: boolean;
   error: string | null;
   dealerId: number | null;
-  setDealerId: (dealerId: number | null) => void;
-  refresh: (options?: RefreshOptions) => Promise<CartResponse | null>;
-  addItem: (options: AddItemOptions) => Promise<CartResponse>;
-};
-
-const CartContext = createContext<CartContextType>({
-  cart: null,
-  items: [],
-  loading: false,
-  error: null,
-  dealerId: null,
-  setDealerId: () => {},
-  refresh: async () => null,
-  addItem: async () => {
-    throw new Error("Cart context henüz hazırlanmadı.");
-  },
-});
-
-function normalizeCart(response: CartResponse): CartResponse {
-  const items = Array.isArray(response.items)
-    ? response.items.map((item) => ({
-        ...item,
-        unitPrice: normalizeDecimal(item.unitPrice),
-        totalPrice: normalizeDecimal(item.totalPrice),
-        availableStock: normalizeNullableNumber(item.availableStock),
-        quantity: normalizeNumber(item.quantity, 1),
-        productId: normalizeNumber(item.productId),
-        productVariantId: normalizeNullableNumber(item.productVariantId),
-        productPriceId: normalizeNumber(item.productPriceId),
-      }))
-    : [];
-
-  return {
-    ...response,
-    subtotal: normalizeDecimal(response.subtotal),
-    totalItems: normalizeNumber(response.totalItems, 0),
-    items,
-  };
+  
+  // CRUD işlemleri
+  refresh: () => Promise<void>;
+  addItem: (request: Omit<CartItemRequest, "dealerId">) => Promise<void>;
+  updateItem: (itemId: number, request: CartItemUpdateRequest) => Promise<void>;
+  removeItem: (itemId: number) => Promise<void>;
+  clearCart: () => Promise<void>;
 }
 
-function normalizeDecimal(value: unknown): number | string | null {
-  if (value === null || value === undefined) {
+const CartContext = createContext<CartContextValue | undefined>(undefined);
+
+function getDealerId(): number | null {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const id = user?.dealer?.id;
+    return typeof id === "number" && Number.isFinite(id) && id > 0 ? id : null;
+  } catch {
     return null;
   }
-
-  if (typeof value === "number") {
-    return value;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : String(value);
 }
 
-function normalizeNumber(value: unknown, fallback = 0): number {
-  const parsed = Number(value);
-  if (Number.isFinite(parsed)) {
-    return parsed;
-  }
-  return fallback;
-}
-
-function normalizeNullableNumber(value: unknown): number | null {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-export const CartProvider = ({ children }: { children: ReactNode }) => {
+export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dealerId, setDealerIdState] = useState<number | null>(() => resolveDealerId());
+  const [dealerId] = useState<number | null>(getDealerId());
 
-  const setDealerId = useCallback((next: number | null) => {
-    setDealerIdState(next ?? null);
-    if (next) {
-      localStorage.setItem("selectedDealerId", String(next));
+  const refresh = useCallback(async () => {
+    if (!dealerId) {
+      setCart(null);
+      setLoading(false);
+      return;
     }
-  }, []);
 
-  const refresh = useCallback(
-    async (options?: RefreshOptions): Promise<CartResponse | null> => {
-      const targetDealerId = resolveDealerId(options?.dealerId ?? dealerId);
-
-      if (!targetDealerId) {
-        setCart(null);
-        setError("Bayi bilgisi bulunamadı.");
-        return null;
-      }
-
+    try {
       setLoading(true);
-
-      try {
-        const response = await getActiveCart(targetDealerId, {
-          signal: options?.signal,
-        });
-        const normalized = normalizeCart(response);
-        setCart(normalized);
+      setError(null);
+      const data = await getActiveCart(dealerId);
+      setCart(data);
+    } catch (err: any) {
+      console.error("Sepet yüklenirken hata:", err);
+      
+      // 404 - Sepet bulunamadı (boş sepet)
+      if (err?.response?.status === 404) {
+        setCart(null);
         setError(null);
-        return normalized;
-      } catch (err: any) {
-        if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") {
-          return null;
-        }
-
-        if (isAxiosError(err) && err.response?.status === 404) {
-          setCart(null);
-          setError(null);
-          return null;
-        }
-
-        const message =
-          err?.response?.data?.message ??
-          err?.message ??
-          "Sepet bilgileri alınırken hata oluştu.";
-        setError(message);
-        throw err;
-      } finally {
-        setLoading(false);
+      } else {
+        setError(err?.response?.data?.message || err?.message || "Sepet yüklenemedi");
       }
-    },
-    [dealerId]
-  );
+    } finally {
+      setLoading(false);
+    }
+  }, [dealerId]);
 
   const addItem = useCallback(
-    async (options: AddItemOptions): Promise<CartResponse> => {
-      const quantity = Math.max(1, options.quantity ?? 1);
-      const targetDealerId = resolveDealerId(options.dealerId ?? dealerId);
-
-      if (!targetDealerId) {
-        throw new Error("Bayi bilgisi bulunamadı. Lütfen tekrar giriş yapın.");
+    async (request: Omit<CartItemRequest, "dealerId">) => {
+      if (!dealerId) {
+        throw new Error("Bayi bilgisi bulunamadı");
       }
 
-      const payload: CartItemRequest = {
-        dealerId: targetDealerId,
-        productPriceId: options.productPriceId,
-        quantity,
+      const fullRequest: CartItemRequest = {
+        ...request,
+        dealerId,
       };
 
-      const response = await addCartItem(payload, {
-        signal: options.signal,
-      });
-
-      const normalized = normalizeCart(response);
-      setCart(normalized);
-      setError(null);
-      return normalized;
+      const response = await addCartItem(fullRequest);
+      setCart(response);
+      
+      // Sepet değişikliği event'i
+      window.dispatchEvent(new Event("cart:changed"));
     },
     [dealerId]
   );
 
+  const updateItem = useCallback(
+    async (itemId: number, request: CartItemUpdateRequest) => {
+      const response = await updateCartItem(itemId, request);
+      setCart(response);
+      
+      // Sepet değişikliği event'i
+      window.dispatchEvent(new Event("cart:changed"));
+    },
+    []
+  );
+
+  const removeItem = useCallback(async (itemId: number) => {
+    await removeCartItem(itemId);
+    
+    // Sepetten çıkarıldıktan sonra yenile
+    await refresh();
+    
+    // Sepet değişikliği event'i
+    window.dispatchEvent(new Event("cart:changed"));
+  }, [refresh]);
+
+  const clearCart = useCallback(async () => {
+    if (!dealerId) {
+      throw new Error("Bayi bilgisi bulunamadı");
+    }
+
+    await clearCartService(dealerId);
+    setCart(null);
+    
+    // Sepet değişikliği event'i
+    window.dispatchEvent(new Event("cart:changed"));
+  }, [dealerId]);
+
+  // İlk yükleme
   useEffect(() => {
-    const controller = new AbortController();
-    refresh({ signal: controller.signal }).catch((err) => {
-      if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") {
-        return;
-      }
-      console.error("Sepet bilgileri alınırken hata oluştu:", err);
-    });
-    return () => controller.abort();
+    refresh();
+  }, [refresh]);
+
+  // Sepet değişikliklerini dinle
+  useEffect(() => {
+    const handler = () => {
+      refresh();
+    };
+
+    window.addEventListener("cart:changed", handler);
+    return () => window.removeEventListener("cart:changed", handler);
   }, [refresh]);
 
   const items = useMemo(() => cart?.items ?? [], [cart]);
 
-  const value: CartContextType = useMemo(
-    () => ({
-      cart,
-      items,
-      loading,
-      error,
-      dealerId,
-      setDealerId,
-      refresh,
-      addItem,
-    }),
-    [cart, items, loading, error, dealerId, setDealerId, refresh, addItem]
-  );
+  const value: CartContextValue = {
+    cart,
+    items,
+    loading,
+    error,
+    dealerId,
+    refresh,
+    addItem,
+    updateItem,
+    removeItem,
+    clearCart,
+  };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-};
+}
 
-export const useCart = () => useContext(CartContext);
+export function useCart() {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within CartProvider");
+  }
+  return context;
+}

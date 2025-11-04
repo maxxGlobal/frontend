@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../Helpers/CartContext";
+import Swal from "sweetalert2";
 
 interface CartProps {
   className?: string;
@@ -24,7 +25,10 @@ function formatCurrency(amount: number | string | null | undefined, currency?: s
 }
 
 export default function Cart({ className, type }: CartProps) {
-  const { items, cart } = useCart();
+  const { items, cart, removeItem, clearCart } = useCart();
+
+  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+  const [clearing, setClearing] = useState(false);
 
   const subtotal = useMemo(() => {
     if (cart?.subtotal !== undefined && cart?.subtotal !== null) {
@@ -34,6 +38,79 @@ export default function Cart({ className, type }: CartProps) {
   }, [cart, items]);
 
   const currency = cart?.currency ?? (items[0]?.currency ?? "TRY");
+
+  const handleRemove = useCallback(
+    async (id: number, name?: string | null) => {
+      const result = await Swal.fire({
+        title: "Emin misiniz?",
+        text: `${name ?? "Bu ürün"} sepetten kaldırılsın mı?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Evet, Kaldır",
+        cancelButtonText: "İptal",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+      });
+      if (!result.isConfirmed) return;
+
+      try {
+        setRemovingItemId(id);
+        await removeItem(id);
+        Swal.fire({
+          icon: "success",
+          title: "Ürün Kaldırıldı",
+          timer: 1200,
+          showConfirmButton: false,
+        });
+      } catch (e: any) {
+        Swal.fire({
+          icon: "error",
+          title: "Silme Hatası",
+          text: e?.response?.data?.message || e?.message || "Ürün kaldırılırken bir hata oluştu.",
+          confirmButtonText: "Tamam",
+          confirmButtonColor: "#dc2626",
+        });
+      } finally {
+        setRemovingItemId(null);
+      }
+    },
+    [removeItem]
+  );
+
+  const handleClear = useCallback(async () => {
+    const result = await Swal.fire({
+      title: "Sepeti Temizle",
+      text: "Sepetteki tüm ürünler kaldırılacak. Devam edilsin mi?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Evet, Temizle",
+      cancelButtonText: "İptal",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      setClearing(true);
+      await clearCart();
+      Swal.fire({
+        icon: "success",
+        title: "Sepet Temizlendi",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+    } catch (e: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Hata",
+        text: e?.response?.data?.message || e?.message || "Sepet temizlenirken bir hata oluştu.",
+        confirmButtonText: "Tamam",
+        confirmButtonColor: "#dc2626",
+      });
+    } finally {
+      setClearing(false);
+    }
+  }, [clearCart]);
 
   return (
     <div
@@ -74,6 +151,16 @@ export default function Cart({ className, type }: CartProps) {
                     </span>
                   </div>
                 </div>
+
+                {/* Sil butonu */}
+                <button
+                  onClick={() => handleRemove(item.id, item.productName)}
+                  disabled={removingItemId === item.id}
+                  className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50"
+                  title="Ürünü sepetten kaldır"
+                >
+                  {removingItemId === item.id ? "Kaldırılıyor..." : "Sil"}
+                </button>
               </li>
             ))}
           </ul>
@@ -88,12 +175,22 @@ export default function Cart({ className, type }: CartProps) {
                   {formatCurrency(subtotal, currency)}
                 </span>
               </div>
-              <div className="space-y-2">
+
+              <div className="grid grid-cols-2 gap-2">
                 <Link to="/homepage/basket">
-                  <div className="bg-yellow-500 text-white w-full h-[45px] flex items-center justify-center rounded-md">
+                  <div className="bg-yellow-500 text-white w-full h-[45px] flex items-center justify-center rounded-md hover:brightness-95">
                     <span>Sepeti Görüntüle</span>
                   </div>
                 </Link>
+
+                {/* Sepeti Temizle butonu */}
+                <button
+                  onClick={handleClear}
+                  disabled={clearing}
+                  className="w-full h-[45px] bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  {clearing ? "Temizleniyor..." : "Sepeti Temizle"}
+                </button>
               </div>
             </div>
 
