@@ -1,11 +1,11 @@
 // src/services/cart/updateItem.ts
 import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
-import type { CartItemUpdateRequest, CartResponse } from "../../types/cart";
+import type { CartItemRequest, CartResponse } from "../../types/cart";
 
 export async function updateCartItem(
   itemId: number,
-  body: CartItemUpdateRequest,
+  body: CartItemRequest,
   opts?: { signal?: AbortSignal }
 ): Promise<CartResponse> {
   const res = await api.put<ApiEnvelope<CartResponse> | CartResponse>(

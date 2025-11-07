@@ -68,8 +68,8 @@ export default function DiscountsByProduct() {
       if (includeUpcoming) {
         const upcomingAll = await listUpcomingDiscounts();
         const upcomingFiltered = (upcomingAll ?? []).filter((d) => {
-          const okProduct = Array.isArray(d.applicableProducts)
-            ? d.applicableProducts.some((p) => p.id === pid)
+          const okProduct = Array.isArray(d.applicableVariants)
+            ? d.applicableVariants.some((p) => p.id === pid)
             : false;
           const okDealer = did
             ? Array.isArray(d.applicableDealers) &&

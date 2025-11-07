@@ -44,7 +44,7 @@ export async function validateDiscountForOrder(
 
   // Ürün uygunluğu: En az bir satıra uygulanabilir mi?
   const applicableIds = new Set(
-    match.applicableProducts?.map((p) => p.id) ?? []
+    match.applicableVariants?.map((p) => p.id) ?? []
   );
   const hasApplicableLine = items.some((it) =>
     applicableIds.has(it.product.id)

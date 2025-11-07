@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/pages/discounts/DiscountCreate.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -6,10 +7,12 @@ import { createDiscount } from "../../services/discounts/create";
 import { listSimpleProducts } from "../../services/products/simple";
 import { listSimpleDealers } from "../../services/dealers/simple";
 import { listAllCategories } from "../../services/categories/listAll";
+import { getProductById } from "../../services/products/getById";
 import type { DiscountCreateRequest } from "../../types/discount";
 import type { ProductSimple } from "../../types/product";
 import type { DealerSummary } from "../../types/dealer";
 import type { CategoryRow } from "../../types/category";
+import type { ProductVariant } from "../../services/products/getById";
 
 function ensureSeconds(v: string) {
   if (!v) return v;
@@ -27,37 +30,45 @@ export default function DiscountCreate() {
   >("PERCENTAGE");
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-  const [isActive, setIsActive] = useState<boolean>(true);
+  const [endDate, setEndDate] = useState<string>(""); 
   const [minimumOrderAmount, setMinimumOrderAmount] = useState<string>("");
   const [maximumDiscountAmount, setMaximumDiscountAmount] =
     useState<string>("");
 
-  // ✅ yeni alanlar (opsiyonel)
+  // ✅ Yeni alanlar
   const [usageLimit, setUsageLimit] = useState<string>("");
   const [usageLimitPerCustomer, setUsageLimitPerCustomer] =
     useState<string>("");
+  const [discountCode, setDiscountCode] = useState<string>(""); 
+  const [priority, setPriority] = useState<string>(""); 
 
   // Seçenekler
   const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
   const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
-  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]); // ✅ YENİ
+  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]);
   const [optsLoading, setOptsLoading] = useState<boolean>(true);
 
-  // Seçimler (checkbox)
-  const [productIds, setProductIds] = useState<number[]>([]);
-  const [dealerIds, setDealerIds] = useState<number[]>([]);
-  const [categoryIds, setCategoryIds] = useState<number[]>([]); // ✅ YENİ
+  // ✅ YENİ - Variant seçimi için
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [productVariants, setProductVariants] = useState<Map<number, ProductVariant[]>>(
+    new Map()
+  );
+  const [loadingVariants, setLoadingVariants] = useState<Set<number>>(new Set());
+  const [variantIds, setVariantIds] = useState<number[]>([]);
 
-  // İndirim türü seçimi (ürün/kategori/genel)
+  // Seçimler (checkbox)
+  const [dealerIds, setDealerIds] = useState<number[]>([]);
+  const [categoryIds, setCategoryIds] = useState<number[]>([]);
+
+  // İndirim türü seçimi (variant/kategori/genel)
   const [discountScope, setDiscountScope] = useState<
-    "general" | "product" | "category"
+    "general" | "variant" | "category"
   >("general");
 
-  // Filtre (checkbox listesinde arama)
+  // Filtre
   const [productFilter, setProductFilter] = useState("");
   const [dealerFilter, setDealerFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState(""); // ✅ YENİ
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -66,14 +77,14 @@ export default function DiscountCreate() {
         const [prods, dealers, categories] = await Promise.all([
           listSimpleProducts(),
           listSimpleDealers(),
-          listAllCategories(), // ✅ YENİ - kategorileri getir
+          listAllCategories(),
         ]);
         prods.sort((a, b) => a.name.localeCompare(b.name));
         dealers.sort((a, b) => a.name.localeCompare(b.name));
 
         setProductOpts(prods);
         setDealerOpts(dealers);
-        setCategoryOpts(categories); // ✅ YENİ
+        setCategoryOpts(categories);
       } catch {
         Swal.fire("Hata", "Seçenek listeleri yüklenemedi", "error");
       } finally {
@@ -81,6 +92,57 @@ export default function DiscountCreate() {
       }
     })();
   }, []);
+
+  // ✅ YENİ - Ürün seçildiğinde varyantlarını yükle
+  const loadProductVariants = async (productId: number) => {
+    if (productVariants.has(productId)) return; // Zaten yüklü
+
+    setLoadingVariants((prev) => new Set(prev).add(productId));
+    try {
+      const product = await getProductById(productId);
+      if (product.variants && product.variants.length > 0) {
+        setProductVariants((prev) => new Map(prev).set(productId, product.variants!));
+      }
+    } catch (err) {
+      console.error("Varyantlar yüklenemedi:", err);
+    } finally {
+      setLoadingVariants((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
+    }
+  };
+
+  // ✅ YENİ - Ürün checkbox toggle
+  const toggleProduct = (productId: number) => {
+    setSelectedProducts((prev) => {
+      if (prev.includes(productId)) {
+        // Ürün kaldırılıyorsa, o ürüne ait varyantları da temizle
+        setVariantIds((vIds) => {
+          const variants = productVariants.get(productId) || [];
+          const variantIdsToRemove = new Set(variants.map((v) => v.id));
+          return vIds.filter((id) => !variantIdsToRemove.has(id));
+        });
+        return prev.filter((id) => id !== productId);
+      } else {
+        // Ürün ekleniyor, varyantlarını yükle
+        loadProductVariants(productId);
+        return [...prev, productId];
+      }
+    });
+  };
+
+  // ✅ YENİ - Variant checkbox toggle
+  const toggleVariant = (variantId: number) => {
+    setVariantIds((prev) => {
+      if (prev.includes(variantId)) {
+        return prev.filter((id) => id !== variantId);
+      } else {
+        return [...prev, variantId];
+      }
+    });
+  };
 
   // Filtrelenmiş listeler
   const filteredProducts = useMemo(() => {
@@ -99,7 +161,6 @@ export default function DiscountCreate() {
     return dealerOpts.filter((d) => d.name.toLowerCase().includes(q));
   }, [dealerFilter, dealerOpts]);
 
-  // ✅ YENİ - Filtrelenmiş kategori listesi
   const filteredCategories = useMemo(() => {
     const q = categoryFilter.trim().toLowerCase();
     if (!q) return categoryOpts;
@@ -128,12 +189,14 @@ export default function DiscountCreate() {
   // İndirim kapsamı değiştiğinde seçimleri temizle
   useEffect(() => {
     if (discountScope === "general") {
-      setProductIds([]);
+      setSelectedProducts([]);
+      setVariantIds([]);
       setCategoryIds([]);
-    } else if (discountScope === "product") {
+    } else if (discountScope === "variant") {
       setCategoryIds([]);
     } else if (discountScope === "category") {
-      setProductIds([]);
+      setSelectedProducts([]);
+      setVariantIds([]);
     }
   }, [discountScope]);
 
@@ -152,10 +215,10 @@ export default function DiscountCreate() {
     }
 
     // İndirim kapsamı kontrolü
-    if (discountScope === "product" && productIds.length === 0) {
+    if (discountScope === "variant" && variantIds.length === 0) {
       Swal.fire(
         "Uyarı",
-        "Ürün bazlı indirim için en az bir ürün seçmelisiniz.",
+        "Variant bazlı indirim için en az bir varyant seçmelisiniz.",
         "warning"
       );
       return;
@@ -169,13 +232,15 @@ export default function DiscountCreate() {
       return;
     }
 
-    // sayı doğrulama (opsiyonel alanlar pozitif tamsayı olmalı)
+    // Sayı doğrulama
     const ul =
       usageLimit.trim() === "" ? undefined : Number.parseInt(usageLimit, 10);
     const ulpc =
       usageLimitPerCustomer.trim() === ""
         ? undefined
         : Number.parseInt(usageLimitPerCustomer, 10);
+    const prio =
+      priority.trim() === "" ? undefined : Number.parseInt(priority, 10);
 
     if (ul !== undefined && (!Number.isFinite(ul) || ul < 0)) {
       Swal.fire(
@@ -193,6 +258,10 @@ export default function DiscountCreate() {
       );
       return;
     }
+    if (prio !== undefined && (!Number.isFinite(prio) || prio < 0 || prio > 100)) {
+      Swal.fire("Uyarı", "Öncelik 0-100 arası olmalı.", "warning");
+      return;
+    }
 
     const payload: DiscountCreateRequest = {
       name: name.trim(),
@@ -201,12 +270,11 @@ export default function DiscountCreate() {
       discountValue: Number(discountValue),
       startDate: ensureSeconds(startDate),
       endDate: ensureSeconds(endDate),
-      productIds:
-        discountScope === "product" ? Array.from(new Set(productIds)) : [],
+      variantIds:
+        discountScope === "variant" ? Array.from(new Set(variantIds)) : [],
       dealerIds: Array.from(new Set(dealerIds)),
       categoryIds:
         discountScope === "category" ? Array.from(new Set(categoryIds)) : [],
-      isActive,
       minimumOrderAmount:
         minimumOrderAmount.trim() === ""
           ? undefined
@@ -217,8 +285,8 @@ export default function DiscountCreate() {
           : Number(maximumDiscountAmount),
       usageLimit: ul,
       usageLimitPerCustomer: ulpc,
-
-      // ✅ Eksik alanlar için default değerler
+      discountCode: discountCode.trim() || undefined, 
+      priority: prio 
     };
 
     try {
@@ -273,7 +341,6 @@ export default function DiscountCreate() {
           <div className="col-lg-6 col-12">
             <div className="form-group">
               <label className="sherah-wc__form-label">Açıklama</label>
-
               <div className="form-group__input">
                 <input
                   type="text"
@@ -325,14 +392,48 @@ export default function DiscountCreate() {
             </div>
           </div>
 
-          {/* ✅ YENİ - İndirim Kapsamı Seçimi */}
+          {/* ✅ İndirim Kodu */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">İndirim Kodu</label>
+              <div className="form-group__input">
+                <input
+                  type="text"
+                  className="sherah-wc__form-input"
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value)}
+                  placeholder="örn. YILBASI2025"
+                  maxLength={50}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ✅ Öncelik */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Öncelik (0-100)</label>
+              <div className="form-group__input">
+                <input
+                  type="number"
+                  className="sherah-wc__form-input"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  min="0"
+                  max="100"
+                  placeholder="örn. 10"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ✅ İndirim Kapsamı Seçimi */}
           <div className="col-12">
             <div className="form-group">
               <label className="sherah-wc__form-label mb-3">
                 İndirim Kapsamı *
               </label>
 
-              {/* Modern Button Group Style */}
               <div className="discount-scope-selector">
                 <div
                   className="btn-group w-100"
@@ -367,22 +468,22 @@ export default function DiscountCreate() {
                     type="radio"
                     className="btn-check"
                     name="discountScope"
-                    id="scopeProduct"
-                    value="product"
-                    checked={discountScope === "product"}
+                    id="scopeVariant"
+                    value="variant"
+                    checked={discountScope === "variant"}
                     onChange={(e) => setDiscountScope(e.target.value as any)}
                   />
                   <label
                     className={`btn btn-outline-primary ${
-                      discountScope === "product" ? "active" : ""
+                      discountScope === "variant" ? "active" : ""
                     }`}
-                    htmlFor="scopeProduct"
+                    htmlFor="scopeVariant"
                   >
                     <div className="d-flex align-items-center justify-content-center">
                       <i className="fa fa-box me-2"></i>
                       <div>
-                        <div className="fw-semibold">Ürün Bazlı</div>
-                        <small className="text-muted">Seçili Ürünler</small>
+                        <div className="fw-semibold">Variant Bazlı</div>
+                        <small className="text-muted">Seçili Varyantlar</small>
                       </div>
                     </div>
                   </label>
@@ -413,7 +514,6 @@ export default function DiscountCreate() {
                 </div>
               </div>
 
-              {/* Custom CSS - Bu stilleri CSS dosyanıza ekleyin */}
               <style>{`
       .discount-scope-selector {
         .btn-group {
@@ -525,182 +625,195 @@ export default function DiscountCreate() {
             </div>
           </div>
 
-          {/* Checkbox listeleri - Sadece seçilen kapsama göre göster */}
-          <div className="row">
-            {/* ÜRÜNLER - Sadece ürün bazlı seçildiyse göster */}
-            {discountScope === "product" && (
-              <div className="col-lg-6 col-12">
-                <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
-                  <label className="sherah-wc__form-label">
-                    Ürünler{" "}
-                    {productIds.length > 0 && (
-                      <span className="text-muted">
-                        • {productIds.length} seçili
-                      </span>
-                    )}
-                  </label>
-                  <div className="btn-group btn-group-sm">
-                    <button
-                      type="button"
-                      className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
-                      onClick={() => selectAll(filteredProducts, setProductIds)}
-                      disabled={optsLoading || filteredProducts.length === 0}
-                    >
-                      Tümünü Seç
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger border-0 outline-none shadow-none custom-box-shadow"
-                      onClick={() => clearAll(setProductIds)}
-                      disabled={optsLoading || productIds.length === 0}
-                    >
-                      Temizle
-                    </button>
-                  </div>
-                </div>
-
-                <input
-                  className="sherah-wc__form-input"
-                  placeholder="Ürün ara (ad/kod)"
-                  value={productFilter}
-                  onChange={(e) => setProductFilter(e.target.value)}
-                  disabled={optsLoading}
-                />
-
-                <div
-                  className="border rounded p-2"
-                  style={{ maxHeight: 300, overflow: "auto" }}
-                >
-                  {optsLoading ? (
-                    <div className="text-muted">Yükleniyor…</div>
-                  ) : filteredProducts.length === 0 ? (
-                    <div className="text-muted">Kayıt yok.</div>
-                  ) : (
-                    filteredProducts.map((p) => {
-                      const checked = productIds.includes(p.id);
-                      const label = p.code ? `${p.name} (${p.code})` : p.name;
-                      return (
-                        <div
-                          className="form-check d-flex align-items-center gap-2"
-                          key={p.id}
-                        >
-                          <input
-                            className="form-check-input mb-2"
-                            style={{ padding: 0, width: 20, height: 20 }}
-                            type="checkbox"
-                            id={`prod_${p.id}`}
-                            checked={checked}
-                            onChange={() =>
-                              toggleId(productIds, p.id, setProductIds)
-                            }
-                          />
-                          <label
-                            className="form-check-label mb-0"
-                            htmlFor={`prod_${p.id}`}
-                          >
-                            {label}
-                          </label>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ✅ YENİ - KATEGORİLER - Sadece kategori bazlı seçildiyse göster */}
-            {discountScope === "category" && (
-              <div className="col-lg-6 col-12">
-                <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
-                  <label className="sherah-wc__form-label">
-                    Kategoriler{" "}
-                    {categoryIds.length > 0 && (
-                      <span className="text-muted">
-                        • {categoryIds.length} seçili
-                      </span>
-                    )}
-                  </label>
-                  <div className="btn-group btn-group-sm">
-                    <button
-                      type="button"
-                      className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
-                      onClick={() =>
-                        selectAll(filteredCategories, setCategoryIds)
-                      }
-                      disabled={optsLoading || filteredCategories.length === 0}
-                    >
-                      Tümünü Seç
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger border-0 outline-none shadow-none custom-box-shadow"
-                      onClick={() => clearAll(setCategoryIds)}
-                      disabled={optsLoading || categoryIds.length === 0}
-                    >
-                      Temizle
-                    </button>
-                  </div>
-                </div>
-
-                <input
-                  className="sherah-wc__form-input"
-                  placeholder="Kategori ara"
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  disabled={optsLoading}
-                />
-
-                <div
-                  className="border rounded p-2"
-                  style={{ maxHeight: 300, overflow: "auto" }}
-                >
-                  {optsLoading ? (
-                    <div className="text-muted">Yükleniyor…</div>
-                  ) : filteredCategories.length === 0 ? (
-                    <div className="text-muted">Kayıt yok.</div>
-                  ) : (
-                    filteredCategories.map((c) => {
-                      const checked = categoryIds.includes(c.id);
-                      // Hiyerarşik görünüm için label kullan
-                      const label = (c as any).label || c.name;
-                      return (
-                        <div
-                          className="form-check d-flex align-items-center gap-2"
-                          key={c.id}
-                        >
-                          <input
-                            className="form-check-input mb-2"
-                            style={{ padding: 0, width: 20, height: 20 }}
-                            type="checkbox"
-                            id={`cat_${c.id}`}
-                            checked={checked}
-                            onChange={() =>
-                              toggleId(categoryIds, c.id, setCategoryIds)
-                            }
-                          />
-                          <label
-                            className="form-check-label mb-0"
-                            htmlFor={`cat_${c.id}`}
-                            style={{ fontFamily: "monospace" }}
-                          >
-                            {label}
-                          </label>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* BAYİLER - Her zaman göster */}
-            <div className="col-lg-6 col-12">
+          {/* ✅ ÜRÜN/VARIANT SEÇİMİ - Sadece variant bazlı seçildiyse göster */}
+          {discountScope === "variant" && (
+            <div className="col-12">
               <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
                 <label className="sherah-wc__form-label">
-                  Bayiler{" "}
-                  {dealerIds.length > 0 && (
+                  Ürünler ve Varyantlar{" "}
+                  {variantIds.length > 0 && (
                     <span className="text-muted">
-                      • {dealerIds.length} seçili
+                      • {variantIds.length} varyant seçili
+                    </span>
+                  )}
+                </label>
+              </div>
+
+              <input
+                className="sherah-wc__form-input mb-2"
+                placeholder="Ürün ara (ad/kod)"
+                value={productFilter}
+                onChange={(e) => setProductFilter(e.target.value)}
+                disabled={optsLoading}
+              />
+
+              <div
+                className="border rounded p-3"
+                style={{ maxHeight: 500, overflow: "auto" }}
+              >
+                {optsLoading ? (
+                  <div className="text-muted">Yükleniyor…</div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="text-muted">Kayıt yok.</div>
+                ) : (
+                  filteredProducts.map((p) => {
+                    const isProductSelected = selectedProducts.includes(p.id);
+                    const variants = productVariants.get(p.id) || [];
+                    const isLoadingVariants = loadingVariants.has(p.id);
+                    const label = p.code ? `${p.name} (${p.code})` : p.name;
+
+                    return (
+                      <div key={p.id} className="mb-3 pb-3" style={{ borderBottom: '1px solid #e9ecef' }}>
+                        {/* ✅ Ürün başlığı - Normal font weight */}
+                        <div 
+                          className="d-flex align-items-center gap-2"
+                          onClick={() => toggleProduct(p.id)}
+                          style={{ 
+                            cursor: 'pointer',
+                            padding: '8px 12px',
+                            borderRadius: '4px',
+                            backgroundColor: isProductSelected ? '#f8f9fa' : 'transparent',
+                            transition: 'background-color 0.2s',
+                            userSelect: 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isProductSelected) {
+                              e.currentTarget.style.backgroundColor = '#f8f9fa';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isProductSelected) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
+                        >
+                          <i 
+                            className={`fas ${isProductSelected ? 'fa-chevron-down' : 'fa-chevron-right'}`}
+                            style={{ 
+                              width: 16, 
+                              color: '#6c757d',
+                              transition: 'transform 0.2s'
+                            }}
+                          ></i>
+                          {/* ✅ Normal font-weight */}
+                          <span style={{ fontSize: '14px', fontWeight: 400, color: '#212529' }}>
+                            {label}
+                          </span>
+                          {isProductSelected && variants.length > 0 && (
+                            <span 
+                              className="badge ms-2"
+                              style={{
+                                backgroundColor: '#0d6efd',
+                                color: 'white',
+                                fontSize: '11px',
+                                padding: '3px 8px',
+                                borderRadius: '12px'
+                              }}
+                            >
+                              {variantIds.filter(vid => 
+                                variants.some(v => v.id === vid)
+                              ).length} / {variants.length}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Varyantlar */}
+                        {isProductSelected && (
+                          <div className="ms-4 mt-2">
+                            {isLoadingVariants ? (
+                              <div className="text-muted small d-flex align-items-center gap-2" style={{ padding: '8px 12px' }}>
+                                <i className="fa fa-spinner fa-spin"></i>
+                                <span>Varyantlar yükleniyor...</span>
+                              </div>
+                            ) : variants.length === 0 ? (
+                              <div className="text-muted small" style={{ padding: '8px 12px' }}>
+                                Bu üründe varyant bulunamadı.
+                              </div>
+                            ) : (
+                              <div className="d-flex flex-column">
+                                {variants.map((variant) => {
+                                  const isVariantSelected = variantIds.includes(variant.id);
+                                  return (
+                                    <div
+                                      key={variant.id}
+                                      className="d-flex align-items-center gap-2"
+                                      style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        transition: 'background-color 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#f8f9fa';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                      }}
+                                      onClick={() => toggleVariant(variant.id)}
+                                    >
+                                      {/* ✅ Tek checkbox */}
+                                      <input
+                                        type="checkbox"
+                                        id={`variant_${variant.id}`}
+                                        checked={isVariantSelected}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          toggleVariant(variant.id);
+                                        }}
+                                        style={{
+                                          width: '16px',
+                                          height: '16px',
+                                          cursor: 'pointer',
+                                          margin: 0
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor={`variant_${variant.id}`}
+                                        style={{
+                                          fontSize: '13px',
+                                          color: '#495057',
+                                          cursor: 'pointer',
+                                          margin: 0,
+                                          userSelect: 'none',
+                                          fontWeight: 400
+                                        }}
+                                      >
+                                        {variant.size || "Standart"}{" "}
+                                        {variant.sku && (
+                                          <span style={{ color: '#6c757d' }}>
+                                            (SKU: {variant.sku})
+                                          </span>
+                                        )}
+                                        {variant.stockQuantity != null && (
+                                          <span style={{ color: '#6c757d' }}>
+                                            {" "}- Stok: {variant.stockQuantity}
+                                          </span>
+                                        )}
+                                      </label>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ✅ KATEGORİLER - Sadece kategori bazlı seçildiyse göster */}
+          {discountScope === "category" && (
+            <div className="col-12">
+              <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
+                <label className="sherah-wc__form-label">
+                  Kategoriler{" "}
+                  {categoryIds.length > 0 && (
+                    <span className="text-muted">
+                      • {categoryIds.length} seçili
                     </span>
                   )}
                 </label>
@@ -708,16 +821,16 @@ export default function DiscountCreate() {
                   <button
                     type="button"
                     className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
-                    onClick={() => selectAll(filteredDealers, setDealerIds)}
-                    disabled={optsLoading || filteredDealers.length === 0}
+                    onClick={() => selectAll(filteredCategories, setCategoryIds)}
+                    disabled={optsLoading || filteredCategories.length === 0}
                   >
                     Tümünü Seç
                   </button>
                   <button
                     type="button"
                     className="btn btn-danger border-0 outline-none shadow-none custom-box-shadow"
-                    onClick={() => clearAll(setDealerIds)}
-                    disabled={optsLoading || dealerIds.length === 0}
+                    onClick={() => clearAll(setCategoryIds)}
+                    disabled={optsLoading || categoryIds.length === 0}
                   >
                     Temizle
                   </button>
@@ -726,9 +839,9 @@ export default function DiscountCreate() {
 
               <input
                 className="sherah-wc__form-input"
-                placeholder="Bayi ara (ad)"
-                value={dealerFilter}
-                onChange={(e) => setDealerFilter(e.target.value)}
+                placeholder="Kategori ara"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
                 disabled={optsLoading}
               />
 
@@ -738,37 +851,117 @@ export default function DiscountCreate() {
               >
                 {optsLoading ? (
                   <div className="text-muted">Yükleniyor…</div>
-                ) : filteredDealers.length === 0 ? (
+                ) : filteredCategories.length === 0 ? (
                   <div className="text-muted">Kayıt yok.</div>
                 ) : (
-                  filteredDealers.map((d) => {
-                    const checked = dealerIds.includes(d.id);
+                  filteredCategories.map((c) => {
+                    const checked = categoryIds.includes(c.id);
+                    const label = (c as any).label || c.name;
                     return (
                       <div
                         className="form-check d-flex align-items-center gap-2"
-                        key={d.id}
+                        key={c.id}
                       >
                         <input
                           className="form-check-input mb-2"
                           style={{ padding: 0, width: 20, height: 20 }}
                           type="checkbox"
-                          id={`dealer_${d.id}`}
+                          id={`cat_${c.id}`}
                           checked={checked}
                           onChange={() =>
-                            toggleId(dealerIds, d.id, setDealerIds)
+                            toggleId(categoryIds, c.id, setCategoryIds)
                           }
                         />
                         <label
-                          className="form-check-label"
-                          htmlFor={`dealer_${d.id}`}
+                          className="form-check-label mb-0"
+                          htmlFor={`cat_${c.id}`}
+                          style={{ fontFamily: "monospace" }}
                         >
-                          {d.name}
+                          {label}
                         </label>
                       </div>
                     );
                   })
                 )}
               </div>
+            </div>
+          )}
+
+          {/* BAYİLER - Her zaman göster */}
+          <div className="col-12">
+            <div className="d-flex justify-content-between align-items-end mt-4 mb-1">
+              <label className="sherah-wc__form-label">
+                Bayiler{" "}
+                {dealerIds.length > 0 && (
+                  <span className="text-muted">
+                    • {dealerIds.length} seçili
+                  </span>
+                )}
+              </label>
+              <div className="btn-group btn-group-sm">
+                <button
+                  type="button"
+                  className="btn btn-success border-0 outline-none shadow-none custom-box-shadow"
+                  onClick={() => selectAll(filteredDealers, setDealerIds)}
+                  disabled={optsLoading || filteredDealers.length === 0}
+                >
+                  Tümünü Seç
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger border-0 outline-none shadow-none custom-box-shadow"
+                  onClick={() => clearAll(setDealerIds)}
+                  disabled={optsLoading || dealerIds.length === 0}
+                >
+                  Temizle
+                </button>
+              </div>
+            </div>
+
+            <input
+              className="sherah-wc__form-input"
+              placeholder="Bayi ara (ad)"
+              value={dealerFilter}
+              onChange={(e) => setDealerFilter(e.target.value)}
+              disabled={optsLoading}
+            />
+
+            <div
+              className="border rounded p-2"
+              style={{ maxHeight: 300, overflow: "auto" }}
+            >
+              {optsLoading ? (
+                <div className="text-muted">Yükleniyor…</div>
+              ) : filteredDealers.length === 0 ? (
+                <div className="text-muted">Kayıt yok.</div>
+              ) : (
+                filteredDealers.map((d) => {
+                  const checked = dealerIds.includes(d.id);
+                  return (
+                    <div
+                      className="form-check d-flex align-items-center gap-2"
+                      key={d.id}
+                    >
+                      <input
+                        className="form-check-input mb-2"
+                        style={{ padding: 0, width: 20, height: 20 }}
+                        type="checkbox"
+                        id={`dealer_${d.id}`}
+                        checked={checked}
+                        onChange={() =>
+                          toggleId(dealerIds, d.id, setDealerIds)
+                        }
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor={`dealer_${d.id}`}
+                      >
+                        {d.name}
+                      </label>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -808,7 +1001,7 @@ export default function DiscountCreate() {
             </div>
           </div>
 
-          {/* ✅ Kullanım limitleri */}
+          {/* Kullanım limitleri */}
           <div className="col-lg-6 col-12">
             <div className="form-group">
               <label className="sherah-wc__form-label">
@@ -844,25 +1037,7 @@ export default function DiscountCreate() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* Aktif */}
-          <div className="form-check mb-4 ms-3 d-flex align-items-center gap-2">
-            <input
-              style={{ padding: 0, width: 20, height: 20 }}
-              type="checkbox"
-              className="form-check-input mt-0s"
-              id="isActiveChk"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-            <label
-              className="form-check-label mb-0 lh-sm"
-              htmlFor="isActiveChk"
-            >
-              Aktif mi?
-            </label>
-          </div>
+          </div> 
         </div>
 
         <button

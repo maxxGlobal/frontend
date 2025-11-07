@@ -8,8 +8,7 @@ import { clearCart as clearCartService } from "../../../services/cart/clearCart"
 import type {
   CartResponse,
   CartItemResponse,
-  CartItemRequest,
-  CartItemUpdateRequest,
+  CartItemRequest, 
 } from "../../../types/cart";
 
 interface CartContextValue {
@@ -22,7 +21,7 @@ interface CartContextValue {
   // CRUD işlemleri
   refresh: () => Promise<void>;
   addItem: (request: Omit<CartItemRequest, "dealerId">) => Promise<void>;
-  updateItem: (itemId: number, request: CartItemUpdateRequest) => Promise<void>;
+  updateItem: (itemId: number, request: CartItemRequest) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   clearCart: () => Promise<void>;
 }
@@ -93,7 +92,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateItem = useCallback(
-    async (itemId: number, request: CartItemUpdateRequest) => {
+    async (itemId: number, request: CartItemRequest) => {
       const response = await updateCartItem(itemId, request);
       setCart(response);
       

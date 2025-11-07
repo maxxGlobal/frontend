@@ -1,10 +1,10 @@
-// src/pages/discounts/DiscountsUpcoming.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
 import EditDiscountModal from "./components/EditDiscountModal";
+import PopoverBadgeVariant from "../../components/popover/PopoverBadgeVariant";
 import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
 import PopoverBadgeDealer from "../../components/popover/PopoverBadgeDealer";
 
@@ -92,7 +92,7 @@ export default function DiscountsUpcoming() {
                   <th>Açıklama</th>
                   <th>Tip</th>
                   <th>Değer</th>
-                  <th>Ürünler</th>
+                  <th>Varyantlar/Kategoriler</th>
                   <th>Bayiler</th>
                   <th>Başlangıç</th>
                   <th>Bitiş</th>
@@ -134,13 +134,16 @@ export default function DiscountsUpcoming() {
                     </td>
                     <td>
                       <div className="sherah-table__product-content">
-                        {d.applicableProducts?.length ? (
+                        {/* ✅ YENİ - Variant desteği */}
+                        {d.applicableVariants && d.applicableVariants.length > 0 ? (
+                          <PopoverBadgeVariant items={d.applicableVariants} />
+                        ) : d.applicableCategories && d.applicableCategories.length > 0 ? (
                           <PopoverBadgeProduct
-                            items={d.applicableProducts}
-                            badgeType="product"
+                            items={d.applicableCategories}
+                            badgeType="category"
                           />
                         ) : (
-                          <span className="text-muted">-</span>
+                          <span className="badge bg-secondary">Genel</span>
                         )}
                       </div>
                     </td>

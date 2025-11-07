@@ -1,4 +1,3 @@
-// src/pages/discounts/DiscountsByDealer.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -8,6 +7,7 @@ import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
 import type { DealerSummary } from "../../types/dealer";
 import EditDiscountModal from "./components/EditDiscountModal";
+import PopoverBadgeVariant from "../../components/popover/PopoverBadgeVariant";
 import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
 
 // helpers
@@ -189,7 +189,7 @@ export default function DiscountsByDealer() {
                 <th>Açıklama</th>
                 <th>Tip</th>
                 <th>Değer</th>
-                <th>Ürünler</th>
+                <th>Varyantlar/Kategoriler</th>
                 <th>Başlangıç</th>
                 <th>Bitiş</th>
                 <th>Durum</th>
@@ -218,13 +218,16 @@ export default function DiscountsByDealer() {
                       : `${d.discountValue} ₺`}
                   </td>
                   <td>
-                    {d.applicableProducts?.length ? (
+                    {/* ✅ YENİ - Variant desteği */}
+                    {d.applicableVariants && d.applicableVariants.length > 0 ? (
+                      <PopoverBadgeVariant items={d.applicableVariants} />
+                    ) : d.applicableCategories && d.applicableCategories.length > 0 ? (
                       <PopoverBadgeProduct
-                        items={d.applicableProducts}
-                        badgeType="product"
+                        items={d.applicableCategories}
+                        badgeType="category"
                       />
                     ) : (
-                      <span className="text-muted">-</span>
+                      <span className="badge bg-secondary">Genel</span>
                     )}
                   </td>
                   <td>
@@ -254,7 +257,7 @@ export default function DiscountsByDealer() {
         </>
       ) : (
         <div className="alert alert-info">
-          Sonuç yok. Bayi seçip “Getir”e tıklayın.
+          Sonuç yok. Bayi seçip "Getir"e tıklayın.
         </div>
       )}
 

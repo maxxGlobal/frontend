@@ -1,4 +1,3 @@
-// src/pages/discounts/DiscountsList.tsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -8,8 +7,9 @@ import { searchDiscounts } from "../../services/discounts/search";
 import type { Discount, PageResponse } from "../../types/discount";
 import EditDiscountModal from "./components/EditDiscountModal";
 import DeleteDiscountModal from "./components/DeleteDiscountModal";
-import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
+import PopoverBadgeVariant from "../../components/popover/PopoverBadgeVariant";
 import PopoverBadgeDealer from "../../components/popover/PopoverBadgeDealer";
+import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
 
 export default function DiscountsList() {
   const navigate = useNavigate();
@@ -17,10 +17,8 @@ export default function DiscountsList() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const size = 30;
-  // Search & sort state
   const [q, setQ] = useState("");
 
-  // Modal state
   const [editTarget, setEditTarget] = useState<Discount | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Discount | null>(null);
 
@@ -52,19 +50,18 @@ export default function DiscountsList() {
       setLoading(false);
     }
   }
+
   const didInitialFetch = useRef(false);
 
   useEffect(() => {
     const query = q.trim();
 
-    // İlk yükleme kontrolü
     if (query.length === 0 && !didInitialFetch.current) {
       didInitialFetch.current = true;
       loadData(0);
-      return; // erken çık, aşağıya düşmesin
+      return;
     }
 
-    // Normal akış
     if (query.length === 0) {
       const t = setTimeout(() => loadData(0), 0);
       return () => clearTimeout(t);
@@ -125,8 +122,6 @@ export default function DiscountsList() {
     );
   };
 
-  // ---- helpers: rozetler ----
-
   const statusBadge = (s?: string | null) =>
     s === "AKTİF" ? (
       <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
@@ -137,16 +132,15 @@ export default function DiscountsList() {
         PASİF
       </div>
     );
+
   return (
     <div className="sherah-table p-0">
       <div className="dataTables_wrapper dt-bootstrap5 no-footer mb-4">
         <div className="row align-items-center justify-content-between border-bottom pb-3 mb-3">
-          {/* Başlık */}
           <div className="col-md-8 mb-2 mb-md-0">
             <h3 className="sherah-card__title m-0 fw-bold">İndirim Listesi</h3>
           </div>
 
-          {/* Butonlar */}
           <div className="col-md-4 d-flex flex-wrap justify-content-md-end gap-2 mt-4">
             <button
               className="btn btn-primary"
@@ -181,7 +175,6 @@ export default function DiscountsList() {
           </div>
         </div>
 
-        {/* Arama kutusu */}
         <div className="row">
           <div className="col-12">
             <div className="input-group input-group-lg shadow-sm rounded input-group input-group-sm filter-search flex-nowrap mt-2 sherah-border">
@@ -225,7 +218,7 @@ export default function DiscountsList() {
                       <th>Açıklama</th>
                       <th>Tip</th>
                       <th>Değer</th>
-                      <th>Ürünler/Kategoriler</th>
+                      <th>Varyantlar/Kategoriler</th>
                       <th>Bayiler</th>
                       <th>Başlangıç</th>
                       <th>Bitiş</th>
@@ -269,11 +262,11 @@ export default function DiscountsList() {
 
                           <td>
                             <div className="sherah-table__product-content">
-                              {d.applicableProducts &&
-                              d.applicableProducts.length > 0 ? (
-                                <PopoverBadgeProduct
-                                  items={d.applicableProducts}
-                                  badgeType="product"
+                              {/* ✅ YENİ - Variant desteği */}
+                              {d.applicableVariants &&
+                              d.applicableVariants.length > 0 ? (
+                                <PopoverBadgeVariant
+                                  items={d.applicableVariants}
                                 />
                               ) : d.applicableCategories &&
                                 d.applicableCategories.length > 0 ? (
@@ -282,7 +275,9 @@ export default function DiscountsList() {
                                   badgeType="category"
                                 />
                               ) : (
-                                <span className="text-muted">-</span>
+                                <span className="badge bg-secondary">
+                                  Genel
+                                </span>
                               )}
                             </div>
                           </td>
@@ -331,7 +326,6 @@ export default function DiscountsList() {
                                 <i className="fa-regular fa-pen-to-square" />
                               </button>
 
-                              {/* SİL: modal aç (sadece aktiflerde) */}
                               {!passive && (
                                 <button
                                   className="sherah-table__action sherah-color2 sherah-color2__bg--offset border-0"
@@ -342,7 +336,6 @@ export default function DiscountsList() {
                                 </button>
                               )}
 
-                              {/* RESTORE: sadece pasiflerde */}
                               {passive && (
                                 <button
                                   className="sherah-table__action sherah-color3 sherah-color3__bg--opactity border-0"
@@ -360,8 +353,6 @@ export default function DiscountsList() {
                   </tbody>
                 </table>
 
-                {/* Basit sayfalama */}
-                {/* Pagination (RolesList ile aynı yapı) */}
                 <div className="row align-items-center mt-3">
                   <div className="col-sm-12 col-md-5">
                     Toplam <strong>{pageData?.totalElements ?? 0}</strong> kayıt
@@ -371,7 +362,6 @@ export default function DiscountsList() {
                   <div className="col-sm-12 col-md-7">
                     <div className="dataTables_paginate paging_simple_numbers">
                       <ul className="pagination">
-                        {/* Önceki */}
                         <li
                           className={`paginate_button page-item previous ${
                             pageData?.first ? "disabled" : ""
@@ -389,7 +379,6 @@ export default function DiscountsList() {
                           </a>
                         </li>
 
-                        {/* Sayfa numaraları */}
                         {Array.from(
                           { length: pageData?.totalPages ?? 1 },
                           (_, i) => (
@@ -413,7 +402,6 @@ export default function DiscountsList() {
                           )
                         )}
 
-                        {/* Sonraki */}
                         <li
                           className={`paginate_button page-item next ${
                             pageData?.last ? "disabled" : ""
@@ -439,7 +427,6 @@ export default function DiscountsList() {
               <div className="alert alert-info">Henüz indirim bulunamadı.</div>
             )}
 
-            {/* Modals */}
             {editTarget && (
               <EditDiscountModal
                 target={editTarget}

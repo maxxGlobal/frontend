@@ -1,4 +1,3 @@
-// src/pages/discounts/DiscountsByCategory.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -7,7 +6,10 @@ import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
 import type { CategoryRow } from "../../types/category";
 import EditDiscountModal from "./components/EditDiscountModal";
+import PopoverBadgeVariant from "../../components/popover/PopoverBadgeVariant";
+import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
 import PopoverBadgeDealer from "../../components/popover/PopoverBadgeDealer";
+
 async function listDiscountsByCategory(
   _categoryId: number
 ): Promise<Discount[]> {
@@ -189,6 +191,7 @@ export default function DiscountsByCategory() {
                 <th>Ad</th>
                 <th>Tip</th>
                 <th>Değer</th>
+                <th>Varyantlar/Kategoriler</th>
                 <th>Bayiler</th>
                 <th>Başlangıç</th>
                 <th>Bitiş</th>
@@ -209,6 +212,19 @@ export default function DiscountsByCategory() {
                     {d.discountType === "PERCENTAGE"
                       ? `%${d.discountValue}`
                       : `${d.discountValue} ₺`}
+                  </td>
+                  <td>
+                    {/* ✅ YENİ - Variant desteği */}
+                    {d.applicableVariants && d.applicableVariants.length > 0 ? (
+                      <PopoverBadgeVariant items={d.applicableVariants} />
+                    ) : d.applicableCategories && d.applicableCategories.length > 0 ? (
+                      <PopoverBadgeProduct
+                        items={d.applicableCategories}
+                        badgeType="category"
+                      />
+                    ) : (
+                      <span className="badge bg-secondary">Genel</span>
+                    )}
                   </td>
                   <td>
                     {d.applicableDealers?.length ? (

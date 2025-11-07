@@ -229,7 +229,7 @@ export default function FlashSale() {
       const base = list[0];
       return {
         ...base,
-        allProducts: list.flatMap((x) => x.applicableProducts || []),
+        allProducts: list.flatMap((x) => x.applicableVariants || []),
         totalUsage: list.reduce((sum, x) => sum + (x.usageCount || 0), 0),
       };
     });

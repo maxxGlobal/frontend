@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // src/pages/homepage/BasketDetail/index.tsx
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import Layout from "../Partials/Layout";
@@ -51,10 +52,11 @@ export default function CartPage() {
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+  const [notes, setNotes] = useState<string>("");
 
   // Miktar güncelleme için debounce
   const [localQuantities, setLocalQuantities] = useState<Record<number, number>>({});
-  const updateTimeoutRef = useRef<Record<number, NodeJS.Timeout>>({});
+const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   // İlk yüklemede local quantities'i ayarla
   useEffect(() => {
@@ -69,36 +71,41 @@ export default function CartPage() {
   const handleQtyChange = useCallback(
     (item: CartItemResponse, newQuantity: number) => {
       const quantity = Math.max(1, newQuantity);
-      
+
       // Local state'i hemen güncelle (UI responsive olsun)
       setLocalQuantities(prev => ({
         ...prev,
         [item.id]: quantity
       }));
-      
+
       // Önceki timeout'u temizle
       if (updateTimeoutRef.current[item.id]) {
         clearTimeout(updateTimeoutRef.current[item.id]);
       }
-      
+
       // 800ms sonra backend'e istek at
       updateTimeoutRef.current[item.id] = setTimeout(async () => {
         try {
           setUpdatingItemId(item.id);
-          await updateItem(item.id, { quantity });
-          
+    if (!activeDealerId) throw new Error("Bayi bulunamadı");
+
+    await updateItem(item.id, {
+      dealerId: activeDealerId,
+      productPriceId: item.productPriceId, // item’dan geliyor
+      quantity,
+    });
           // İndirim hesaplaması varsa temizle
           setCalculationResult(null);
           setSelectedDiscountId(null);
         } catch (error: any) {
           console.error("Miktar güncellenirken hata:", error);
-          
+
           // Hata durumunda eski değere geri dön
           setLocalQuantities(prev => ({
             ...prev,
             [item.id]: item.quantity
           }));
-          
+
           Swal.fire({
             icon: "error",
             title: "Güncelleme Hatası",
@@ -117,53 +124,53 @@ export default function CartPage() {
 
 
   const handleRemove = useCallback(
-  async (item: CartItemResponse) => {
-    const result = await Swal.fire({
-      title: "Emin misiniz?",
-      text: `${item.productName} ürününü sepetten kaldırmak istediğinizden emin misiniz?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Evet, Kaldır",
-      cancelButtonText: "İptal",
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      setRemovingItemId(item.id);
-      await removeItem(item.id);
-
-      // İndirim ve hesaplamaları temizle
-      setCalculationResult(null);
-      setSelectedDiscountId(null);
-
-      Swal.fire({
-        icon: "success",
-        title: "Ürün Kaldırıldı",
-        text: "Ürün sepetinizden başarıyla kaldırıldı.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error: any) {
-      console.error("Ürün kaldırılırken hata:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Silme Hatası",
-        text:
-          error?.response?.data?.message ||
-          error?.message ||
-          "Ürün kaldırılırken bir hata oluştu.",
-        confirmButtonText: "Tamam",
+    async (item: CartItemResponse) => {
+      const result = await Swal.fire({
+        title: "Emin misiniz?",
+        text: `${item.productName} ürününü sepetten kaldırmak istediğinizden emin misiniz?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Evet, Kaldır",
+        cancelButtonText: "İptal",
         confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
       });
-    } finally {
-      setRemovingItemId(null);
-    }
-  },
-  [removeItem]
-);
+
+      if (!result.isConfirmed) return;
+
+      try {
+        setRemovingItemId(item.id);
+        await removeItem(item.id);
+
+        // İndirim ve hesaplamaları temizle
+        setCalculationResult(null);
+        setSelectedDiscountId(null);
+
+        Swal.fire({
+          icon: "success",
+          title: "Ürün Kaldırıldı",
+          text: "Ürün sepetinizden başarıyla kaldırıldı.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } catch (error: any) {
+        console.error("Ürün kaldırılırken hata:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Silme Hatası",
+          text:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Ürün kaldırılırken bir hata oluştu.",
+          confirmButtonText: "Tamam",
+          confirmButtonColor: "#dc2626",
+        });
+      } finally {
+        setRemovingItemId(null);
+      }
+    },
+    [removeItem]
+  );
 
 
   // Cleanup - component unmount olduğunda timeout'ları temizle
@@ -176,7 +183,7 @@ export default function CartPage() {
   }, []);
 
   // Miktar güncelleme için loading state'leri
-  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null); 
+  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
 
   const activeDealerId = useMemo(() => {
     if (cart?.dealerId) return cart.dealerId;
@@ -271,7 +278,7 @@ export default function CartPage() {
     return `Sepetim – ${cart.dealerName}`;
   }, [cart?.dealerName]);
 
-  
+
 
   const buildOrderRequest = useCallback(
     (includeDiscount: boolean): OrderRequest | null => {
@@ -313,9 +320,11 @@ export default function CartPage() {
         dealerId: activeDealerId,
         products,
         discountId: includeDiscount ? selectedDiscountId ?? undefined : undefined,
+        // 🆕 Sipariş notu (trim boşsa göndermeyiz) 
+        notes: notes.trim() ? notes.trim() : undefined,
       };
     },
-    [activeDealerId, items, selectedDiscountId]
+    [activeDealerId, items, selectedDiscountId, notes]
   );
 
   const handleApplyDiscount = useCallback(async () => {
@@ -443,16 +452,15 @@ export default function CartPage() {
         html: `
           <p><strong>Sipariş Numarası:</strong> ${result.orderNumber}</p>
           <p><strong>Toplam Tutar:</strong> ${formatCurrency(
-            result.totalAmount,
-            result.currency
-          )}</p>
-          ${
-            result.hasDiscount
-              ? `<p><strong>İndirim:</strong> ${formatCurrency(
-                  result.savingsAmount,
-                  result.currency
-                )}</p>`
-              : ""
+          result.totalAmount,
+          result.currency
+        )}</p>
+          ${result.hasDiscount
+            ? `<p><strong>İndirim:</strong> ${formatCurrency(
+              result.savingsAmount,
+              result.currency
+            )}</p>`
+            : ""
           }
         `,
         confirmButtonText: "Tamam",
@@ -462,7 +470,9 @@ export default function CartPage() {
       setPreviewData(null);
       setCalculationResult(null);
       setSelectedDiscountId(null);
-      await clearCart();
+      await clearCart(); 
+      setNotes(""); // 🆕 notu sıfırla
+
     } catch (err: any) {
       console.error("Sipariş oluşturulamadı:", err);
       Swal.fire({
@@ -647,7 +657,30 @@ export default function CartPage() {
                 </table>
               </div>
             )}
+            {hasItems && (
+              <>
+                {/* 🆕 Sipariş Notu */}
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-3 text-qblack">Sipariş Notu</h3>
+                  <div className="border border-[#EDEDED] rounded p-4 bg-white">
+                    <textarea
+                      id="notes"
+                      name="notes"
+                      rows={3}
+                      maxLength={500}
+                      placeholder="Teslimat veya faturalandırma ile ilgili özel bir isteğiniz varsa yazın (max 500 karakter)."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-qh2-green"
+                    />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {notes.length}/500
+                    </div>
+                  </div>
+                </div>
 
+              </>
+            )}
             {hasItems && (
               <>
                 <div className="mt-8">
@@ -674,11 +707,10 @@ export default function CartPage() {
                             );
                             setCalculationResult(null);
                           }}
-                          className={`text-left border-2 rounded-lg p-4 transition bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-qh2-green ${
-                            selectedDiscountId === discount.id
-                              ? "border-qh2-green"
-                              : "border-transparent"
-                          }`}
+                          className={`text-left border-2 rounded-lg p-4 transition bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-qh2-green ${selectedDiscountId === discount.id
+                            ? "border-qh2-green"
+                            : "border-transparent"
+                            }`}
                         >
                           <div className="text-xs uppercase font-semibold text-qh2-green mb-2">
                             İndirim Kodu
@@ -912,6 +944,16 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
+
+            {notes.trim() && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h4 className="text-gray-800 font-semibold mb-2">Sipariş Notu</h4>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {notes.trim()}
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-4 p-6 border-t bg-gray-50">
               <button
                 onClick={() => {

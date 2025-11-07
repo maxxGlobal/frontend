@@ -29,8 +29,8 @@ export default function ProductPriceManagementPanel() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Options
-  const [updateExisting, setUpdateExisting] = useState(true);
-  const [skipErrors, setSkipErrors] = useState(false);
+  const [updateExisting, setUpdateExisting] = useState(true); 
+  const [skipErrors] = useState(false);
   const [activeOnly, setActiveOnly] = useState(true);
 
   // İlk yükleme kontrolü için ref
@@ -334,19 +334,7 @@ export default function ProductPriceManagementPanel() {
                 <label className="form-check-label" htmlFor="updateExisting">
                   Mevcut fiyatları güncelle
                 </label>
-              </div>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="skipErrors"
-                  checked={skipErrors}
-                  onChange={(e) => setSkipErrors(e.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="skipErrors">
-                  Hatalı satırları atla
-                </label>
-              </div>
+              </div> 
             </div>
           </div>
         </div>

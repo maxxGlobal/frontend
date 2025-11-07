@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
@@ -5,8 +6,7 @@ import ThinLove from "../icons/ThinLove";
 import { addFavorite } from "../../../../services/favorites/add";
 import { removeFavorite } from "../../../../services/favorites/remove";
 import type { Product } from "../../../../types/product";
-import { useCart } from "../../Helpers/CartContext";
-
+ 
 type Props = {
   datas: Product;
   filterMaterials?: string[];
@@ -40,95 +40,10 @@ function matchesMaterials(prod: Product, selected: string[] = []) {
 export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   if (datas.status !== "AKTİF") return null;
   if (!matchesMaterials(datas, filterMaterials)) return null;
-  const { addItem } = useCart();
-  const qc = useQueryClient();
+   const qc = useQueryClient();
   const d = datas;
-  const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
-  const [quantity, setQuantity] = useState<number>(1);
-  const [inputValue, setInputValue] = useState<string>("1");
-  const [hiddenAfterClick, setHiddenAfterClick] = useState(false);
-
-  const increment = () => {
-    setQuantity((p) => {
-      const n = p + 1;
-      setInputValue(String(n));
-      return n;
-    });
-  };
-
-  const decrement = () => {
-    setQuantity((p) => {
-      const n = Math.max(1, p - 1);
-      setInputValue(String(n));
-      return n;
-    });
-  };
-
-  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setInputValue(val);
-    const num = parseInt(val, 10);
-    if (!isNaN(num) && num >= 1) setQuantity(num);
-  };
-
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setTimeout(() => {
-      try {
-        e.target.select();
-      } catch {}
-    }, 0);
-
-    if (inputValue === "1") {
-      setInputValue("");
-    }
-  };
-
-  const handleBlur = () => {
-    if (inputValue.trim() === "") {
-      setInputValue(String(quantity || 1));
-    } else {
-      const n = Math.max(1, parseInt(inputValue, 10) || 1);
-      setQuantity(n);
-      setInputValue(String(n));
-    }
-  };
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const priceId = d.prices?.[0]?.productPriceId ?? null;
-    if (!priceId) {
-      Swal.fire({
-        icon: "error",
-        title: "Fiyat bulunamadı",
-        text: "Bu ürün için fiyat bilgisi bulunamadı.",
-      });
-      return;
-    }
-
-    try {
-      await addItem({ productPriceId: priceId, quantity });
-      setHiddenAfterClick(true);
-      await Swal.fire({
-        icon: "success",
-        title: "Sepete eklendi",
-        text: `${d.name} ürününden ${quantity} adet sepete eklendi`,
-        confirmButtonText: "Tamam",
-      });
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Ürün sepete eklenirken bir hata oluştu.";
-      Swal.fire({
-        icon: "error",
-        title: "Hata",
-        text: message,
-      });
-    } finally {
-      setHiddenAfterClick(false);
-    }
-  };
+  const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite); 
+  
 
   async function handleFavorite(e: React.MouseEvent) {
     e.preventDefault();

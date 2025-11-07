@@ -6,6 +6,8 @@ export type OrderItem = {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  variantSize: string;
+  variantSku:string;
   primaryImageUrl?: string | null; // ✅ YENİ ALAN EKLENDI
 };
 
@@ -43,11 +45,12 @@ export interface OrderResponse {
   totalAmount: number;
   currency: string;
   notes: string | null;
-  adminNotes: string | null;
+  adminNote: string | null;
   status: string;
   hasDiscount: string;
   appliedDiscount: string;
   discountName: string;
+  adminNotes:string;
 }
 
 export interface PageResponse<T> {

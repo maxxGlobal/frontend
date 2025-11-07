@@ -214,6 +214,8 @@ export default function MyOrdersPage() {
     }
   };
 
+  console.log(orders)
+
   // ✅ Loading state
   if (orders === null && !error) {
     return (
@@ -406,6 +408,7 @@ export default function MyOrdersPage() {
                         >
                           {item.productName}
                         </Link>
+                        {item.variantSize} / {item.variantSku} 
                         <p className="text-xs text-gray-500 mt-1">
                           {item.quantity} ×{" "}
                           {item.unitPrice.toLocaleString("tr-TR", {
@@ -424,7 +427,9 @@ export default function MyOrdersPage() {
                     </div>
                   ))}
                 </div>
-
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {order.adminNote}
+</p>
                 {/* Toplam tutar */}
                 <div className="flex justify-end mt-4">
                   <p className="font-semibold text-gray-900">

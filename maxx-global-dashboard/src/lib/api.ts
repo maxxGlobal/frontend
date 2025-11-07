@@ -200,11 +200,21 @@ api.interceptors.response.use(
     }
     
     // Server errors (5xx)
-    if (status >= 500) {
-      console.error(`Server error ${status} from ${url}`);
-      const serverError = new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
-      return Promise.reject(serverError);
-    }
+   if (status >= 500) {
+  console.error(`Server error ${status} from ${url}`);
+  // Mesaj üret ama orijinal error'u bozma
+  const backendMsg =
+    responseData?.message ||
+    responseData?.error ||
+    error?.message ||
+    "Sunucu hatası. Lütfen daha sonra tekrar deneyin.";
+
+  // İstersen bilgi amaçlı bir alan ekle (UI'de göstermek için)
+  (error as any)._friendlyMessage = backendMsg;
+
+  // **Kritik nokta:** Orijinal error'u, response.data ile beraber aynen gönder
+  return Promise.reject(error);
+}
     
     // Diğer tüm hatalar
     return Promise.reject(error);

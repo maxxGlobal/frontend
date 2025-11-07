@@ -1,4 +1,3 @@
-// src/pages/discounts/components/EditDiscountModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import type { Discount, DiscountUpdateRequest } from "../../../types/discount";
@@ -6,39 +5,30 @@ import { updateDiscount } from "../../../services/discounts/update";
 import { listSimpleProducts } from "../../../services/products/simple";
 import { listSimpleDealers } from "../../../services/dealers/simple";
 import { listAllCategories } from "../../../services/categories/listAll";
+import { getProductById } from "../../../services/products/getById";
 import type { ProductSimple } from "../../../types/product";
 import type { DealerSummary } from "../../../types/dealer";
 import type { CategoryRow } from "../../../types/category";
+import type { ProductVariant } from "../../../services/products/getById";
 
 type DiscountTypeCanonical = "PERCENTAGE" | "FIXED_AMOUNT";
 function normalizeDiscountType(input: unknown): DiscountTypeCanonical {
   const raw = String(input ?? "").trim();
-
-  // Zaten beklenen değerlerse direkt döndür
-  if (raw === "PERCENTAGE" || raw === "FIXED_AMOUNT") {
-    return raw;
-  }
-
-  // Yerelleştirilmiş/serbest değerleri eşle
+  if (raw === "PERCENTAGE" || raw === "FIXED_AMOUNT") return raw;
   const u = raw.toLocaleUpperCase("tr-TR");
   if (u.includes("YÜZ") || u.includes("PERC")) return "PERCENTAGE";
   if (u.includes("SAB") || u.includes("FIX")) return "FIXED_AMOUNT";
-
-  // Emniyetli varsayılan
   return "PERCENTAGE";
 }
-// Yardımcılar
+
 function toInputLocal(iso: string | undefined) {
   if (!iso) return "";
-  // "2024-12-01T00:00:00" -> "2024-12-01T00:00"
   return iso.slice(0, 16);
 }
+
 function ensureSeconds(v: string) {
   if (!v) return v;
   return v.length === 16 ? `${v}:00` : v;
-}
-function idsOf(arr?: { id: number }[]) {
-  return Array.isArray(arr) ? arr.map((x) => x.id) : [];
 }
 
 type Props = {
@@ -50,7 +40,7 @@ type Props = {
 export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   const [saving, setSaving] = useState(false);
 
-  // Form alanları (prefill)
+  // Form alanları
   const [name, setName] = useState(target.name ?? "");
   const [description, setDescription] = useState(target.description ?? "");
   const [discountType, setDiscountType] = useState<DiscountTypeCanonical>(
@@ -73,44 +63,53 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       : ""
   );
 
-  // ✅ Yeni alanlar (opsiyonel)
+  // Yeni alanlar
   const [usageLimit, setUsageLimit] = useState<string>(
-    (target as any)?.usageLimit != null
-      ? String((target as any).usageLimit)
-      : ""
+    target.usageLimit != null ? String(target.usageLimit) : ""
   );
   const [usageLimitPerCustomer, setUsageLimitPerCustomer] = useState<string>(
-    (target as any)?.usageLimitPerCustomer != null
-      ? String((target as any).usageLimitPerCustomer)
+    target.usageLimitPerCustomer != null
+      ? String(target.usageLimitPerCustomer)
       : ""
   );
+  const [discountCode, setDiscountCode] = useState<string>(
+    target.discountCode ?? ""
+  );
+  const [autoApply, setAutoApply] = useState<boolean>(!!target.autoApply);
+  const [priority, setPriority] = useState<string>(
+    target.priority != null ? String(target.priority) : ""
+  );
+  const [stackable, setStackable] = useState<boolean>(!!target.stackable);
 
-  // ▼ Çoklu seçim: ürünler, bayiler & kategoriler (checkbox)
+  // Seçenekler
   const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
   const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
-  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]); // ✅ YENİ
+  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]);
   const [optsLoading, setOptsLoading] = useState<boolean>(true);
 
-  const [productIds, setProductIds] = useState<number[]>(
-    idsOf(target.applicableProducts)
+  // ✅ Variant seçimi
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [productVariants, setProductVariants] = useState<
+    Map<number, ProductVariant[]>
+  >(new Map());
+  const [loadingVariants, setLoadingVariants] = useState<Set<number>>(
+    new Set()
   );
-  const [dealerIds, setDealerIds] = useState<number[]>(
-    idsOf(target.applicableDealers)
-  );
-  const [categoryIds, setCategoryIds] = useState<number[]>(
-    idsOf((target as any).applicableCategories) // ✅ YENİ
-  );
+  const [variantIds, setVariantIds] = useState<number[]>([]);
+  const [dealerIds, setDealerIds] = useState<number[]>([]);
+  const [categoryIds, setCategoryIds] = useState<number[]>([]);
 
-  // İndirim kapsamı belirleme (mevcut veriye göre)
+  // İndirim kapsamı
   const [discountScope, setDiscountScope] = useState<
-    "general" | "product" | "category"
+    "general" | "variant" | "category"
   >(() => {
-    const hasProducts = idsOf(target.applicableProducts).length > 0;
+    const hasVariants =
+      target.applicableVariants && target.applicableVariants.length > 0;
     const hasCategories =
-      idsOf((target as any).applicableCategories).length > 0;
+      target.applicableCategories && target.applicableCategories.length > 0;
 
     if (hasCategories) return "category";
-    if (hasProducts) return "product";
+    if (hasVariants) return "variant";
     return "general";
   });
 
@@ -118,6 +117,7 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   const [dealerFilter, setDealerFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
+  // Target değiştiğinde formu güncelle
   useEffect(() => {
     setName(target.name ?? "");
     setDescription(target.description ?? "");
@@ -134,27 +134,41 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
         ? String(target.maximumDiscountAmount)
         : ""
     );
-    setProductIds(idsOf(target.applicableProducts));
-    setDealerIds(idsOf(target.applicableDealers));
-    setCategoryIds(idsOf((target as any).applicableCategories)); // ✅ YENİ
     setUsageLimit(
-      (target as any)?.usageLimit != null
-        ? String((target as any).usageLimit)
-        : ""
+      target.usageLimit != null ? String(target.usageLimit) : ""
     );
     setUsageLimitPerCustomer(
-      (target as any)?.usageLimitPerCustomer != null
-        ? String((target as any).usageLimitPerCustomer)
+      target.usageLimitPerCustomer != null
+        ? String(target.usageLimitPerCustomer)
         : ""
     );
+    setDiscountCode(target.discountCode ?? "");
+    setAutoApply(!!target.autoApply);
+    setPriority(target.priority != null ? String(target.priority) : "");
+    setStackable(!!target.stackable);
 
-    // İndirim kapsamını yeniden belirle
-    const hasProducts = idsOf(target.applicableProducts).length > 0;
+    // ✅ Variant ID'leri
+    const vIds =
+      target.applicableVariants?.map((v) => v.id) ?? [];
+    setVariantIds(vIds);
+
+    // Variant'ların product ID'lerini bul
+    const productIds = Array.from(
+      new Set(target.applicableVariants?.map((v) => v.productId) ?? [])
+    );
+    setSelectedProducts(productIds);
+
+    setDealerIds(target.applicableDealers?.map((d) => d.id) ?? []);
+    setCategoryIds(target.applicableCategories?.map((c) => c.id) ?? []);
+
+    // Scope'u belirle
+    const hasVariants =
+      target.applicableVariants && target.applicableVariants.length > 0;
     const hasCategories =
-      idsOf((target as any).applicableCategories).length > 0;
+      target.applicableCategories && target.applicableCategories.length > 0;
 
     if (hasCategories) setDiscountScope("category");
-    else if (hasProducts) setDiscountScope("product");
+    else if (hasVariants) setDiscountScope("variant");
     else setDiscountScope("general");
   }, [target]);
 
@@ -166,14 +180,14 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
         const [prods, dealers, categories] = await Promise.all([
           listSimpleProducts(),
           listSimpleDealers(),
-          listAllCategories(), // ✅ YENİ
+          listAllCategories(),
         ]);
         prods.sort((a, b) => a.name.localeCompare(b.name));
         dealers.sort((a, b) => a.name.localeCompare(b.name));
 
         setProductOpts(prods);
         setDealerOpts(dealers);
-        setCategoryOpts(categories); // ✅ YENİ
+        setCategoryOpts(categories);
       } catch {
         Swal.fire("Hata", "Seçenek listeleri yüklenemedi", "error");
       } finally {
@@ -181,6 +195,76 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       }
     })();
   }, []);
+
+  // ✅ Mevcut variant'ların ürünlerini yükle
+  useEffect(() => {
+    const loadInitialVariants = async () => {
+      if (!target.applicableVariants || target.applicableVariants.length === 0)
+        return;
+
+      const productIds = Array.from(
+        new Set(target.applicableVariants.map((v) => v.productId))
+      );
+
+      for (const productId of productIds) {
+        await loadProductVariants(productId);
+      }
+    };
+
+    loadInitialVariants();
+  }, [target.applicableVariants]);
+
+  // Variant yükleme
+  const loadProductVariants = async (productId: number) => {
+    if (productVariants.has(productId)) return;
+
+    setLoadingVariants((prev) => new Set(prev).add(productId));
+    try {
+      const product = await getProductById(productId);
+      if (product.variants && product.variants.length > 0) {
+        setProductVariants((prev) =>
+          new Map(prev).set(productId, product.variants!)
+        );
+      }
+    } catch (err) {
+      console.error("Varyantlar yüklenemedi:", err);
+    } finally {
+      setLoadingVariants((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
+    }
+  };
+
+  // Ürün toggle
+  const toggleProduct = (productId: number) => {
+    setSelectedProducts((prev) => {
+      if (prev.includes(productId)) {
+        // Ürün kaldırılıyorsa varyantları temizle
+        setVariantIds((vIds) => {
+          const variants = productVariants.get(productId) || [];
+          const variantIdsToRemove = new Set(variants.map((v) => v.id));
+          return vIds.filter((id) => !variantIdsToRemove.has(id));
+        });
+        return prev.filter((id) => id !== productId);
+      } else {
+        loadProductVariants(productId);
+        return [...prev, productId];
+      }
+    });
+  };
+
+  // Variant toggle
+  const toggleVariant = (variantId: number) => {
+    setVariantIds((prev) => {
+      if (prev.includes(variantId)) {
+        return prev.filter((id) => id !== variantId);
+      } else {
+        return [...prev, variantId];
+      }
+    });
+  };
 
   // Filtrelenmiş listeler
   const filteredProducts = useMemo(() => {
@@ -199,14 +283,13 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
     return dealerOpts.filter((d) => d.name.toLowerCase().includes(q));
   }, [dealerFilter, dealerOpts]);
 
-  // ✅ YENİ - Filtrelenmiş kategori listesi
   const filteredCategories = useMemo(() => {
     const q = categoryFilter.trim().toLowerCase();
     if (!q) return categoryOpts;
     return categoryOpts.filter((c) => c.name.toLowerCase().includes(q));
   }, [categoryFilter, categoryOpts]);
 
-  // Checkbox yardımcıları
+  // Checkbox helpers
   function toggleId(
     current: number[],
     id: number,
@@ -225,15 +308,17 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
     setter([]);
   }
 
-  // İndirim kapsamı değiştiğinde seçimleri temizle
+  // Scope değiştiğinde temizle
   useEffect(() => {
     if (discountScope === "general") {
-      setProductIds([]);
+      setSelectedProducts([]);
+      setVariantIds([]);
       setCategoryIds([]);
-    } else if (discountScope === "product") {
+    } else if (discountScope === "variant") {
       setCategoryIds([]);
     } else if (discountScope === "category") {
-      setProductIds([]);
+      setSelectedProducts([]);
+      setVariantIds([]);
     }
   }, [discountScope]);
 
@@ -249,11 +334,11 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       return;
     }
 
-    // İndirim kapsamı kontrolü
-    if (discountScope === "product" && productIds.length === 0) {
+    // Scope kontrolleri
+    if (discountScope === "variant" && variantIds.length === 0) {
       Swal.fire(
         "Uyarı",
-        "Ürün bazlı indirim için en az bir ürün seçmelisiniz.",
+        "Variant bazlı indirim için en az bir varyant seçmelisiniz.",
         "warning"
       );
       return;
@@ -273,6 +358,8 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       usageLimitPerCustomer.trim() === ""
         ? undefined
         : Number.parseInt(usageLimitPerCustomer, 10);
+    const prio =
+      priority.trim() === "" ? undefined : Number.parseInt(priority, 10);
 
     if (ul !== undefined && (!Number.isFinite(ul) || ul < 0)) {
       Swal.fire(
@@ -290,6 +377,13 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       );
       return;
     }
+    if (
+      prio !== undefined &&
+      (!Number.isFinite(prio) || prio < 0 || prio > 100)
+    ) {
+      Swal.fire("Uyarı", "Öncelik 0-100 arası olmalı.", "warning");
+      return;
+    }
 
     const payload: DiscountUpdateRequest = {
       name: name.trim(),
@@ -298,12 +392,11 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       discountValue: Number(discountValue),
       startDate: ensureSeconds(startDate),
       endDate: ensureSeconds(endDate),
-      // İndirim kapsamına göre ID'leri gönder
-      productIds:
-        discountScope === "product" ? Array.from(new Set(productIds)) : [],
+      variantIds:
+        discountScope === "variant" ? Array.from(new Set(variantIds)) : [],
       dealerIds: Array.from(new Set(dealerIds)),
       categoryIds:
-        discountScope === "category" ? Array.from(new Set(categoryIds)) : [], // ✅ YENİ
+        discountScope === "category" ? Array.from(new Set(categoryIds)) : [],
       isActive,
       minimumOrderAmount:
         minimumOrderAmount.trim() === ""
@@ -313,10 +406,12 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
         maximumDiscountAmount.trim() === ""
           ? undefined
           : Number(maximumDiscountAmount),
-
-      // ✅ yeni
       usageLimit: ul,
       usageLimitPerCustomer: ulpc,
+      discountCode: discountCode.trim() || undefined,
+      autoApply,
+      priority: prio,
+      stackable,
     };
 
     try {
@@ -355,7 +450,7 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
               ></button>
             </div>
 
-            <div className="modal-body">
+            <div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
               {/* Temel bilgiler */}
               <div className="mb-3">
                 <label className="form-label">Ad *</label>
@@ -418,7 +513,32 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                 </div>
               </div>
 
-              {/* ✅ YENİ - İndirim Kapsamı Seçimi */}
+              {/* ✅ İndirim Kodu ve Öncelik */}
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">İndirim Kodu</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    maxLength={50}
+                  />
+                </div>
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Öncelik (0-100)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+
+              {/* ✅ İndirim Kapsamı */}
               <div className="mb-3">
                 <label className="form-label">İndirim Kapsamı *</label>
                 <div className="d-flex gap-3 mt-2">
@@ -444,16 +564,16 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                       className="form-check-input"
                       type="radio"
                       name="discountScopeEdit"
-                      id="scopeProductEdit"
-                      value="product"
-                      checked={discountScope === "product"}
+                      id="scopeVariantEdit"
+                      value="variant"
+                      checked={discountScope === "variant"}
                       onChange={(e) => setDiscountScope(e.target.value as any)}
                     />
                     <label
                       className="form-check-label"
-                      htmlFor="scopeProductEdit"
+                      htmlFor="scopeVariantEdit"
                     >
-                      Ürün Bazlı
+                      Variant Bazlı
                     </label>
                   </div>
                   <div className="form-check">
@@ -497,182 +617,120 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                 </div>
               </div>
 
-              {/* Checkbox listeleri - Sadece seçilen kapsama göre göster */}
-              <div className="row">
-                {/* ÜRÜNLER - Sadece ürün bazlı seçildiyse göster */}
-                {discountScope === "product" && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex justify-content-between align-items-end mb-1">
-                      <label className="form-label mb-0">
-                        Ürünler{" "}
-                        {productIds.length > 0 && (
-                          <span className="text-muted">
-                            • {productIds.length} seçili
-                          </span>
-                        )}
-                      </label>
-                      <div className="btn-group btn-group-sm">
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() =>
-                            selectAll(filteredProducts, setProductIds)
-                          }
-                          disabled={
-                            optsLoading || filteredProducts.length === 0
-                          }
-                        >
-                          Tümünü Seç
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() => clearAll(setProductIds)}
-                          disabled={optsLoading || productIds.length === 0}
-                        >
-                          Temizle
-                        </button>
-                      </div>
-                    </div>
+              {/* ✅ VARIANT SEÇİMİ */}
+              {discountScope === "variant" && (
+                <div className="mb-3">
+                  <div className="d-flex justify-content-between align-items-end mb-1">
+                    <label className="form-label mb-0">
+                      Ürünler ve Varyantlar{" "}
+                      {variantIds.length > 0 && (
+                        <span className="text-muted">
+                          • {variantIds.length} varyant seçili
+                        </span>
+                      )}
+                    </label>
+                  </div>
 
-                    <input
-                      className="form-control mb-2"
-                      placeholder="Ürün ara (ad/kod)"
-                      value={productFilter}
-                      onChange={(e) => setProductFilter(e.target.value)}
-                      disabled={optsLoading}
-                    />
+                  <input
+                    className="form-control mb-2"
+                    placeholder="Ürün ara (ad/kod)"
+                    value={productFilter}
+                    onChange={(e) => setProductFilter(e.target.value)}
+                    disabled={optsLoading}
+                  />
 
-                    <div
-                      className="border rounded p-2"
-                      style={{ maxHeight: 260, overflow: "auto" }}
-                    >
-                      {optsLoading ? (
-                        <div className="text-muted">Yükleniyor…</div>
-                      ) : filteredProducts.length === 0 ? (
-                        <div className="text-muted">Kayıt yok.</div>
-                      ) : (
-                        filteredProducts.map((p) => {
-                          const checked = productIds.includes(p.id);
-                          const label = p.code
-                            ? `${p.name} (${p.code})`
-                            : p.name;
-                          return (
-                            <div className="form-check" key={p.id}>
+                  <div
+                    className="border rounded p-2"
+                    style={{ maxHeight: 300, overflow: "auto" }}
+                  >
+                    {optsLoading ? (
+                      <div className="text-muted">Yükleniyor…</div>
+                    ) : filteredProducts.length === 0 ? (
+                      <div className="text-muted">Kayıt yok.</div>
+                    ) : (
+                      filteredProducts.map((p) => {
+                        const isProductSelected = selectedProducts.includes(
+                          p.id
+                        );
+                        const variants = productVariants.get(p.id) || [];
+                        const isLoadingVariants = loadingVariants.has(p.id);
+                        const label = p.code ? `${p.name} (${p.code})` : p.name;
+
+                        return (
+                          <div key={p.id} className="mb-3 border-bottom pb-2">
+                            <div className="form-check">
                               <input
                                 className="form-check-input"
                                 type="checkbox"
                                 id={`prod_edit_${p.id}`}
-                                checked={checked}
-                                onChange={() =>
-                                  toggleId(productIds, p.id, setProductIds)
-                                }
+                                checked={isProductSelected}
+                                onChange={() => toggleProduct(p.id)}
                               />
                               <label
-                                className="form-check-label"
+                                className="form-check-label fw-bold"
                                 htmlFor={`prod_edit_${p.id}`}
                               >
                                 {label}
                               </label>
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
+
+                            {isProductSelected && (
+                              <div className="ms-4 mt-1">
+                                {isLoadingVariants ? (
+                                  <div className="text-muted small">
+                                    Yükleniyor...
+                                  </div>
+                                ) : variants.length === 0 ? (
+                                  <div className="text-muted small">
+                                    Varyant yok
+                                  </div>
+                                ) : (
+                                  variants.map((variant) => (
+                                    <div
+                                      key={variant.id}
+                                      className="form-check"
+                                    >
+                                      <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id={`variant_edit_${variant.id}`}
+                                        checked={variantIds.includes(
+                                          variant.id
+                                        )}
+                                        onChange={() =>
+                                          toggleVariant(variant.id)
+                                        }
+                                      />
+                                      <label
+                                        className="form-check-label small"
+                                        htmlFor={`variant_edit_${variant.id}`}
+                                      >
+                                        {variant.size || "Standart"}{" "}
+                                        {variant.sku &&
+                                          `(SKU: ${variant.sku})`}
+                                      </label>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* ✅ YENİ - KATEGORİLER - Sadece kategori bazlı seçildiyse göster */}
-                {discountScope === "category" && (
-                  <div className="col-md-6 mb-3">
-                    <div className="d-flex justify-content-between align-items-end mb-1">
-                      <label className="form-label mb-0">
-                        Kategoriler{" "}
-                        {categoryIds.length > 0 && (
-                          <span className="text-muted">
-                            • {categoryIds.length} seçili
-                          </span>
-                        )}
-                      </label>
-                      <div className="btn-group btn-group-sm">
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() =>
-                            selectAll(filteredCategories, setCategoryIds)
-                          }
-                          disabled={
-                            optsLoading || filteredCategories.length === 0
-                          }
-                        >
-                          Tümünü Seç
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary"
-                          onClick={() => clearAll(setCategoryIds)}
-                          disabled={optsLoading || categoryIds.length === 0}
-                        >
-                          Temizle
-                        </button>
-                      </div>
-                    </div>
-
-                    <input
-                      className="form-control mb-2"
-                      placeholder="Kategori ara"
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      disabled={optsLoading}
-                    />
-
-                    <div
-                      className="border rounded p-2"
-                      style={{ maxHeight: 260, overflow: "auto" }}
-                    >
-                      {optsLoading ? (
-                        <div className="text-muted">Yükleniyor…</div>
-                      ) : filteredCategories.length === 0 ? (
-                        <div className="text-muted">Kayıt yok.</div>
-                      ) : (
-                        filteredCategories.map((c) => {
-                          const checked = categoryIds.includes(c.id);
-                          // Hiyerarşik görünüm için label kullan
-                          const label = (c as any).label || c.name;
-                          return (
-                            <div className="form-check" key={c.id}>
-                              <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id={`cat_edit_${c.id}`}
-                                checked={checked}
-                                onChange={() =>
-                                  toggleId(categoryIds, c.id, setCategoryIds)
-                                }
-                              />
-                              <label
-                                className="form-check-label"
-                                htmlFor={`cat_edit_${c.id}`}
-                                style={{ fontFamily: "monospace" }}
-                              >
-                                {label}
-                              </label>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* BAYİLER - Her zaman göster */}
-                <div className="col-md-6 mb-3">
+              {/* ✅ KATEGORİ SEÇİMİ */}
+              {discountScope === "category" && (
+                <div className="mb-3">
                   <div className="d-flex justify-content-between align-items-end mb-1">
                     <label className="form-label mb-0">
-                      Bayiler{" "}
-                      {dealerIds.length > 0 && (
+                      Kategoriler{" "}
+                      {categoryIds.length > 0 && (
                         <span className="text-muted">
-                          • {dealerIds.length} seçili
+                          • {categoryIds.length} seçili
                         </span>
                       )}
                     </label>
@@ -680,16 +738,20 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                       <button
                         type="button"
                         className="btn btn-outline-secondary"
-                        onClick={() => selectAll(filteredDealers, setDealerIds)}
-                        disabled={optsLoading || filteredDealers.length === 0}
+                        onClick={() =>
+                          selectAll(filteredCategories, setCategoryIds)
+                        }
+                        disabled={
+                          optsLoading || filteredCategories.length === 0
+                        }
                       >
                         Tümünü Seç
                       </button>
                       <button
                         type="button"
                         className="btn btn-outline-secondary"
-                        onClick={() => clearAll(setDealerIds)}
-                        disabled={optsLoading || dealerIds.length === 0}
+                        onClick={() => clearAll(setCategoryIds)}
+                        disabled={optsLoading || categoryIds.length === 0}
                       >
                         Temizle
                       </button>
@@ -698,9 +760,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
 
                   <input
                     className="form-control mb-2"
-                    placeholder="Bayi ara (ad)"
-                    value={dealerFilter}
-                    onChange={(e) => setDealerFilter(e.target.value)}
+                    placeholder="Kategori ara"
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
                     disabled={optsLoading}
                   />
 
@@ -710,33 +772,109 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                   >
                     {optsLoading ? (
                       <div className="text-muted">Yükleniyor…</div>
-                    ) : filteredDealers.length === 0 ? (
+                    ) : filteredCategories.length === 0 ? (
                       <div className="text-muted">Kayıt yok.</div>
                     ) : (
-                      filteredDealers.map((d) => {
-                        const checked = dealerIds.includes(d.id);
+                      filteredCategories.map((c) => {
+                        const checked = categoryIds.includes(c.id);
+                        const label = (c as any).label || c.name;
                         return (
-                          <div className="form-check" key={d.id}>
+                          <div className="form-check" key={c.id}>
                             <input
                               className="form-check-input"
                               type="checkbox"
-                              id={`dealer_edit_${d.id}`}
+                              id={`cat_edit_${c.id}`}
                               checked={checked}
                               onChange={() =>
-                                toggleId(dealerIds, d.id, setDealerIds)
+                                toggleId(categoryIds, c.id, setCategoryIds)
                               }
                             />
                             <label
                               className="form-check-label"
-                              htmlFor={`dealer_edit_${d.id}`}
+                              htmlFor={`cat_edit_${c.id}`}
+                              style={{ fontFamily: "monospace" }}
                             >
-                              {d.name}
+                              {label}
                             </label>
                           </div>
                         );
                       })
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* BAYİLER */}
+              <div className="mb-3">
+                <div className="d-flex justify-content-between align-items-end mb-1">
+                  <label className="form-label mb-0">
+                    Bayiler{" "}
+                    {dealerIds.length > 0 && (
+                      <span className="text-muted">
+                        • {dealerIds.length} seçili
+                      </span>
+                    )}
+                  </label>
+                  <div className="btn-group btn-group-sm">
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => selectAll(filteredDealers, setDealerIds)}
+                      disabled={optsLoading || filteredDealers.length === 0}
+                    >
+                      Tümünü Seç
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => clearAll(setDealerIds)}
+                      disabled={optsLoading || dealerIds.length === 0}
+                    >
+                      Temizle
+                    </button>
+                  </div>
+                </div>
+
+                <input
+                  className="form-control mb-2"
+                  placeholder="Bayi ara (ad)"
+                  value={dealerFilter}
+                  onChange={(e) => setDealerFilter(e.target.value)}
+                  disabled={optsLoading}
+                />
+
+                <div
+                  className="border rounded p-2"
+                  style={{ maxHeight: 260, overflow: "auto" }}
+                >
+                  {optsLoading ? (
+                    <div className="text-muted">Yükleniyor…</div>
+                  ) : filteredDealers.length === 0 ? (
+                    <div className="text-muted">Kayıt yok.</div>
+                  ) : (
+                    filteredDealers.map((d) => {
+                      const checked = dealerIds.includes(d.id);
+                      return (
+                        <div className="form-check" key={d.id}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`dealer_edit_${d.id}`}
+                            checked={checked}
+                            onChange={() =>
+                              toggleId(dealerIds, d.id, setDealerIds)
+                            }
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor={`dealer_edit_${d.id}`}
+                          >
+                            {d.name}
+                          </label>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -764,7 +902,7 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                 </div>
               </div>
 
-              {/* ✅ Kullanım limitleri */}
+              {/* Kullanım limitleri */}
               <div className="row">
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Toplam Kullanım Limiti</label>
@@ -791,6 +929,40 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                     onChange={(e) => setUsageLimitPerCustomer(e.target.value)}
                     placeholder="örn. 1"
                   />
+                </div>
+              </div>
+
+              {/* Checkbox'lar */}
+              <div className="d-flex flex-wrap gap-3 mb-3">
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="autoApplyEditChk"
+                    checked={autoApply}
+                    onChange={(e) => setAutoApply(e.target.checked)}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor="autoApplyEditChk"
+                  >
+                    Otomatik Uygula
+                  </label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="stackableEditChk"
+                    checked={stackable}
+                    onChange={(e) => setStackable(e.target.checked)}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor="stackableEditChk"
+                  >
+                    Birleştirilebilir
+                  </label>
                 </div>
               </div>
             </div>

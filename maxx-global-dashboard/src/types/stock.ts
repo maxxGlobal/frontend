@@ -51,11 +51,16 @@ export interface DailySummaryResponse {
 }
 
 export interface TopMovementProduct {
-  productId: number;
-  productName: string;
-  productCode: string;
+  variantDisplayName: string;
   totalMovements: number;
+  productCode: string;
   totalQuantity: number;
+  productId: number;
+  variantSize: string;
+  currentStock: number;
+  variantId: number;
+  productName: string;
+  variantSku: string;
 }
 
 export interface StockSummaryResponse {

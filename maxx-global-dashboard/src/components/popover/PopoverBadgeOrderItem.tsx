@@ -7,6 +7,8 @@ type OrderItem = {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  variantSize: string;
+  variantSku: string;
 };
 
 export default function PopoverBadgeOrderItem({ items }: { items: OrderItem[] }) {
@@ -93,6 +95,7 @@ export default function PopoverBadgeOrderItem({ items }: { items: OrderItem[] })
               <thead>
                 <tr className="border-bottom">
                   <th className="small text-muted">Ürün</th>
+                  <th className="small text-muted">Boy/Kod</th>
                   <th className="small text-muted text-center">Adet</th>
                   <th className="small text-muted text-end">Birim Fiyat</th>
                   <th className="small text-muted text-end">Toplam</th>
@@ -114,6 +117,21 @@ export default function PopoverBadgeOrderItem({ items }: { items: OrderItem[] })
                         }}
                       >
                         {item.productName}
+                      </span>
+                    </td>
+                     <td className="text-center">
+                      <span 
+                        className="small fw-medium text-dark"
+                        title={item.variantSize}
+                        style={{ 
+                          display: 'block',
+                          maxWidth: '150px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {item.variantSize}/{item.variantSku}
                       </span>
                     </td>
                     <td className="text-center">

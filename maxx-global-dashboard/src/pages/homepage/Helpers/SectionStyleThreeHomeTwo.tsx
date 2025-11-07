@@ -11,8 +11,7 @@ import { listPopularProducts } from "../../../services/products/popular";
 import { addFavorite } from "../../../services/favorites/add";
 import { removeFavorite } from "../../../services/favorites/remove";
 import type { ProductRow } from "../../../types/product";
-import { useCart } from "./CartContext";
-
+ 
 type BannerProps = {
   className?: string;
   showProducts?: number;
@@ -28,14 +27,10 @@ export default function SectionStyleThreeHomeTwo({
 }: BannerProps) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [quantities, setQuantities] = useState<Record<number, number>>({});
-  const [inputValues, setInputValues] = useState<Record<number, string>>({});
-  const [favorites, setFavorites] = useState<Record<number, boolean>>({});
-  const [clickedIds, setClickedIds] = useState<Set<number>>(new Set());
-  const qc = useQueryClient();
-  const { addItem } = useCart();
-
+  const [error, setError] = useState<string | null>(null); 
+   const [favorites, setFavorites] = useState<Record<number, boolean>>({}); 
+   const qc = useQueryClient();
+ 
   useEffect(() => {
     (async () => {
       try {
@@ -50,9 +45,7 @@ export default function SectionStyleThreeHomeTwo({
           iv[p.id] = "1";
           fav[p.id] = !!p.isFavorite;
         });
-        setQuantities(q);
-        setInputValues(iv);
-        setFavorites(fav);
+         setFavorites(fav);
       } catch (e) {
         console.error("Popüler ürünler getirilemedi:", e);
         setError("Popüler ürünler getirilemedi");
@@ -61,85 +54,7 @@ export default function SectionStyleThreeHomeTwo({
       }
     })();
   }, [showProducts]);
-
-  const increment = (id: number) =>
-    setQuantities((prev) => {
-      const n = (prev[id] || 1) + 1;
-      setInputValues((iv) => ({ ...iv, [id]: String(n) }));
-      return { ...prev, [id]: n };
-    });
-
-  const decrement = (id: number) =>
-    setQuantities((prev) => {
-      const n = Math.max(1, (prev[id] || 1) - 1);
-      setInputValues((iv) => ({ ...iv, [id]: String(n) }));
-      return { ...prev, [id]: n };
-    });
-
-  const handleManualChange = (id: number, value: string) => {
-    setInputValues((prev) => ({ ...prev, [id]: value }));
-    const num = parseInt(value, 10);
-    if (!isNaN(num) && num >= 1) {
-      setQuantities((prev) => ({ ...prev, [id]: num }));
-    }
-  };
-
-  const handleFocus = (id: number) => {
-    if (inputValues[id] === "1") {
-      setInputValues((prev) => ({ ...prev, [id]: "" }));
-    }
-  };
-
-  const handleBlur = (id: number) => {
-    const val = inputValues[id];
-    const num = parseInt(val, 10);
-    const safe = !isNaN(num) && num >= 1 ? num : 1;
-    setQuantities((prev) => ({ ...prev, [id]: safe }));
-    setInputValues((prev) => ({ ...prev, [id]: String(safe) }));
-  };
-
-  const handleAddToCart = async (product: ProductRow) => {
-    const qty = quantities[product.id] || 1;
-    const priceId = product.prices?.[0]?.productPriceId ?? null;
-    if (!priceId) {
-      Swal.fire({
-        icon: "error",
-        title: "Fiyat bulunamadı",
-        text: "Bu ürün için geçerli bir fiyat bulunamadı.",
-      });
-      return;
-    }
-
-    try {
-      await addItem({ productPriceId: priceId, quantity: qty });
-      setClickedIds((prev) => new Set(prev).add(product.id));
-
-      await Swal.fire({
-        icon: "success",
-        title: "Sepete eklendi",
-        text: `${product.name} ürününden ${qty} adet sepete eklendi`,
-        confirmButtonText: "Tamam",
-      });
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Ürün sepete eklenirken bir hata oluştu.";
-      Swal.fire({
-        icon: "error",
-        title: "Hata",
-        text: message,
-      });
-    } finally {
-      setTimeout(() => {
-        setClickedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(product.id);
-          return next;
-        });
-      }, 500);
-    }
-  };
+ 
 
   async function handleFavorite(id: number) {
     try {

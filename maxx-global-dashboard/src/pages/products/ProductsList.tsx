@@ -1,6 +1,6 @@
 // src/pages/catalog/ProductList.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import CategorySidebar from "../products/components/CategorySidebar";
 import EditProductModal from "../products/components/EditProductModal";
@@ -42,25 +42,30 @@ function isAbortError(err: any) {
   return (
     err?.name === "AbortError" ||
     err?.code === "ERR_CANCELED" ||
-    String(err?.message || "")
-      .toLowerCase()
-      .includes("abort") ||
-    String(err?.message || "")
-      .toLowerCase()
-      .includes("canceled")
+    String(err?.message || "").toLowerCase().includes("abort") ||
+    String(err?.message || "").toLowerCase().includes("canceled")
   );
 }
 
 export default function ProductList() {
-  const [cats, setCats] = useState<CatNode[]>([]);
-  const [selectedCat, setSelectedCat] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [q, setQ] = useState("");
+  // URL'den başlangıç değerleri (page'i 1-based alıp state'te 0-based tutuyoruz)
+  const urlPage = Math.max(1, Number(searchParams.get("page") || "1"));
+  const urlQ = searchParams.get("q") || "";
+  const urlCat = searchParams.get("cat");
+  const initialCat = urlCat ? Number(urlCat) : null;
+
+  const [cats, setCats] = useState<CatNode[]>([]);
+  const [selectedCat, setSelectedCat] = useState<number | null>(initialCat);
+
+  const [q, setQ] = useState(urlQ);
   const [sort] = useState<"top" | "popular" | "newest">("top");
   const [statusFilter] = useState<StatusFilter>("ALL");
-  const [debouncedQ, setDebouncedQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState(urlQ);
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(Math.max(0, urlPage - 1)); // 0-based
   const [size] = useState(12);
   const [data, setData] = useState<PageResponse<ProductRow>>(
     makeDefaultPage<ProductRow>(size)
@@ -76,8 +81,6 @@ export default function ProductList() {
   const [categories, setCategories] = useState<
     { id: number; name?: string; label?: string }[]
   >([]);
-
-  const navigate = useNavigate();
 
   function flattenTreeToOptions(
     nodes: CatNode[],
@@ -112,41 +115,33 @@ export default function ProductList() {
 
   // ✅ Kategorileri sadece bir kez yükle
   useEffect(() => {
-    console.log("🔵 KATEGORI EFFECT ÇALIŞTI");
     const controller = new AbortController();
-    
+
     async function loadCategories() {
       try {
-        console.log("📂 Kategoriler yükleniyor...");
         const flat = await listAllCategories({ signal: controller.signal });
         const tree = buildCategoryTree(flat);
         setCats(tree);
-
         const leveled = flattenTreeToOptions(tree);
         setCategories(leveled);
-        console.log("✅ Kategoriler yüklendi");
       } catch (err) {
         if (isAbortError(err)) return;
-        console.error("❌ Kategori yükleme hatası:", err);
+        console.error("Kategori yükleme hatası:", err);
       }
     }
 
     loadCategories();
-    return () => {
-      console.log("🔴 KATEGORI EFFECT CLEANUP");
-      controller.abort();
-    };
-  }, []); // Sadece ilk mount'ta çalışır
+    return () => controller.abort();
+  }, []);
 
-  // ✅ Ürünleri yükle
+  // ✅ Ürünleri yükle (page / search / category'ye bağlı)
   useEffect(() => {
-    console.log("🟢 ÜRÜN EFFECT ÇALIŞTI", { debouncedQ, page, selectedCat });
     const controller = new AbortController();
-    
+
     async function fetchProducts() {
       setLoading(true);
       setListError(null);
-      
+
       try {
         const baseReq: PageRequest = {
           page,
@@ -158,31 +153,22 @@ export default function ProductList() {
         let res: PageResponse<ProductRow>;
 
         if (debouncedQ && debouncedQ.trim() !== "") {
-          console.log("🔍 ARAMA isteği gönderiliyor:", debouncedQ);
           res = await listProductsBySearch(debouncedQ.trim(), baseReq, {
             signal: controller.signal,
           });
         } else if (selectedCat) {
-          console.log("📁 KATEGORİ isteği gönderiliyor:", selectedCat);
-          res = await listProductsByCategory(selectedCat, { 
-            signal: controller.signal 
+          res = await listProductsByCategory(selectedCat, {
+            signal: controller.signal,
           });
         } else {
-          console.log("📋 TÜM ÜRÜNLER isteği gönderiliyor");
-          res = await listProducts(baseReq, { 
-            signal: controller.signal 
-          });
+          res = await listProducts(baseReq, { signal: controller.signal });
         }
 
-        console.log("✅ Ürünler alındı:", res.content.length);
         setData(res);
         setInitialLoad(false);
       } catch (e: any) {
-        if (isAbortError(e)) {
-          console.log("⚠️ İstek iptal edildi");
-          return;
-        }
-        console.error("❌ Ürün yükleme hatası:", e);
+        if (isAbortError(e)) return;
+        console.error("Ürün yükleme hatası:", e);
         setListError("Ürünler yüklenemedi.");
       } finally {
         setLoading(false);
@@ -190,15 +176,37 @@ export default function ProductList() {
     }
 
     fetchProducts();
-    return () => {
-      console.log("🔴 ÜRÜN EFFECT CLEANUP");
-      controller.abort();
-    };
-  }, [debouncedQ, page, size, sort, selectedCat]); // Sadece bu değerler değiştiğinde çalışır
+    return () => controller.abort();
+  }, [debouncedQ, page, size, sort, selectedCat]);
 
-  // ✅ Debounce için
+  // ✅ URL ile state'i senkronize et (page 1-based yazılır)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+
+    params.set("page", String(page + 1));
+
+    if (debouncedQ && debouncedQ.trim() !== "") {
+      params.set("q", debouncedQ.trim());
+    } else {
+      params.delete("q");
+    }
+
+    if (selectedCat) {
+      params.set("cat", String(selectedCat));
+    } else {
+      params.delete("cat");
+    }
+
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedQ, selectedCat]);
+
+  // ✅ Debounce
   useEffect(() => {
     const timer = setTimeout(() => {
+      // İlk yüklemede ya da arama değişmemişse dokunma
+      if (q === debouncedQ) return;
+
       if (q.length >= 3 || q.length === 0) {
         setDebouncedQ(q);
         setPage(0);
@@ -206,7 +214,8 @@ export default function ProductList() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [q]);
+  }, [q, debouncedQ]);
+
 
   const patchRowWithUpdated = (updated: Product) => {
     const movedOut =
@@ -254,6 +263,12 @@ export default function ProductList() {
     setQ("");
     setDebouncedQ("");
     setPage(0);
+
+    // URL'yi hemen temizlemek istersen:
+    const params = new URLSearchParams(searchParams);
+    params.delete("q");
+    params.set("page", "1");
+    setSearchParams(params, { replace: true });
   };
 
   async function handleDeleteConfirm() {
@@ -373,18 +388,18 @@ export default function ProductList() {
                     (r): ProductRow =>
                       r.id === row.id
                         ? ({
-                            ...r,
-                            isActive: true,
-                            status: "AKTİF",
-                            categoryId: restored.categoryId ?? r.categoryId,
-                            categoryName:
-                              restored.categoryName ?? r.categoryName,
-                            stockQuantity:
-                              restored.stockQuantity ?? r.stockQuantity,
-                            unit: restored.unit ?? r.unit,
-                            primaryImageUrl:
-                              restored.primaryImageUrl ?? r.primaryImageUrl,
-                          } as ProductRow)
+                          ...r,
+                          isActive: true,
+                          status: "AKTİF",
+                          categoryId: restored.categoryId ?? r.categoryId,
+                          categoryName:
+                            restored.categoryName ?? r.categoryName,
+                          stockQuantity:
+                            restored.stockQuantity ?? r.stockQuantity,
+                          unit: restored.unit ?? r.unit,
+                          primaryImageUrl:
+                            restored.primaryImageUrl ?? r.primaryImageUrl,
+                        } as ProductRow)
                         : r
                   );
 
@@ -413,9 +428,8 @@ export default function ProductList() {
               <div className="dataTables_paginate paging_simple_numbers justify-content-end">
                 <ul className="pagination">
                   <li
-                    className={`paginate_button page-item previous ${
-                      data.first ? "disabled" : ""
-                    }`}
+                    className={`paginate_button page-item previous ${data.first ? "disabled" : ""
+                      }`}
                   >
                     <a
                       href="#"
@@ -431,9 +445,8 @@ export default function ProductList() {
                   {Array.from({ length: data.totalPages }, (_, i) => (
                     <li
                       key={i}
-                      className={`paginate_button page-item ${
-                        i === data.number ? "active" : ""
-                      }`}
+                      className={`paginate_button page-item ${i === data.number ? "active" : ""
+                        }`}
                     >
                       <a
                         href="#"
@@ -448,9 +461,8 @@ export default function ProductList() {
                     </li>
                   ))}
                   <li
-                    className={`paginate_button page-item next ${
-                      data.last ? "disabled" : ""
-                    }`}
+                    className={`paginate_button page-item next ${data.last ? "disabled" : ""
+                      }`}
                   >
                     <a
                       href="#"

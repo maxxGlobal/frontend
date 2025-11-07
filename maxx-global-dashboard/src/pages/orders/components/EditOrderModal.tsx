@@ -1,4 +1,3 @@
-// src/pages/orders/components/EditOrderModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import type {
@@ -12,7 +11,19 @@ import {
   getProductDealerPrice,
   type ProductDealerPriceResponse,
 } from "../../../services/product-prices/getByProductAndDealer";
-type ProductSimple = Awaited<ReturnType<typeof listSimpleProducts>>[number];
+
+// ✅ Simple product response'undaki variant tipi
+type ProductVariant = {
+  id: number;
+  size: string | null;
+  sku: string | null;
+  stockQuantity: number | null;
+  isDefault: boolean;
+};
+
+type ProductSimpleBase = Awaited<ReturnType<typeof listSimpleProducts>>[number];
+type ProductSimple = ProductSimpleBase & { variants?: ProductVariant[] };
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -30,17 +41,15 @@ export default function EditOrderModal({
 
   const [reason, setReason] = useState<string>("");
   const [notes, setNotes] = useState<string>(order.notes ?? "");
-  const [items, setItems] = useState<OrderItem[]>(order.items);
+  const [items, setItems] = useState<OrderItem[]>(order.items); 
 
-  // ✅ YENİ: Ürün ekleme için state'ler
-  const [availableProducts, setAvailableProducts] = useState<ProductSimple[]>(
-    []
-  );
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(
-    null
-  );
-  const [selectedProductPrice, setSelectedProductPrice] =
-    useState<ProductDealerPriceResponse | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<ProductSimple[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProductPrice, setSelectedProductPrice] = useState<ProductDealerPriceResponse | null>(null);
+  
+  // ✅ Seçili ürünün varyantları (simple product'tan geliyor)
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  
   const [newItemQuantity, setNewItemQuantity] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
@@ -48,7 +57,7 @@ export default function EditOrderModal({
 
   const currency = order.currency;
 
-  // ✅ YENİ: Ürünleri yükle
+  // Ürünleri yükle
   useEffect(() => {
     async function loadProducts() {
       if (!open || !order) return;
@@ -68,26 +77,49 @@ export default function EditOrderModal({
     loadProducts();
   }, [open, order]);
 
-  // ✅ YENİ: Ürün seçildiğinde fiyatını çek
+  // ✅ Seçili ürünün varyantlarını al (zaten simple product'ta var!)
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const selectedProduct = useMemo(() => {
+    if (!selectedProductId) return null;
+    return availableProducts.find(p => p.id === selectedProductId);
+  }, [selectedProductId, availableProducts]);
+
+  const productVariants = useMemo<ProductVariant[]>(() => {
+    return selectedProduct?.variants || [];
+  }, [selectedProduct]);
+
+  // ✅ Ürün seçildiğinde default varyantı seç
   useEffect(() => {
-    async function loadProductPrice() {
-      if (!selectedProductId || !order?.dealerId) return;
+    if (!selectedProductId || productVariants.length === 0) {
+      setSelectedVariantId(null);
+      return;
+    }
+
+    // Default varyantı bul veya ilk varyantı seç
+    const defaultVariant = productVariants.find(v => v.isDefault);
+    setSelectedVariantId(defaultVariant?.id || productVariants[0].id);
+  }, [selectedProductId, productVariants]);
+
+  // ✅ Varyant seçildiğinde fiyatını çek
+  useEffect(() => {
+    async function loadVariantPrice() {
+      if (!selectedProductId || !selectedVariantId || !order?.dealerId) return;
 
       try {
         setPriceLoading(true);
         const priceData = await getProductDealerPrice(
           selectedProductId,
-          order.dealerId
+          order.dealerId,
+          selectedVariantId
         );
 
-        // Currency kontrolü
         const matchingPrice = priceData.prices.find(
           (p) => p.currency === order.currency
         );
         if (!matchingPrice) {
           Swal.fire(
             "Uyarı",
-            `Bu ürün için ${order.currency} cinsinden fiyat bulunamadı`,
+            `Bu varyant için ${order.currency} cinsinden fiyat bulunamadı`,
             "warning"
           );
           setSelectedProductPrice(null);
@@ -97,7 +129,7 @@ export default function EditOrderModal({
         if (!priceData.isValidNow) {
           Swal.fire(
             "Uyarı",
-            "Bu ürünün fiyatı şu anda geçerli değil",
+            "Bu varyantın fiyatı şu anda geçerli değil",
             "warning"
           );
           setSelectedProductPrice(null);
@@ -106,33 +138,37 @@ export default function EditOrderModal({
 
         setSelectedProductPrice(priceData);
       } catch (error) {
-        console.error("Error loading product price:", error);
-        Swal.fire("Hata", "Ürün fiyatı yüklenemedi", "error");
+        console.error("Error loading variant price:", error);
+        Swal.fire("Hata", "Varyant fiyatı yüklenemedi", "error");
         setSelectedProductPrice(null);
       } finally {
         setPriceLoading(false);
       }
     }
 
-    loadProductPrice();
-  }, [selectedProductId, order?.dealerId, order?.currency]);
+    loadVariantPrice();
+  }, [selectedProductId, selectedVariantId, order?.dealerId, order?.currency]);
 
-  // ✅ YENİ: Mevcut siparişte olmayan ürünleri filtrele
+  // Mevcut siparişte olmayan ürünleri filtrele
   const availableProductsFiltered = useMemo(() => {
-    const currentProductIds = items.map((item) => item.productId);
-    return availableProducts.filter(
-      (product) => !currentProductIds.includes(product.id)
-    );
+    return availableProducts.filter((product) => {
+      const hasAnyVariant = items.some(item => item.productId === product.id);
+      return !hasAnyVariant  ;
+    });
   }, [availableProducts, items]);
 
-  // ✅ YENİ: Seçilen ürünün fiyat bilgisi
-  const selectedProductPriceAmount = useMemo(() => {
+  const selectedVariantPriceAmount = useMemo(() => {
     if (!selectedProductPrice || !order) return null;
     const matchingPrice = selectedProductPrice.prices.find(
       (p) => p.currency === order.currency
     );
     return matchingPrice?.amount || null;
   }, [selectedProductPrice, order?.currency]);
+
+  const selectedVariant = useMemo(() => {
+    if (!selectedVariantId) return null;
+    return productVariants.find(v => v.id === selectedVariantId);
+  }, [selectedVariantId, productVariants]);
 
   function handleQuantityChange(productId: number, quantity: number) {
     setItems((prev) =>
@@ -144,48 +180,66 @@ export default function EditOrderModal({
     );
   }
 
-  function handleRemoveItem(productId: number) {
-    setItems((prev) => prev.filter((it) => it.productId !== productId));
+  function handleRemoveItem(productId: number, productPriceId: number) {
+    setItems((prev) => prev.filter((it) => 
+      !(it.productId === productId && it.productPriceId === productPriceId)
+    ));
   }
 
-  // ✅ YENİ: Yeni ürün ekleme fonksiyonu
   function handleAddNewItem() {
     if (
       !selectedProductPrice ||
-      !selectedProductPriceAmount ||
+      !selectedVariantPriceAmount ||
+      !selectedVariantId ||
+      !selectedVariant ||
       newItemQuantity <= 0
     ) {
       Swal.fire(
         "Uyarı",
-        "Lütfen geçerli bir ürün ve miktar seçiniz",
+        "Lütfen geçerli bir ürün, varyant ve miktar seçiniz",
         "warning"
       );
       return;
     }
 
-    const newItem: OrderItem = {
-      productId: selectedProductPrice.productId,
-      productPriceId: selectedProductPrice.id,
-      productName: selectedProductPrice.productName,
-      quantity: newItemQuantity,
-      unitPrice: selectedProductPriceAmount,
-      totalPrice: selectedProductPriceAmount * newItemQuantity,
-    };
+    const exists = items.some(
+      item => item.productId === selectedProductPrice.productId && 
+              item.productPriceId === selectedProductPrice.id
+    );
+
+    if (exists) {
+      Swal.fire("Uyarı", "Bu varyant zaten siparişte mevcut", "warning");
+      return;
+    }
+
+  const newItem: OrderItem = {
+  productId: selectedProductPrice.productId,
+  productPriceId: selectedProductPrice.id,
+  productName: `${selectedProductPrice.productName} - ${selectedVariant.size || 'Standart'}`,
+  quantity: newItemQuantity,
+  unitPrice: selectedVariantPriceAmount,
+  totalPrice: selectedVariantPriceAmount * newItemQuantity,
+
+  // 🆕 Eksik zorunlu alanlar
+  variantSize: selectedVariant.size || "Standart",
+  variantSku: selectedVariant.sku || "",
+};
+
 
     setItems((prev) => [...prev, newItem]);
 
-    // Reset form
     setSelectedProductId(null);
+    setSelectedVariantId(null);
     setSelectedProductPrice(null);
     setNewItemQuantity(1);
     setShowAddSection(false);
 
-    Swal.fire("Başarılı", "Ürün siparişe eklendi", "success");
+    Swal.fire("Başarılı", "Varyant siparişe eklendi", "success");
   }
 
-  // Reset price when product selection changes
   function handleProductChange(productId: number | null) {
     setSelectedProductId(productId);
+    setSelectedVariantId(null);
     setSelectedProductPrice(null);
   }
 
@@ -246,7 +300,7 @@ export default function EditOrderModal({
   return (
     <>
       <div className="modal show d-block z-3">
-        <div className="modal-dialog modal-lg">
+        <div className="modal-dialog modal-xl modal-dialog-scrollable">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">
@@ -261,7 +315,7 @@ export default function EditOrderModal({
 
             <div className="modal-body">
               <div className="mb-3">
-                <label className="form-label">Düzenleme Nedeni</label>
+                <label className="form-label">Düzenleme Nedeni *</label>
                 <input
                   type="text"
                   className="form-control"
@@ -271,10 +325,9 @@ export default function EditOrderModal({
                 />
               </div>
 
-              {/* ✅ YENİ: Ürün Ekleme Bölümü */}
               <div className="mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <h6>Ürünler ({items.length})</h6>
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h6 className="mb-0">Sipariş Kalemleri ({items.length})</h6>
                   <button
                     type="button"
                     className="btn btn-sm btn-primary"
@@ -282,18 +335,20 @@ export default function EditOrderModal({
                     disabled={loading}
                   >
                     <i className="fa fa-plus me-1"></i>
-                    Ürün Ekle
+                    {showAddSection ? 'Kapat' : 'Varyant Ekle'}
                   </button>
                 </div>
 
-                {/* Ürün Ekleme Formu */}
                 {showAddSection && (
-                  <div className="card mt-2 p-3 bg-light">
-                    <h6 className="mb-3">Yeni Ürün Ekle</h6>
+                  <div className="card p-3 bg-light mb-3">
+                    <h6 className="mb-3">
+                      <i className="fa fa-box me-2"></i>
+                      Yeni Varyant Ekle
+                    </h6>
 
-                    <div className="row">
-                      <div className="col-md-5">
-                        <label className="form-label">Ürün</label>
+                    <div className="row g-3">
+                      <div className="col-md-4">
+                        <label className="form-label">Ürün *</label>
                         <select
                           className="form-select"
                           value={selectedProductId || ""}
@@ -312,164 +367,200 @@ export default function EditOrderModal({
                       </div>
 
                       <div className="col-md-3">
-                        <label className="form-label">Fiyat</label>
+                        <label className="form-label">Varyant *</label>
+                        {productVariants.length > 0 ? (
+                          <select
+                            className="form-select"
+                            value={selectedVariantId || ""}
+                            onChange={(e) =>
+                              setSelectedVariantId(Number(e.target.value) || null)
+                            }
+                            disabled={!selectedProductId}
+                          >
+                            <option value="">Varyant Seçin...</option>
+                            {productVariants.map((variant) => (
+                              <option key={variant.id} value={variant.id}>
+                                {variant.size || 'Standart'} 
+                                {variant.sku && ` (${variant.sku})`}
+                                {variant.stockQuantity != null && ` - Stok: ${variant.stockQuantity}`}
+                              </option>
+                            ))}
+                          </select>
+                        ) : selectedProductId ? (
+                          <div className="form-control text-muted">
+                            Varyant yok
+                          </div>
+                        ) : (
+                          <div className="form-control text-muted">
+                            Önce ürün seçin
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="col-md-2">
+                        <label className="form-label">Birim Fiyat</label>
                         <div className="form-control d-flex align-items-center">
                           {priceLoading ? (
                             <>
                               <div className="spinner-border spinner-border-sm me-2" />
-                              Yükleniyor...
+                              <span className="small">...</span>
                             </>
-                          ) : selectedProductPriceAmount ? (
+                          ) : selectedVariantPriceAmount ? (
                             <span className="fw-bold text-success">
-                              {selectedProductPriceAmount} {currency}
+                              {selectedVariantPriceAmount} {currency}
                             </span>
-                          ) : selectedProductId ? (
-                            <span className="text-danger">
-                              Fiyat bulunamadı
-                            </span>
+                          ) : selectedVariantId ? (
+                            <span className="text-danger small">Fiyat yok</span>
                           ) : (
-                            <span className="text-muted">Ürün seçin</span>
+                            <span className="text-muted small">-</span>
                           )}
                         </div>
                       </div>
 
                       <div className="col-md-2">
-                        <label className="form-label">Miktar</label>
+                        <label className="form-label">Miktar *</label>
                         <input
                           type="number"
                           className="form-control"
                           min={1}
                           value={newItemQuantity}
                           onChange={(e) =>
-                            setNewItemQuantity(
-                              Math.max(1, Number(e.target.value))
-                            )
+                            setNewItemQuantity(Math.max(1, Number(e.target.value)))
                           }
                           disabled={loading || priceLoading}
                         />
                       </div>
 
-                      <div className="col-md-2">
+                      <div className="col-md-1">
                         <label className="form-label">&nbsp;</label>
-                        <div>
-                          <button
-                            type="button"
-                            className="btn btn-success w-100"
-                            onClick={handleAddNewItem}
-                            disabled={
-                              !selectedProductPrice ||
-                              !selectedProductPriceAmount ||
-                              loading ||
-                              priceLoading
-                            }
-                          >
-                            Ekle
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-success w-100"
+                          onClick={handleAddNewItem}
+                          disabled={
+                            !selectedProductPrice ||
+                            !selectedVariantPriceAmount ||
+                            !selectedVariantId ||
+                            loading ||
+                            priceLoading
+                          }
+                        >
+                          <i className="fa fa-check"></i>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Toplam Önizleme */}
-                    {selectedProductPriceAmount && (
-                      <div className="row mt-2">
-                        <div className="col-12">
-                          <div className="alert alert-info small">
-                            <strong>Önizleme:</strong> {newItemQuantity} x{" "}
-                            {selectedProductPriceAmount} {currency} ={" "}
-                            {(
-                              newItemQuantity * selectedProductPriceAmount
-                            ).toFixed(2)}{" "}
-                            {currency}
+                    {selectedVariantPriceAmount && selectedVariant && (
+                      <div className="alert alert-info mt-3 mb-0">
+                        <div className="d-flex justify-content-between">
+                          <div>
+                            <strong>Önizleme:</strong>
+                            <span className="ms-2">
+                              {selectedVariant.size || 'Standart'} × {newItemQuantity}
+                            </span>
+                          </div>
+                          <div className="fs-5 fw-bold">
+                            {(newItemQuantity * selectedVariantPriceAmount).toFixed(2)} {currency}
                           </div>
                         </div>
-                      </div>
-                    )}
-
-                    {availableProductsFiltered.length === 0 && (
-                      <div className="alert alert-info mt-2">
-                        <i className="fa fa-info-circle me-1"></i>
-                        Tüm ürünler zaten siparişte mevcut.
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Mevcut Ürün Listesi */}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Ürün</th>
-                    <th>Adet</th>
-                    <th>Birim Fiyat</th>
-                    <th>Toplam</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((it) => (
-                    <tr key={it.productId}>
-                      <td>{it.productName}</td>
-                      <td style={{ maxWidth: 120 }}>
-                        <input
-                          type="number"
-                          className="form-control"
-                          min={1}
-                          value={it.quantity}
-                          onChange={(e) =>
-                            handleQuantityChange(
-                              it.productId,
-                              Number(e.target.value)
-                            )
-                          }
-                        />
-                      </td>
-                      <td>
-                        {it.unitPrice} {currency}
-                      </td>
-                      <td>
-                        {(it.unitPrice * it.quantity).toFixed(2)} {currency}
-                      </td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleRemoveItem(it.productId)}
-                        >
-                          Sil
-                        </button>
-                      </td>
+              <div className="table-responsive">
+                <table className="table table-hover">
+                  <thead className="table-light">
+                    <tr>
+                      <th style={{ width: '40%' }}>Ürün & Varyant</th>
+                      <th style={{ width: '15%' }}>Miktar</th>
+                      <th style={{ width: '15%' }}>Birim Fiyat</th>
+                      <th style={{ width: '20%' }}>Toplam</th>
+                      <th style={{ width: '10%' }} className="text-center">İşlem</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <th colSpan={3} className="text-end">
-                      Ara Toplam
-                    </th>
-                    <th>
-                      {calcTotals.subtotal.toFixed(2)} {currency}
-                    </th>
-                    <th></th>
-                  </tr>
-                </tfoot>
-              </table>
-
-              {/* Loading State */}
-              {loading && (
-                <div className="text-center">
-                  <div className="spinner-border spinner-border-sm me-2" />
-                  Ürün bilgileri yükleniyor...
-                </div>
-              )}
+                  </thead>
+                  <tbody>
+                    {items.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="text-center text-muted py-4">
+                          <i className="fa fa-inbox fa-2x mb-2 d-block"></i>
+                          Sipariş boş. Varyant ekleyin.
+                        </td>
+                      </tr>
+                    ) : (
+                      items.map((it) => (
+                        <tr key={`${it.productId}-${it.productPriceId}`}>
+                          <td>
+                            <div className="fw-medium">{it.productName}</div>
+                            <small className="text-muted">ID: {it.productPriceId}</small>
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              className="form-control form-control-sm"
+                              min={1}
+                              style={{ maxWidth: '80px' }}
+                              value={it.quantity}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  it.productId,
+                                  Number(e.target.value)
+                                )
+                              }
+                            />
+                          </td>
+                          <td>
+                            {it.unitPrice.toFixed(2)} {currency}
+                          </td>
+                          <td>
+                            <strong>
+                              {(it.unitPrice * it.quantity).toFixed(2)} {currency}
+                            </strong>
+                          </td>
+                          <td className="text-center">
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleRemoveItem(it.productId, it.productPriceId)}
+                            >
+                              <i className="fa fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                  {items.length > 0 && (
+                    <tfoot className="table-light">
+                      <tr>
+                        <th colSpan={3} className="text-end">Ara Toplam:</th>
+                        <th>
+                          <span className="fs-5">
+                            {calcTotals.subtotal.toFixed(2)} {currency}
+                          </span>
+                        </th>
+                        <th></th>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
             </div>
 
             <div className="modal-footer">
-              <button className="btn btn-success p-2 px-3" onClick={handleSave}>
-                Kaydet
+              <button 
+                className="btn btn-secondary" 
+                onClick={onClose}
+              >
+                İptal
               </button>
-
-              <button className="btn btn-danger p-2 px-3" onClick={onClose}>
-                Kapat
+              <button 
+                className="btn btn-success" 
+                onClick={handleSave}
+                disabled={loading || items.length === 0 || !reason.trim()}
+              >
+                <i className="fa fa-save me-1"></i>
+                Kaydet
               </button>
             </div>
           </div>

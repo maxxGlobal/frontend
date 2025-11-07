@@ -822,23 +822,7 @@ export default function ProductCreate() {
                         />
                       </div>
                     </div>
-                  </div>
-                  <div className="col-lg-6 col-md-6 col-12">
-                    <div className="form-group">
-                      <label className="sherah-wc__form-label">
-                        Boyut <small className="text-muted">(örn. 4.5mm)</small>
-                      </label>
-                      <div className="form-group__input">
-                        <input
-                          className="sherah-wc__form-input"
-                          value={form.size || ""}
-                          onChange={(e) =>
-                            setForm({ ...form, size: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  </div> 
                   <div className="col-lg-6 col-md-6 col-12">
                     <div className="form-group">
                       <label className="sherah-wc__form-label">
@@ -1082,22 +1066,7 @@ export default function ProductCreate() {
                       }
                       min={0}
                     />
-                  </div>
-
-                  <div className="col-lg-4 col-md-12 col-12">
-                    <label className="sherah-wc__form-label">
-                      Boyutlar{" "}
-                      <small className="text-muted">(örn. 10x15x20mm)</small>
-                    </label>
-                    <input
-                      className="herah-wc__form-input"
-                      value={form.dimensions || ""}
-                      onChange={(e) =>
-                        setForm({ ...form, dimensions: e.target.value })
-                      }
-                    />
-                  </div>
-
+                  </div> 
                   {/* Sipariş limitleri */}
                   <div className="col-lg-4 col-md-12 col-12">
                     <label className="sherah-wc__form-label">

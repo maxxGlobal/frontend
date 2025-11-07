@@ -6,18 +6,16 @@ export type DiscountType =
   | "Yüzdesel"
   | "Sabit Tutar";
 
-export interface DiscountProduct {
+// ✅ YENİ - Variant özet bilgisi
+export interface ProductVariantSummary {
   id: number;
-  name: string;
-  code: string;
-  categoryName: string;
-  primaryImageUrl: string | null;
-  stockQuantity: number;
-  unit: string;
-  isActive: boolean;
-  isInStock: boolean;
-  status: string;
-  isFavorite?: boolean;
+  productId: number;
+  productName: string;
+  productCode: string;
+  size?: string | null;
+  sku?: string | null;
+  stockQuantity?: number | null;
+  isDefault?: boolean;
 }
 
 export interface DiscountDealer {
@@ -27,7 +25,7 @@ export interface DiscountDealer {
   preferredCurrency: string;
 }
 
-// ✅ YENİ - Kategori için interface
+// ✅ Kategori özet bilgisi
 export interface DiscountCategory {
   id: number;
   name: string;
@@ -41,20 +39,49 @@ export interface Discount {
   discountValue: number;
   startDate: string;
   endDate: string;
-  applicableProducts: DiscountProduct[];
-  applicableDealers: DiscountDealer[];
+  
+  // ✅ YENİ - Variant bazlı
+  applicableVariants?: ProductVariantSummary[];
+  applicableDealers?: DiscountDealer[];
   applicableCategories?: DiscountCategory[];
+  
   isActive: boolean;
   isValidNow: boolean;
   minimumOrderAmount?: number;
   maximumDiscountAmount?: number;
-  createdDate: string;
-  updatedDate: string;
+  
+  usageLimit?: number;
+  usageCount?: number;
+  usageLimitPerCustomer?: number;
+  discountCode?: string;
+  autoApply?: boolean;
+  priority?: number;
+  stackable?: boolean;
+  
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  
+  // Computed fields
+  discountScope?: string;
+  discountTypeDisplay?: string;
   isExpired: boolean;
   isNotYetStarted: boolean;
-  status: string;
-  usageCount?: number;
-  usageLimit?: number;
+  hasUsageLeft?: boolean;
+  remainingUsage?: number;
+  validityStatus?: string;
+  
+  isCategoryBased?: boolean;
+  isVariantBased?: boolean;
+  isDealerBased?: boolean;
+  isGeneralDiscount?: boolean;
+  
+  // Geriye dönük uyumluluk için (eski API'lerle çalışabilmek için)
+  status?: string;
+  createdDate?: string;
+  updatedDate?: string;
 }
 
 export interface DiscountCreateRequest {
@@ -64,14 +91,21 @@ export interface DiscountCreateRequest {
   discountValue: number;
   startDate: string;
   endDate: string;
-  productIds: number[];
-  dealerIds: number[];
-  categoryIds?: number[]; // ✅ YENİ - Kategori ID'leri
-  isActive: boolean;
+  
+  // ✅ YENİ - Variant bazlı
+  variantIds?: number[];
+  dealerIds?: number[];
+  categoryIds?: number[];
+  
+  isActive?: boolean;
   minimumOrderAmount?: number;
   maximumDiscountAmount?: number;
   usageLimit?: number;
   usageLimitPerCustomer?: number;
+  discountCode?: string;
+  autoApply?: boolean;
+  priority?: number;
+  stackable?: boolean;
 }
 
 export interface DiscountUpdateRequest extends DiscountCreateRequest {}
@@ -84,6 +118,7 @@ export interface DiscountCalculationRequest {
   totalOrderAmount: number;
   includeDiscountIds?: number[];
   excludeDiscountIds?: number[];
+  variantId?: number; // ✅ YENİ - Variant desteği
 }
 
 export interface PageResponse<T> {
@@ -113,6 +148,8 @@ export interface DiscountAppliedDetail {
 export interface DiscountCalculationSuccess {
   productId: number;
   productName?: string;
+  variantId?: number; // ✅ YENİ
+  variantSize?: string; // ✅ YENİ
   dealerId: number;
   dealerName?: string;
   originalUnitPrice: number;

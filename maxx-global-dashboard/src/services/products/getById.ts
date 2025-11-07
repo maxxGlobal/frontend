@@ -196,7 +196,7 @@ const norm = (raw: any): ProductDetail => {
             prices,
           } as ProductVariant;
         })
-        .map((variant) => ({
+        .map((variant: { size: null; }) => ({
           ...variant,
           size: variant.size != null ? String(variant.size) : null,
         }))

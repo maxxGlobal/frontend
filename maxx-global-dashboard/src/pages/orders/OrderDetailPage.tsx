@@ -27,8 +27,7 @@ export default function OrderDetailPage() {
       try {
         setLoading(true);
         const data = await getOrderById(Number(id));
-        setOrder(data);
-
+        setOrder(data); 
         // primaryImageUrl doğrudan order item içinden geliyor
         const map: Record<number, string> = {};
         data.items.forEach((it) => {
@@ -286,14 +285,17 @@ export default function OrderDetailPage() {
                       )}
 
                       {/* Her durumda Düzenle butonu */}
-                      <button
+                      {order.orderStatus!="ONAYLANDI" ?
+                       <button
                         className="btn btn-warning btn-sm"
                         onClick={handleEdit}
                         disabled={actionLoading}
                       >
                         <i className="fa-solid fa-edit me-1"></i>
                         Düzenle
-                      </button>
+                      </button> : null
+                       }
+                     
                     </>
                   )}
                 </div>
@@ -309,6 +311,7 @@ export default function OrderDetailPage() {
                         <tr>
                           <th>Ürün</th>
                           <th>Ürün Adı</th>
+                          <th>Varyant</th>
                           <th>Fiyat</th>
                           <th>Toplam</th>
                         </tr>
@@ -336,6 +339,13 @@ export default function OrderDetailPage() {
                               <div className="sherah-table__product-name">
                                 <h4 className="sherah-table__product-name--title">
                                   {it.productName}
+                                </h4>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="sherah-table__product-name">
+                                <h4 className="sherah-table__product-name--title">
+                                  {it.variantSize} / {it.variantSku}
                                 </h4>
                               </div>
                             </td>
