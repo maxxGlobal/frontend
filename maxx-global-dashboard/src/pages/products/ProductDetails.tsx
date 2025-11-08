@@ -232,15 +232,7 @@ export default function ProductDetails() {
                   role="tab"
                 >
                   Özellikler
-                </a>
-                <a
-                  className="list-group-item"
-                  data-bs-toggle="list"
-                  href="#p_tab_2"
-                  role="tab"
-                >
-                  Özet
-                </a>
+                </a> 
               </div>
             </div>
           </div>
@@ -364,15 +356,7 @@ export default function ProductDetails() {
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="tab-pane fade" id="p_tab_2" role="tabpanel">
-                <ul className="sherah-features-list">
-                  <li>Yüksek dayanım</li>
-                  <li>Biyouyumlu kaplama</li>
-                  <li>Hassas üretim toleransları</li>
-                </ul>
-              </div>
+              </div> 
             </div>
           </div>
         </div>

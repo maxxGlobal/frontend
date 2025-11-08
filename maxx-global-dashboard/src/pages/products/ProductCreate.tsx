@@ -770,9 +770,12 @@ export default function ProductCreate() {
               />
             </div>
           </div>
-          <div className="col-md-4 col-12">
+         <div className="col-md-4 col-12">
             <div className="form-group mb-0">
-              <label className="sherah-wc__form-label">SKU</label>
+              <label className="sherah-wc__form-label">
+                SKU * {" "}
+                <small className="text-muted">(örn. QWER-1)</small>
+              </label>
               <input
                 className="sherah-wc__form-input"
                 value={variant.sku}
@@ -782,7 +785,10 @@ export default function ProductCreate() {
           </div>
           <div className="col-md-4 col-12">
             <div className="form-group mb-0">
-              <label className="sherah-wc__form-label">Stok</label>
+              <label className="sherah-wc__form-label">
+                Stok * {" "}
+                <small className="text-muted">(örn. 123)</small>
+              </label>
               <input
                 type="number"
                 min={0}
@@ -958,24 +964,7 @@ export default function ProductCreate() {
                       </div>
                     </div>
                   </div>
-
-                  <div className="col-lg-6 col-md-6 col-12">
-                    <div className="form-group">
-                      <label className="sherah-wc__form-label">
-                        Son Kullanma Tarihi{" "}
-                      </label>
-                      <div className="form-group__input">
-                        <input
-                          className="herah-wc__form-input"
-                          type="date"
-                          value={form.expiryDate || ""}
-                          onChange={(e) =>
-                            setForm({ ...form, expiryDate: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
+ 
                   {/* Medikal */}
                   <div className="col-lg-6 col-md-6 col-12">
                     <div className="form-group">
@@ -1044,27 +1033,6 @@ export default function ProductCreate() {
                       }
                       min={0}
                       placeholder="14.5"
-                    />
-                  </div>
-                  <div className="col-lg-4 col-md-12 col-12">
-                    <label className="sherah-wc__form-label">
-                      Raf Ömrü (ay){" "}
-                      <small className="text-muted">(örn. 36)</small>
-                    </label>
-                    <input
-                      type="number"
-                      className="herah-wc__form-input"
-                      value={form.shelfLifeMonths ?? ""}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          shelfLifeMonths:
-                            e.target.value === ""
-                              ? (undefined as any)
-                              : Number(e.target.value),
-                        })
-                      }
-                      min={0}
                     />
                   </div> 
                   {/* Sipariş limitleri */}
