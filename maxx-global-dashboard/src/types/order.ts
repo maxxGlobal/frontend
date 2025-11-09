@@ -1,7 +1,7 @@
 // src/types/order.ts
 export type OrderItem = {
   productId: number;
-  productPriceId: number;
+  productPriceId: number | null;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -75,7 +75,7 @@ export interface ListAdminOrdersRequest {
 
 export interface EditOrderBody {
   dealerId: number;
-  products: { productPriceId: number; quantity: number }[];
+  products: { productPriceId: number | null; quantity: number }[];
   discountId: number | null;
   notes?: string;
 }

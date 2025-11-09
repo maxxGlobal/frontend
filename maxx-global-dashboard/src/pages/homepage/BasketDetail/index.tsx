@@ -305,7 +305,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
           productPriceId: item.productPriceId,
           quantity: Math.max(1, item.quantity ?? 0),
         }))
-        .filter((product) => product.productPriceId && product.quantity > 0);
+        .filter((product) => product.quantity > 0);
 
       if (!products.length) {
         Swal.fire({

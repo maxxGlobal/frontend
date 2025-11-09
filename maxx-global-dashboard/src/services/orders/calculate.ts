@@ -3,7 +3,7 @@ import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
 
 export type OrderProductRequest = {
-  productPriceId: number;
+  productPriceId: number | null;
   quantity: number;
 };
 

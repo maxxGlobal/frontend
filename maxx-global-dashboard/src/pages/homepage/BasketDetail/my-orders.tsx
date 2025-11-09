@@ -69,9 +69,8 @@ export default function MyOrdersPage() {
       }
 
       for (const item of order.items) {
-        if (!item.productPriceId) continue;
         await addItem({
-          productPriceId: item.productPriceId,
+          productPriceId: item.productPriceId ?? null,
           quantity: item.quantity,
         });
       }

@@ -7,9 +7,9 @@ export interface ProductImage {
 }
 export type ProductStatus = "AKTİF" | "SİLİNDİ";
 export interface ProductPrice {
-  productPriceId: number;
-  currency: string;
-  amount: number;
+  productPriceId: number | null;
+  currency: string | null;
+  amount: number | null;
 }
 
 export interface ProductVariantSummary {

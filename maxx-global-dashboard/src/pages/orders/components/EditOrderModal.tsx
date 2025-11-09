@@ -180,8 +180,11 @@ export default function EditOrderModal({
     );
   }
 
-  function handleRemoveItem(productId: number, productPriceId: number) {
-    setItems((prev) => prev.filter((it) => 
+  function handleRemoveItem(
+    productId: number,
+    productPriceId: number | null
+  ) {
+    setItems((prev) => prev.filter((it) =>
       !(it.productId === productId && it.productPriceId === productPriceId)
     ));
   }

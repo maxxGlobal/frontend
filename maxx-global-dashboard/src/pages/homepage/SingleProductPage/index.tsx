@@ -231,13 +231,19 @@ export default function ProductPage() {
   const handleAddToCart = async () => {
     if (!product) return;
     const priceId = selectedPrice?.productPriceId ?? null;
-    if (!priceId) {
-      MySwal.fire({
-        icon: "error",
-        title: "Fiyat bulunamadı",
-        text: "Bu ürün için geçerli bir fiyat seçiniz.",
+    if (priceId === null) {
+      const result = await MySwal.fire({
+        icon: "question",
+        title: "Fiyat bilgisi bulunamadı",
+        text: "Bu ürünü fiyat bilgisi olmadan sepete eklemek istediğinize emin misiniz?",
+        confirmButtonText: "Evet, ekle",
+        cancelButtonText: "Vazgeç",
+        showCancelButton: true,
       });
-      return;
+
+      if (!result.isConfirmed) {
+        return;
+      }
     }
 
     try {
@@ -357,11 +363,13 @@ export default function ProductPage() {
                       <p className="text-2xl font-semibold text-qblack mb-4">
                         {formattedPrice}
                       </p>
-                    ) : variantOptions.length > 0 ? (
+                    ) : (
                       <p className="text-sm text-qgray mb-4">
-                        Seçili varyant için fiyat bilgisi bulunamadı.
+                        {variantOptions.length > 0
+                          ? "Seçili varyant için fiyat bilgisi bulunamadı. Siparişiniz fiyatlandırıldıktan sonra bilgilendirileceksiniz."
+                          : "Bu ürün için fiyat bilgisi bulunamadı. Siparişiniz fiyatlandırıldıktan sonra bilgilendirileceksiniz."}
                       </p>
-                    ) : null}
+                    )}
 
                     <p
                       className={`text-xl font-medium mb-4 ${
