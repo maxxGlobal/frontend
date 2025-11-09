@@ -6,6 +6,10 @@ import withReactContent from "sweetalert2-react-content";
 
 import { listSimpleDealers } from "../../../services/dealers/listSimple";
 import {
+  listSimpleProducts,
+  type SimpleProduct,
+} from "../../../services/products/listSimple";
+import {
   downloadDealerTemplate,
   downloadImportTemplate,
   importPricesFromExcel,
@@ -13,13 +17,33 @@ import {
   downloadBlob,
   type ExcelImportResult,
 } from "../../../services/product-prices/excel";
+import {
+  getDealerProductVariants,
+  updateDealerProductVariants,
+  type DealerProductVariantResponse,
+} from "../../../services/product-prices/variants";
 
 const MySwal = withReactContent(Swal);
 
 export default function ProductPriceManagementPanel() {
   const [dealers, setDealers] = useState<any[]>([]);
   const [selectedDealerId, setSelectedDealerId] = useState<number | null>(null);
+  const [products, setProducts] = useState<SimpleProduct[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [variantsLoading, setVariantsLoading] = useState(false);
+  const [variantMeta, setVariantMeta] =
+    useState<DealerProductVariantResponse | null>(null);
+  const [variantForm, setVariantForm] = useState<
+    Array<{
+      variantId: number;
+      variantSku: string;
+      variantSize: string | null;
+      prices: Array<{ currency: string; amount: string }>;
+    }>
+  >([]);
+  const [savingVariants, setSavingVariants] = useState(false);
+  const [variantsError, setVariantsError] = useState<string | null>(null);
 
   // Import state
   const [file, setFile] = useState<File | null>(null);
@@ -39,9 +63,24 @@ export default function ProductPriceManagementPanel() {
   useEffect(() => {
     // StrictMode'daki ikinci tetiklemeyi önler
     if (didFetch.current) return;
-    loadDealers();
     didFetch.current = true;
+    void loadInitialData();
   }, []);
+
+  async function loadInitialData() {
+    await Promise.allSettled([loadDealers(), loadProducts()]);
+  }
+
+  useEffect(() => {
+    if (!selectedDealerId || !selectedProductId) {
+      setVariantMeta(null);
+      setVariantForm([]);
+      setVariantsError(null);
+      return;
+    }
+
+    void fetchDealerVariants(selectedProductId, selectedDealerId);
+  }, [selectedDealerId, selectedProductId]);
 
   async function loadDealers() {
     try {
@@ -49,6 +88,151 @@ export default function ProductPriceManagementPanel() {
       setDealers(dealerList);
     } catch (e: any) {
       MySwal.fire("Hata", "Bayiler yüklenemedi", "error");
+    }
+  }
+
+  async function loadProducts() {
+    try {
+      const productList = await listSimpleProducts();
+      setProducts(productList);
+    } catch (e: any) {
+      MySwal.fire("Hata", "Ürünler yüklenemedi", "error");
+    }
+  }
+
+  async function fetchDealerVariants(productId: number, dealerId: number) {
+    try {
+      setVariantsLoading(true);
+      setVariantsError(null);
+      const response = await getDealerProductVariants(productId, dealerId);
+      setVariantMeta(response);
+      const normalized = response.variants.map((variant) => ({
+        variantId: variant.variantId,
+        variantSku: variant.variantSku,
+        variantSize: variant.variantSize ?? null,
+        prices: (variant.prices && variant.prices.length
+          ? variant.prices
+          : [
+              {
+                currency: "TRY",
+                amount: null,
+              },
+            ]
+        ).map((price) => ({
+          currency: price.currency,
+          amount:
+            price.amount !== null && price.amount !== undefined
+              ? price.amount.toString()
+              : "",
+        })),
+      }));
+      setVariantForm(normalized);
+    } catch (e: any) {
+      const errorMessage =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Varyantlar yüklenemedi";
+      setVariantsError(errorMessage);
+      setVariantMeta(null);
+      setVariantForm([]);
+    } finally {
+      setVariantsLoading(false);
+    }
+  }
+
+  function handleVariantPriceChange(
+    variantId: number,
+    priceIndex: number,
+    value: string
+  ) {
+    setVariantForm((prev) =>
+      prev.map((variant) => {
+        if (variant.variantId !== variantId) return variant;
+        const updatedPrices = variant.prices.map((price, index) =>
+          index === priceIndex ? { ...price, amount: value } : price
+        );
+        return { ...variant, prices: updatedPrices };
+      })
+    );
+  }
+
+  async function handleSaveVariantPrices() {
+    if (!selectedDealerId || !selectedProductId) {
+      MySwal.fire("Uyarı", "Lütfen bayi ve ürün seçin", "warning");
+      return;
+    }
+
+    const payload = {
+      variants: variantForm.map((variant) => ({
+        variantId: variant.variantId,
+        prices: variant.prices
+          .filter(
+            (price) =>
+              price.amount !== "" && !Number.isNaN(Number(price.amount))
+          )
+          .map((price) => ({
+            currency: price.currency,
+            amount: Number(price.amount),
+            validFrom: new Date().toISOString(),
+            validUntil: null,
+            isActive: true,
+          })),
+      })),
+    };
+
+    const hasAnyPrice = payload.variants.some(
+      (variant) => variant.prices.length > 0
+    );
+
+    if (!hasAnyPrice) {
+      MySwal.fire(
+        "Uyarı",
+        "Lütfen kaydetmek için en az bir varyant fiyatı girin",
+        "warning"
+      );
+      return;
+    }
+
+    try {
+      setSavingVariants(true);
+      const response = await updateDealerProductVariants(
+        selectedProductId,
+        selectedDealerId,
+        payload
+      );
+      setVariantMeta(response);
+      const normalized = response.variants.map((variant) => ({
+        variantId: variant.variantId,
+        variantSku: variant.variantSku,
+        variantSize: variant.variantSize ?? null,
+        prices: (variant.prices && variant.prices.length
+          ? variant.prices
+          : [
+              {
+                currency: "TRY",
+                amount: null,
+              },
+            ]
+        ).map((price) => ({
+          currency: price.currency,
+          amount:
+            price.amount !== null && price.amount !== undefined
+              ? price.amount.toString()
+              : "",
+        })),
+      }));
+      setVariantForm(normalized);
+      MySwal.fire("Başarılı", "Varyant fiyatları güncellendi", "success");
+    } catch (e: any) {
+      const errorMessage =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Varyant fiyatları güncellenemedi";
+      MySwal.fire("Hata", errorMessage, "error");
+    } finally {
+      setSavingVariants(false);
     }
   }
 
@@ -222,6 +406,10 @@ export default function ProductPriceManagementPanel() {
               }
               onChange={(opt) => {
                 setSelectedDealerId(opt?.value || null);
+                setSelectedProductId(null);
+                setVariantMeta(null);
+                setVariantForm([]);
+                setVariantsError(null);
                 setFile(null);
                 setResult(null);
                 setError(null);
@@ -233,8 +421,140 @@ export default function ProductPriceManagementPanel() {
               isClearable
             />
           </div>
+          <div className="col-md-6">
+            <label className="form-label">Ürün Seçin</label>
+            <Select
+              options={products.map((product) => ({
+                value: product.id,
+                label: `${product.name} (${product.code})`,
+              }))}
+              value={
+                selectedProductId
+                  ? products
+                      .map((product) => ({
+                        value: product.id,
+                        label: `${product.name} (${product.code})`,
+                      }))
+                      .find((opt) => opt.value === selectedProductId) || null
+                  : null
+              }
+              onChange={(opt) => {
+                const productId = opt?.value || null;
+                setSelectedProductId(productId);
+                setVariantMeta(null);
+                setVariantForm([]);
+                setVariantsError(null);
+                if (productId && selectedDealerId) {
+                  void fetchDealerVariants(productId, selectedDealerId);
+                }
+              }}
+              placeholder="Ürün seçin..."
+              isClearable
+              isDisabled={!selectedDealerId}
+            />
+          </div>
         </div>
       </div>
+
+      {selectedDealerId && selectedProductId && (
+        <div className="sherah-default-bg sherah-border p-4 mb-4">
+          <h5 className="d-flex align-items-center gap-2">
+            <i className="fa-solid fa-tags"></i>
+            Varyant Fiyatları
+          </h5>
+          {variantMeta && (
+            <p className="text-muted mb-3">
+              {variantMeta.productName} - {variantMeta.dealerName}
+            </p>
+          )}
+          {variantsLoading ? (
+            <div className="text-center py-4">
+              <i className="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
+              <p className="mt-2">Varyant fiyatları yükleniyor...</p>
+            </div>
+          ) : variantsError ? (
+            <div className="alert alert-danger" role="alert">
+              <i className="fa-solid fa-triangle-exclamation me-2"></i>
+              {variantsError}
+            </div>
+          ) : variantForm.length === 0 ? (
+            <div className="alert alert-info" role="alert">
+              Bu ürüne ait varyant bulunamadı.
+            </div>
+          ) : (
+            <>
+              <div className="table-responsive">
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Varyant Kodu</th>
+                      <th>Varyant Boyutu</th>
+                      <th>Fiyatlar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {variantForm.map((variant) => (
+                      <tr key={variant.variantId}>
+                        <td>
+                          <strong>{variant.variantSku}</strong>
+                        </td>
+                        <td>{variant.variantSize ?? "-"}</td>
+                        <td>
+                          <div className="d-flex flex-column gap-2">
+                            {variant.prices.map((price, index) => (
+                              <div
+                                className="d-flex align-items-center gap-2"
+                                key={`${variant.variantId}-${price.currency}-${index}`}
+                              >
+                                <span className="badge bg-secondary">
+                                  {price.currency}
+                                </span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  className="form-control"
+                                  value={price.amount}
+                                  onChange={(event) =>
+                                    handleVariantPriceChange(
+                                      variant.variantId,
+                                      index,
+                                      event.target.value
+                                    )
+                                  }
+                                  placeholder="Fiyat girin"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="d-flex justify-content-end">
+                <button
+                  className="sherah-btn sherah-btn__primary"
+                  onClick={handleSaveVariantPrices}
+                  disabled={savingVariants}
+                >
+                  {savingVariants ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin me-2"></i>
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-floppy-disk me-2"></i>
+                      Varyant Fiyatlarını Kaydet
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Şablon & Export */}
       <div className="sherah-default-bg sherah-border p-4 mb-4">
