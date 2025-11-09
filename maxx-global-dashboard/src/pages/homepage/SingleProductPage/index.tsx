@@ -7,6 +7,7 @@ import ProductView from "../SingleProductPage/ProductView";
 import {
   getProductById,
   type ProductDetail,
+  type ProductPriceInfo,
 } from "../../../services/products/getById";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -149,14 +150,39 @@ export default function ProductPage() {
     return parts.join(" • ");
   }, [selectedVariant]);
 
+  const availablePrices = useMemo<ProductPriceInfo[]>(() => {
+    if (selectedVariant?.prices?.length) {
+      return selectedVariant.prices;
+    }
+
+    if (product?.prices?.length) {
+      return product.prices;
+    }
+
+    return [];
+  }, [product, selectedVariant]);
+
   const selectedPrice = useMemo(() => {
-    if (!selectedVariant?.prices || !selectedVariant.prices.length) return null;
+    if (!availablePrices.length) return null;
+
     return (
-      selectedVariant.prices.find(
+      availablePrices.find(
         (price) => price.amount !== null && price.amount !== undefined
-      ) ?? selectedVariant.prices[0]
+      ) ?? availablePrices[0]
     );
-  }, [selectedVariant]);
+  }, [availablePrices]);
+
+  const resolvedPriceId = useMemo(() => {
+    if (selectedPrice?.productPriceId != null) {
+      return selectedPrice.productPriceId;
+    }
+
+    const priceWithId = availablePrices.find(
+      (price) => price.productPriceId !== null && price.productPriceId !== undefined
+    );
+
+    return priceWithId?.productPriceId ?? null;
+  }, [availablePrices, selectedPrice]);
 
   const formattedPrice = useMemo(() => {
     if (!selectedPrice || selectedPrice.amount === null || selectedPrice.amount === undefined)
@@ -230,7 +256,7 @@ export default function ProductPage() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    const priceId = selectedPrice?.productPriceId ?? null;
+    const priceId = resolvedPriceId;
     if (priceId === null) {
       const result = await MySwal.fire({
         icon: "question",

@@ -54,6 +54,7 @@ export interface ProductDetail {
   images?: ProductImage[];
   variants?: ProductVariant[] | null;
   defaultVariantId?: number | null;
+  prices?: ProductPriceInfo[] | null;
 
   // Ek alanlar (opsiyonel – geriye dönük uyumlu)
   sterile?: boolean | null;
@@ -142,6 +143,37 @@ const norm = (raw: any): ProductDetail => {
 
   const status = normalizeStatus(raw);
 
+  const normalizePriceList = (input: any): ProductPriceInfo[] => {
+    if (!Array.isArray(input)) {
+      return [];
+    }
+
+    return input
+      .map((price: any) => {
+        const amount = parseNumber(price?.amount ?? price?.price);
+        const productPriceId = parseNumber(
+          price?.productPriceId ?? price?.id ?? price?.priceId
+        );
+        const currency =
+          price?.currency ??
+          price?.currencyType ??
+          price?.currencyCode ??
+          price?.currency_code ??
+          null;
+
+        if (amount === null && productPriceId === null && currency === null) {
+          return null;
+        }
+
+        return {
+          productPriceId,
+          currency: currency ? String(currency) : null,
+          amount,
+        } as ProductPriceInfo;
+      })
+      .filter((p: ProductPriceInfo | null): p is ProductPriceInfo => !!p);
+  };
+
   const variants: ProductVariant[] = Array.isArray(raw?.variants)
     ? raw.variants
         .map((variant: any, idx: number) => {
@@ -151,36 +183,7 @@ const norm = (raw: any): ProductDetail => {
           const stockQuantity = parseNumber(
             variant?.stockQuantity ?? variant?.stock ?? variant?.quantity
           );
-          const prices: ProductPriceInfo[] = Array.isArray(variant?.prices)
-            ? variant.prices
-                .map((price: any) => {
-                  const amount = parseNumber(price?.amount ?? price?.price);
-                  const productPriceId = parseNumber(
-                    price?.productPriceId ?? price?.id ?? price?.priceId
-                  );
-                  const currency =
-                    price?.currency ??
-                    price?.currencyType ??
-                    price?.currencyCode ??
-                    price?.currency_code ??
-                    null;
-
-                  if (
-                    amount === null &&
-                    productPriceId === null &&
-                    currency === null
-                  ) {
-                    return null;
-                  }
-
-                  return {
-                    productPriceId,
-                    currency: currency ? String(currency) : null,
-                    amount,
-                  } as ProductPriceInfo;
-                })
-                .filter((p: ProductPriceInfo | null): p is ProductPriceInfo => !!p)
-            : [];
+          const prices: ProductPriceInfo[] = normalizePriceList(variant?.prices);
 
           return {
             id,
@@ -201,6 +204,10 @@ const norm = (raw: any): ProductDetail => {
           size: variant.size != null ? String(variant.size) : null,
         }))
     : [];
+
+  const productPrices = normalizePriceList(
+    raw?.prices ?? raw?.productPrices ?? raw?.priceList ?? null
+  );
 
   const variantStockValues = variants
     .map((variant) => variant.stockQuantity)
@@ -265,6 +272,7 @@ const norm = (raw: any): ProductDetail => {
     images,
     variants: variants.length > 0 ? variants : null,
     defaultVariantId: defaultVariantId ?? null,
+    prices: productPrices.length > 0 ? productPrices : null,
 
     sterile: raw?.sterile ?? null,
     singleUse: raw?.singleUse ?? null,
