@@ -91,6 +91,8 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
     await updateItem(item.id, {
       dealerId: activeDealerId,
+      productId: item.productId,
+      productVariantId: item.productVariantId ?? null,
       productPriceId: item.productPriceId, // item’dan geliyor
       quantity,
     });

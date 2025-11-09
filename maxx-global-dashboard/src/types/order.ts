@@ -1,6 +1,7 @@
 // src/types/order.ts
 export type OrderItem = {
   productId: number;
+  productVariantId?: number | null;
   productPriceId: number | null;
   productName: string;
   quantity: number;

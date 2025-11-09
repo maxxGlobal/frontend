@@ -2,7 +2,9 @@
 
 export interface CartItemRequest {
   dealerId: number;
+  productId: number;
   productPriceId: number | null;
+  productVariantId?: number | null;
   quantity: number;
 }
 

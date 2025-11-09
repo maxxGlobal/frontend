@@ -247,7 +247,19 @@ export default function ProductPage() {
     }
 
     try {
-      await addItem({ productPriceId: priceId, quantity });
+      const rawVariantId =
+        selectedVariant?.id ?? (selectedVariantId != null ? selectedVariantId : null);
+      const variantId =
+        rawVariantId != null && Number.isFinite(Number(rawVariantId))
+          ? Number(rawVariantId)
+          : null;
+
+      await addItem({
+        productId: product.id,
+        productVariantId: variantId,
+        productPriceId: priceId,
+        quantity,
+      });
       const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
       await MySwal.fire({
         icon: "success",

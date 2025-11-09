@@ -70,6 +70,8 @@ export default function MyOrdersPage() {
 
       for (const item of order.items) {
         await addItem({
+          productId: item.productId,
+          productVariantId: item.productVariantId ?? null,
           productPriceId: item.productPriceId ?? null,
           quantity: item.quantity,
         });
