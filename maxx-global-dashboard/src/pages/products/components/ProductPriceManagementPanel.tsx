@@ -632,25 +632,7 @@ export default function ProductPriceManagementPanel() {
                 Seçilen dosya: <strong>{file.name}</strong>
               </div>
             )}
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label">İşlem Seçenekleri</label>
-            <div className="d-flex flex-column gap-2">
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="updateExisting"
-                  checked={updateExisting}
-                  onChange={(e) => setUpdateExisting(e.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="updateExisting">
-                  Mevcut fiyatları güncelle
-                </label>
-              </div> 
-            </div>
-          </div>
+          </div> 
         </div>
 
         {error && (
