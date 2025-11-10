@@ -69,6 +69,8 @@ export interface RegisterUserRequest {
   phoneNumber?: string;
   dealerId?: number;
   roleId: number;
+  authorizedUser: boolean;
+  emailNotifications: boolean;
 }
 
 export interface RegisteredUser {
@@ -76,6 +78,8 @@ export interface RegisteredUser {
   firstName: string;
   lastName: string;
   email: string;
+  authorizedUser?: boolean;
+  emailNotifications?: boolean;
 }
 
 export interface RoleWithPermissions extends RoleMini {

@@ -35,6 +35,8 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
       dealerId: target.dealer?.id,
       roleId: target.roles?.[0]?.id,
       status: target.status == "AKTİF" ? "ACTIVE" : "DELETED",
+      authorizedUser: target.authorizedUser ?? false,
+      emailNotifications: target.emailNotifications ?? false,
     });
   }, [target]);
 
@@ -63,55 +65,72 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setForm((p) => ({
-      ...p,
-      [name]:
-        name === "dealerId" || name === "roleId"
-          ? value
-            ? Number(value)
-            : undefined
-          : value,
+    const targetEl = e.target as HTMLInputElement | HTMLSelectElement;
+    const { name } = targetEl;
+
+    let nextValue: string | number | boolean | undefined = targetEl.value;
+
+    if (
+      targetEl instanceof HTMLInputElement &&
+      targetEl.type === "checkbox"
+    ) {
+      nextValue = targetEl.checked;
+    } else if (name === "dealerId" || name === "roleId") {
+      nextValue = targetEl.value
+        ? Number(targetEl.value)
+        : undefined;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: nextValue,
     }));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    setLoading(true);
-    setError(null);
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError(null);
 
-    const payload: any = {};
+      const payload: any = {};
 
-    if (form.firstName?.trim()) payload.firstName = form.firstName.trim();
-    if (form.lastName?.trim()) payload.lastName = form.lastName.trim();
-    if (form.email?.trim()) payload.email = form.email.trim();
-    if (form.phoneNumber?.trim()) payload.phoneNumber = form.phoneNumber.trim();
-    if (form.address?.trim()) payload.address = form.address.trim();
-    if (form.password?.trim()) payload.password = form.password.trim();
-    if (form.status) payload.status = form.status;
+      if (form.firstName?.trim()) payload.firstName = form.firstName.trim();
+      if (form.lastName?.trim()) payload.lastName = form.lastName.trim();
+      if (form.email?.trim()) payload.email = form.email.trim();
+      if (form.phoneNumber?.trim()) payload.phoneNumber = form.phoneNumber.trim();
+      if (form.address?.trim()) payload.address = form.address.trim();
+      if (form.password?.trim()) payload.password = form.password.trim();
+      if (form.status) payload.status = form.status;
 
-    // ✅ dealerId - sadece değer varsa ekle
-    if (form.dealerId && typeof form.dealerId === 'number') {
-      payload.dealerId = form.dealerId;
+      if (typeof form.authorizedUser === "boolean") {
+        payload.authorizedUser = form.authorizedUser;
+      }
+
+      if (typeof form.emailNotifications === "boolean") {
+        payload.emailNotifications = form.emailNotifications;
+      }
+
+      // ✅ dealerId - sadece değer varsa ekle
+      if (form.dealerId && typeof form.dealerId === "number") {
+        payload.dealerId = form.dealerId;
+      }
+
+      // ✅ roleIds - ARRAY olarak gönder
+      if (form.roleId && typeof form.roleId === "number") {
+        payload.roleIds = [form.roleId]; // ⭐ Burada array yap
+      }
+
+      await updateUser(target.id, payload);
+      onSaved();
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message || "Güncelleme sırasında hata oluştu."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    // ✅ roleIds - ARRAY olarak gönder
-    if (form.roleId && typeof form.roleId === 'number') {
-      payload.roleIds = [form.roleId]; // ⭐ Burada array yap
-    }
- 
-
-    await updateUser(target.id, payload);
-    onSaved();
-  } catch (err: any) {  
-    setError(
-      err?.response?.data?.message || "Güncelleme sırasında hata oluştu."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <>
@@ -290,6 +309,52 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label d-block">Bayi Yetkili Kullanıcısı</label>
+                    <div className="form-check form-switch mt-2">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        name="authorizedUser"
+                        id="modalAuthorizedUser"
+                        checked={!!form.authorizedUser}
+                        onChange={onChange}
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor="modalAuthorizedUser"
+                      >
+                        {form.authorizedUser
+                          ? "Evet, bayi yetkilisi"
+                          : "Hayır"}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label d-block">E-posta Bildirimleri</label>
+                    <div className="form-check form-switch mt-2">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        name="emailNotifications"
+                        id="modalEmailNotifications"
+                        checked={!!form.emailNotifications}
+                        onChange={onChange}
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor="modalEmailNotifications"
+                      >
+                        {form.emailNotifications
+                          ? "Evet, e-posta gönder"
+                          : "Hayır"}
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
