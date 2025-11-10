@@ -30,10 +30,10 @@ export type OrderItemCalculation = {
 export type OrderCalculationResponse = {
   subtotal: number;
   discountAmount: number;
-  totalAmount: number;
+  totalAmount?: number;
   currency: string;
   totalItems: number;
-  itemCalculations: OrderItemCalculation[];
+  itemCalculations?: OrderItemCalculation[];
   stockWarnings: string[];
   discountDescription?: string;
 };

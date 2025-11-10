@@ -222,7 +222,7 @@ export default function ProductPriceManagementPanel() {
     } catch (e: any) {
       MySwal.fire(
         "Hata",
-        e.message || "Varyant fiyatları güncellenemedi",
+          "Varyant fiyatları güncellenemedi. En az bir fiyat girin.",
         "error"
       );
     } finally {
@@ -330,6 +330,7 @@ export default function ProductPriceManagementPanel() {
     try {
       setUploading(true);
       setError(null);
+      setUpdateExisting(true);
 
       const res = isValidation
         ? await validatePriceExcel(selectedDealerId, file)

@@ -404,7 +404,7 @@ export default function ProductPage() {
                     ) : (
                       <p className="text-sm text-qgray mb-4">
                         {variantOptions.length > 0
-                          ? "Seçili varyant için fiyat bilgisi bulunamadı. Siparişiniz fiyatlandırıldıktan sonra bilgilendirileceksiniz."
+                          ? "Fiyat için gerekli yetkiniz yok"
                           : "Bu ürün için fiyat bilgisi bulunamadı. Siparişiniz fiyatlandırıldıktan sonra bilgilendirileceksiniz."}
                       </p>
                     )}

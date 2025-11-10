@@ -357,7 +357,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
           confirmButtonText: "Tamam",
           confirmButtonColor: "#059669",
         });
-      } else if (result.discountAmount > 0) {
+      } else if (result.discountAmount > 0 || result.discountDescription) {
         Swal.fire({
           icon: "success",
           title: "İndirim uygulandı",
@@ -454,7 +454,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         html: `
           <p><strong>Sipariş Numarası:</strong> ${result.orderNumber}</p>
           <p><strong>Toplam Tutar:</strong> ${formatCurrency(
-          result.totalAmount,
+          result.totalAmount <=1 ? "" : result.totalAmount,
           result.currency
         )}</p>
           ${result.hasDiscount

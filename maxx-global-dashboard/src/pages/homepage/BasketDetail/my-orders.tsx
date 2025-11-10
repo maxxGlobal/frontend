@@ -288,15 +288,14 @@ export default function MyOrdersPage() {
                   <div className="flex items-center gap-3 mt-3 sm:mt-0">
                     {/* Sipariş durumu badge */}
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        order.orderStatus === "TAMAMLANDI"
-                          ? "bg-green-100 text-green-700"
-                          : order.orderStatus.includes("IPTAL")
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${order.orderStatus === "TAMAMLANDI"
+                        ? "bg-green-100 text-green-700"
+                        : order.orderStatus.includes("IPTAL")
                           ? "bg-red-100 text-red-700"
                           : order.orderStatus === "DÜZENLEME ONAY BEKLİYOR"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
                     >
                       {order.orderStatus}
                     </span>
@@ -409,36 +408,45 @@ export default function MyOrdersPage() {
                         >
                           {item.productName}
                         </Link>
-                        {item.variantSize} / {item.variantSku} 
+                        {item.variantSize} / {item.variantSku}
                         <p className="text-xs text-gray-500 mt-1">
                           {item.quantity} ×{" "}
-                          {item.unitPrice.toLocaleString("tr-TR", {
-                            style: "currency",
-                            currency: order.currency || "TRY",
-                          })}
+                          {item.unitPrice != null
+                            ? item.unitPrice.toLocaleString("tr-TR", {
+                              style: "currency",
+                              currency: order.currency || "TRY",
+                            })
+                            : "-"}
                         </p>
                       </div>
 
                       <div className="text-sm font-semibold text-gray-700">
-                        {item.totalPrice.toLocaleString("tr-TR", {
-                          style: "currency",
-                          currency: order.currency || "TRY",
-                        })}
+                        {item.totalPrice != null
+                          ? item.totalPrice.toLocaleString("tr-TR", {
+                            style: "currency",
+                            currency:
+                              order.currency == null ? "-" : order.currency || "TRY",
+                          })
+                          : "-"}
                       </div>
                     </div>
                   ))}
+
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">
                   {order.adminNote}
-</p>
+                </p>
                 {/* Toplam tutar */}
                 <div className="flex justify-end mt-4">
                   <p className="font-semibold text-gray-900">
                     Toplam:{" "}
-                    {order.totalAmount.toLocaleString("tr-TR", {
-                      style: "currency",
-                      currency: order.currency || "TRY",
-                    })}
+                    {order.totalAmount != null
+                      ? order.totalAmount.toLocaleString("tr-TR", {
+                        style: "currency",
+                        currency: order.currency || "TRY",
+                      })
+                      : "-"}
+
                   </p>
                 </div>
               </div>

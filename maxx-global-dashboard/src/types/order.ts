@@ -41,9 +41,9 @@ export interface OrderResponse {
   items: OrderItem[];
   orderDate: string;
   orderStatus: string;
-  subtotal: number;
-  discountAmount: number;
-  totalAmount: number;
+  subtotal?: number;
+  discountAmount?: number;
+  totalAmount?: number;
   currency: string;
   notes: string | null;
   adminNote: string | null;
