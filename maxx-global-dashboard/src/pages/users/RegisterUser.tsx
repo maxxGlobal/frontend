@@ -27,6 +27,8 @@ export default function RegisterUser() {
     phoneNumber: "",
     dealerId: "",
     roleId: "",
+    authorizedUser: false,
+    emailNotifications: false,
   });
   const [loading, setLoading] = useState(false);
 
@@ -61,11 +63,17 @@ export default function RegisterUser() {
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    const value =
+      target instanceof HTMLInputElement && target.type === "checkbox"
+        ? target.checked
+        : target.value;
 
-    if (fieldErrors[e.target.name]) {
+    setForm({ ...form, [target.name]: value });
+
+    if (fieldErrors[target.name]) {
       const next = { ...fieldErrors };
-      delete next[e.target.name];
+      delete next[target.name];
       setFieldErrors(next);
     }
   };
@@ -137,6 +145,8 @@ export default function RegisterUser() {
         // PhoneNumber boş ise göndermeme veya boş string gönder
         phoneNumber: form.phoneNumber || "",
         roleId: roleIdNum,
+        authorizedUser: form.authorizedUser,
+        emailNotifications: form.emailNotifications,
       };
 
       // dealerId varsa ekle
@@ -160,6 +170,8 @@ export default function RegisterUser() {
         phoneNumber: "",
         dealerId: "",
         roleId: "",
+        authorizedUser: false,
+        emailNotifications: false,
       });
     } catch (err: any) {
       const parsed = parseApiErrors(err);
@@ -453,6 +465,69 @@ export default function RegisterUser() {
                     </select>
                   </div>
                   {fe("roleId").map((m, i) => (
+                    <div key={i} className="text-danger small mt-1">
+                      {m}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Yetkili Kullanıcı */}
+              <div className="col-lg-6 col-md-6 col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">
+                    Bayi Yetkili Kullanıcısı
+                  </label>
+                  <div className="form-check form-switch mt-2">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      name="authorizedUser"
+                      id="authorizedUser"
+                      checked={form.authorizedUser}
+                      onChange={onChange}
+                    />
+                    <label className="form-check-label" htmlFor="authorizedUser">
+                      {form.authorizedUser
+                        ? "Evet, bayi yetkilisi"
+                        : "Hayır"}
+                    </label>
+                  </div>
+                  {fe("authorizedUser").map((m, i) => (
+                    <div key={i} className="text-danger small mt-1">
+                      {m}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* E-posta Bildirimleri */}
+              <div className="col-lg-6 col-md-6 col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">
+                    E-posta Bildirimleri
+                  </label>
+                  <div className="form-check form-switch mt-2">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      name="emailNotifications"
+                      id="emailNotifications"
+                      checked={form.emailNotifications}
+                      onChange={onChange}
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor="emailNotifications"
+                    >
+                      {form.emailNotifications
+                        ? "Evet, e-posta gönder"
+                        : "Hayır"}
+                    </label>
+                  </div>
+                  {fe("emailNotifications").map((m, i) => (
                     <div key={i} className="text-danger small mt-1">
                       {m}
                     </div>

@@ -30,6 +30,8 @@ export interface UserRow {
   status: string;
   address:string;
   createdAt: string;
+  authorizedUser?: boolean;
+  emailNotifications?: boolean;
 }
 
 export interface RegisterUserRequest {
@@ -41,6 +43,8 @@ export interface RegisterUserRequest {
   phoneNumber?: string;
   dealerId?: number;
   roleId: number;
+  authorizedUser: boolean;
+  emailNotifications: boolean;
 }
 
 export interface RegisteredUser {
@@ -48,6 +52,8 @@ export interface RegisteredUser {
   firstName: string;
   lastName: string;
   email: string;
+  authorizedUser?: boolean;
+  emailNotifications?: boolean;
 }
 
 export interface UserProfile {
@@ -62,18 +68,22 @@ export interface UserProfile {
   status?: string;
   createdAt?: string;
   avatarUrl?: string | null;
+  authorizedUser?: boolean;
+  emailNotifications?: boolean;
 }
 
 export type UpdateUserRequest = Partial<{
   firstName: string;
   lastName: string;
   email: string;
-  address: string;      
-  password: string;     
+  address: string;
+  password: string;
   phoneNumber: string;
   dealerId: number;
   roleId: number; // tek rol veriyorsanız
   status: string; // ör: "ACTIVE" | "PASSIVE" vs.
+  authorizedUser: boolean;
+  emailNotifications: boolean;
 }>;
 
 export type UpdatedUser = UserRow;
