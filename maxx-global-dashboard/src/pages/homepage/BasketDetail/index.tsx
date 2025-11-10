@@ -357,7 +357,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
           confirmButtonText: "Tamam",
           confirmButtonColor: "#059669",
         });
-      } else if (result.discountAmount > 0 || result.discountDescription) {
+    } else if ((result.discountAmount ?? 0) > 0 || result.discountDescription) {
         Swal.fire({
           icon: "success",
           title: "İndirim uygulandı",

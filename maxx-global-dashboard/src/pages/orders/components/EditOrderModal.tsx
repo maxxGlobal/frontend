@@ -150,12 +150,7 @@ export default function EditOrderModal({
   }, [selectedProductId, selectedVariantId, order?.dealerId, order?.currency]);
 
   // Mevcut siparişte olmayan ürünleri filtrele
-  const availableProductsFiltered = useMemo(() => {
-    return availableProducts.filter((product) => {
-      const hasAnyVariant = items.some(item => item.productId === product.id);
-      return !hasAnyVariant  ;
-    });
-  }, [availableProducts, items]);
+ 
 
   const selectedVariantPriceAmount = useMemo(() => {
     if (!selectedProductPrice || !order) return null;
