@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
@@ -50,7 +50,10 @@ export default function Middlebar({ className }: { className?: string }) {
     refetchInterval: 60_000,
   });
 
-  const { items: cartItems } = useCart();
+  const { items: cartItems, refresh: refreshCart } = useCart();
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const [items, setItems] = useState<NotificationRow[]>([]);
