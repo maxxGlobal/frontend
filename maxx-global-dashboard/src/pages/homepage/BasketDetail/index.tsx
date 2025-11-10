@@ -91,6 +91,8 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
     await updateItem(item.id, {
       dealerId: activeDealerId,
+      productId: item.productId,
+      productVariantId: item.productVariantId ?? null,
       productPriceId: item.productPriceId, // item’dan geliyor
       quantity,
     });
@@ -305,7 +307,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
           productPriceId: item.productPriceId,
           quantity: Math.max(1, item.quantity ?? 0),
         }))
-        .filter((product) => product.productPriceId && product.quantity > 0);
+        .filter((product) => product.quantity > 0);
 
       if (!products.length) {
         Swal.fire({
@@ -355,7 +357,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
           confirmButtonText: "Tamam",
           confirmButtonColor: "#059669",
         });
-      } else if (result.discountAmount > 0) {
+      } else if (result.discountAmount > 0 || result.discountDescription) {
         Swal.fire({
           icon: "success",
           title: "İndirim uygulandı",
@@ -395,14 +397,17 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
   const displayedDiscountAmount = useMemo(() => {
     if (calculationResult) {
-      return calculationResult.discountAmount;
+      return calculationResult.discountAmount ?? 0;
     }
     return 0;
   }, [calculationResult]);
 
   const displayedTotal = useMemo(() => {
     if (calculationResult) {
-      return calculationResult.totalAmount;
+      if (calculationResult.totalAmount != null) {
+        return calculationResult.totalAmount;
+      }
+      return calculationResult.subtotal;
     }
     if (typeof subtotal === "number") {
       return subtotal;
@@ -452,7 +457,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         html: `
           <p><strong>Sipariş Numarası:</strong> ${result.orderNumber}</p>
           <p><strong>Toplam Tutar:</strong> ${formatCurrency(
-          result.totalAmount,
+          result.totalAmount <=1 ? "" : result.totalAmount,
           result.currency
         )}</p>
           ${result.hasDiscount
@@ -866,46 +871,51 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-gray-800">Ürünler</h3>
                 <div className="space-y-3">
-                  {previewData.itemCalculations.map((item) => (
-                    <div
-                      key={item.productId}
-                      className="border border-gray-200 rounded-lg p-3"
-                    >
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">{item.productName}</p>
-                          <p className="text-xs text-gray-500">Kod: {item.productCode}</p>
-                          <p className="text-xs text-gray-500 mt-1">Miktar: {item.quantity}</p>
-                        </div>
-                        <div className="text-right text-sm">
-                          {item.discountAmount > 0 ? (
-                            <div>
-                              <div className="line-through text-gray-400">
-                                {formatCurrency(
-                                  item.totalPrice + item.discountAmount,
-                                  previewData.currency
-                                )}
+                  {(previewData.itemCalculations ?? []).map((item) => {
+                    const hasDiscount = (item.discountAmount ?? 0) > 0;
+                    const originalPrice =
+                      item.totalPrice != null && item.discountAmount != null
+                        ? item.totalPrice + item.discountAmount
+                        : null;
+
+                    return (
+                      <div
+                        key={item.productId}
+                        className="border border-gray-200 rounded-lg p-3"
+                      >
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-800">{item.productName}</p>
+                            <p className="text-xs text-gray-500">Kod: {item.productCode}</p>
+                            <p className="text-xs text-gray-500 mt-1">Miktar: {item.quantity}</p>
+                          </div>
+                          <div className="text-right text-sm">
+                            {hasDiscount ? (
+                              <div>
+                                <div className="line-through text-gray-400">
+                                  {formatCurrency(originalPrice, previewData.currency)}
+                                </div>
+                                <div className="font-semibold text-green-600">
+                                  {formatCurrency(item.totalPrice, previewData.currency)}
+                                </div>
+                                <div className="text-xs text-green-500">
+                                  -
+                                  {formatCurrency(
+                                    item.discountAmount,
+                                    previewData.currency
+                                  )}
+                                </div>
                               </div>
-                              <div className="font-semibold text-green-600">
+                            ) : (
+                              <div className="font-semibold">
                                 {formatCurrency(item.totalPrice, previewData.currency)}
                               </div>
-                              <div className="text-xs text-green-500">
-                                -
-                                {formatCurrency(
-                                  item.discountAmount,
-                                  previewData.currency
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="font-semibold">
-                              {formatCurrency(item.totalPrice, previewData.currency)}
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -927,7 +937,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                     {formatCurrency(previewData.subtotal, previewData.currency)}
                   </span>
                 </div>
-                {previewData.discountAmount > 0 && (
+                {(previewData.discountAmount ?? 0) > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>İndirim</span>
                     <span>

@@ -1,7 +1,8 @@
 // src/types/order.ts
 export type OrderItem = {
   productId: number;
-  productPriceId: number;
+  productVariantId?: number | null;
+  productPriceId: number | null;
   productName: string;
   quantity: number;
   unitPrice: number;
@@ -40,9 +41,9 @@ export interface OrderResponse {
   items: OrderItem[];
   orderDate: string;
   orderStatus: string;
-  subtotal: number;
-  discountAmount: number;
-  totalAmount: number;
+  subtotal?: number;
+  discountAmount?: number;
+  totalAmount?: number;
   currency: string;
   notes: string | null;
   adminNote: string | null;
@@ -75,7 +76,7 @@ export interface ListAdminOrdersRequest {
 
 export interface EditOrderBody {
   dealerId: number;
-  products: { productPriceId: number; quantity: number }[];
+  products: { productPriceId: number | null; quantity: number }[];
   discountId: number | null;
   notes?: string;
 }

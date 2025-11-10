@@ -27,11 +27,28 @@ function normalizePrices(raw: any): ProductPrice[] {
     ? raw.productPrices
     : [];
 
-  return arr.map((p: any) => ({
-    productPriceId: Number(p?.productPriceId ?? p?.id ?? 0),
-    currency: String(p?.currency ?? p?.currencyCode ?? "TRY"),
-    amount: Number(p?.amount ?? p?.price ?? p?.value ?? 0),
-  }));
+  return arr
+    .map((p: any) => {
+      const productPriceId = parseNullableNumber(
+        p?.productPriceId ?? p?.id ?? p?.priceId
+      );
+      const amount = parseNullableNumber(p?.amount ?? p?.price ?? p?.value);
+      const currencyValue =
+        p?.currency ?? p?.currencyCode ?? p?.currency_type ?? p?.currencyType;
+
+      if (productPriceId === null && amount === null && !currencyValue) {
+        return null;
+      }
+
+      return {
+        productPriceId,
+        currency: currencyValue != null ? String(currencyValue) : null,
+        amount,
+      } as ProductPrice;
+    })
+    .filter(
+      (price: ProductPrice | null): price is ProductPrice => price !== null
+    );
 }
 
 function parseNullableNumber(value: any): number | null {

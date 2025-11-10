@@ -2,7 +2,9 @@
 
 export interface CartItemRequest {
   dealerId: number;
-  productPriceId: number;
+  productId: number;
+  productPriceId: number | null;
+  productVariantId?: number | null;
   quantity: number;
 }
 
@@ -13,7 +15,7 @@ export interface CartItemResponse {
   productVariantId: number | null;
   variantSku: string | null;
   variantSize: string | null;
-  productPriceId: number;
+  productPriceId: number | null;
   quantity: number;
   availableStock: number | null;
   unitPrice: number | string;

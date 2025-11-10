@@ -180,8 +180,11 @@ export default function EditOrderModal({
     );
   }
 
-  function handleRemoveItem(productId: number, productPriceId: number) {
-    setItems((prev) => prev.filter((it) => 
+  function handleRemoveItem(
+    productId: number,
+    productPriceId: number | null
+  ) {
+    setItems((prev) => prev.filter((it) =>
       !(it.productId === productId && it.productPriceId === productPriceId)
     ));
   }
@@ -358,7 +361,7 @@ export default function EditOrderModal({
                           disabled={loading}
                         >
                           <option value="">Ürün Seçin...</option>
-                          {availableProductsFiltered.map((product) => (
+                          {availableProducts.map((product) => (
                             <option key={product.id} value={product.id}>
                               {product.name} ({product.code})
                             </option>
@@ -492,8 +495,8 @@ export default function EditOrderModal({
                       items.map((it) => (
                         <tr key={`${it.productId}-${it.productPriceId}`}>
                           <td>
-                            <div className="fw-medium">{it.productName}</div>
-                            <small className="text-muted">ID: {it.productPriceId}</small>
+                            <div className="fw-medium">{it.productName}{" "}-{" "} {it.variantSku}</div>
+                            <small className="text-muted">ID: {it.productId}</small>
                           </td>
                           <td>
                             <input

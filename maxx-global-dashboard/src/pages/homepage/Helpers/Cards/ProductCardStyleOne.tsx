@@ -121,17 +121,35 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
         )}
         {d.prices?.length ? (
           <div className="flex flex-wrap gap-2 mt-2">
-            {d.prices.map((p) => (
-              <span
-                key={p.productPriceId}
-                className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
-              >
-                {p.amount.toLocaleString("tr-TR", {
-                  style: "currency",
-                  currency: p.currency || "TRY",
-                })}
-              </span>
-            ))}
+            {d.prices.map((p, idx) => {
+              const key = p.productPriceId ?? `price-${idx}`;
+              const numericAmount =
+                typeof p.amount === "number" && Number.isFinite(p.amount)
+                  ? p.amount
+                  : null;
+              const formattedAmount =
+                numericAmount !== null
+                  ? (() => {
+                      try {
+                        return numericAmount.toLocaleString("tr-TR", {
+                          style: "currency",
+                          currency: p.currency || "TRY",
+                        });
+                      } catch {
+                        return `${numericAmount.toFixed(2)} ${p.currency || ""}`.trim();
+                      }
+                    })()
+                  : "Fiyat bilgisi bekleniyor";
+
+              return (
+                <span
+                  key={key}
+                  className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
+                >
+                  {formattedAmount}
+                </span>
+              );
+            })}
           </div>
         ) : (
           <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>

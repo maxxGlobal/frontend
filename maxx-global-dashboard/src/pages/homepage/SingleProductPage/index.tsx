@@ -7,6 +7,7 @@ import ProductView from "../SingleProductPage/ProductView";
 import {
   getProductById,
   type ProductDetail,
+  type ProductPriceInfo,
 } from "../../../services/products/getById";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -149,14 +150,39 @@ export default function ProductPage() {
     return parts.join(" • ");
   }, [selectedVariant]);
 
+  const availablePrices = useMemo<ProductPriceInfo[]>(() => {
+    if (selectedVariant?.prices?.length) {
+      return selectedVariant.prices;
+    }
+
+    if (product?.prices?.length) {
+      return product.prices;
+    }
+
+    return [];
+  }, [product, selectedVariant]);
+
   const selectedPrice = useMemo(() => {
-    if (!selectedVariant?.prices || !selectedVariant.prices.length) return null;
+    if (!availablePrices.length) return null;
+
     return (
-      selectedVariant.prices.find(
+      availablePrices.find(
         (price) => price.amount !== null && price.amount !== undefined
-      ) ?? selectedVariant.prices[0]
+      ) ?? availablePrices[0]
     );
-  }, [selectedVariant]);
+  }, [availablePrices]);
+
+  const resolvedPriceId = useMemo(() => {
+    if (selectedPrice?.productPriceId != null) {
+      return selectedPrice.productPriceId;
+    }
+
+    const priceWithId = availablePrices.find(
+      (price) => price.productPriceId !== null && price.productPriceId !== undefined
+    );
+
+    return priceWithId?.productPriceId ?? null;
+  }, [availablePrices, selectedPrice]);
 
   const formattedPrice = useMemo(() => {
     if (!selectedPrice || selectedPrice.amount === null || selectedPrice.amount === undefined)
@@ -230,18 +256,36 @@ export default function ProductPage() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    const priceId = selectedPrice?.productPriceId ?? null;
-    if (!priceId) {
-      MySwal.fire({
-        icon: "error",
-        title: "Fiyat bulunamadı",
-        text: "Bu ürün için geçerli bir fiyat seçiniz.",
+    const priceId = resolvedPriceId;
+    if (priceId === null) {
+      const result = await MySwal.fire({
+        icon: "question",
+        title: "Fiyat bilgisi bulunamadı",
+        text: "Bu ürünü fiyat bilgisi olmadan sepete eklemek istediğinize emin misiniz?",
+        confirmButtonText: "Evet, ekle",
+        cancelButtonText: "Vazgeç",
+        showCancelButton: true,
       });
-      return;
+
+      if (!result.isConfirmed) {
+        return;
+      }
     }
 
     try {
-      await addItem({ productPriceId: priceId, quantity });
+      const rawVariantId =
+        selectedVariant?.id ?? (selectedVariantId != null ? selectedVariantId : null);
+      const variantId =
+        rawVariantId != null && Number.isFinite(Number(rawVariantId))
+          ? Number(rawVariantId)
+          : null;
+
+      await addItem({
+        productId: product.id,
+        productVariantId: variantId,
+        productPriceId: priceId,
+        quantity,
+      });
       const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
       await MySwal.fire({
         icon: "success",
@@ -357,11 +401,13 @@ export default function ProductPage() {
                       <p className="text-2xl font-semibold text-qblack mb-4">
                         {formattedPrice}
                       </p>
-                    ) : variantOptions.length > 0 ? (
+                    ) : (
                       <p className="text-sm text-qgray mb-4">
-                        Seçili varyant için fiyat bilgisi bulunamadı.
+                        {variantOptions.length > 0
+                          ? "Fiyat için gerekli yetkiniz yok"
+                          : "Bu ürün için fiyat bilgisi bulunamadı. Siparişiniz fiyatlandırıldıktan sonra bilgilendirileceksiniz."}
                       </p>
-                    ) : null}
+                    )}
 
                     <p
                       className={`text-xl font-medium mb-4 ${

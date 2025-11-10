@@ -3,7 +3,7 @@ import api from "../../lib/api";
 import type { ApiEnvelope } from "../common";
 
 export type OrderProductRequest = {
-  productPriceId: number;
+  productPriceId: number | null;
   quantity: number;
 };
 
@@ -32,7 +32,7 @@ export type OrderResponse = {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
-    productPriceId: number;
+    productPriceId: number | null;
   }>;
   orderDate: string;
   orderStatus: string;
@@ -89,7 +89,10 @@ export async function createOrderWithValidation(
 
   // Ürün validasyonları
   for (const product of request.products) {
-    if (!product.productPriceId || product.productPriceId <= 0) {
+    if (
+      product.productPriceId !== null &&
+      (!Number.isFinite(product.productPriceId) || product.productPriceId <= 0)
+    ) {
       throw new Error("Geçersiz ürün fiyat ID'si");
     }
 
