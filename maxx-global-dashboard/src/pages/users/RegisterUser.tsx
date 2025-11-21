@@ -29,6 +29,7 @@ export default function RegisterUser() {
     roleId: "",
     authorizedUser: false,
     emailNotifications: false,
+    preferredLanguage: "TR",
   });
   const [loading, setLoading] = useState(false);
 
@@ -147,6 +148,7 @@ export default function RegisterUser() {
         roleId: roleIdNum,
         authorizedUser: form.authorizedUser,
         emailNotifications: form.emailNotifications,
+        preferredLanguage: form.preferredLanguage,
       };
 
       // dealerId varsa ekle
@@ -172,6 +174,7 @@ export default function RegisterUser() {
         roleId: "",
         authorizedUser: false,
         emailNotifications: false,
+        preferredLanguage: "TR",
       });
     } catch (err: any) {
       const parsed = parseApiErrors(err);
@@ -528,6 +531,31 @@ export default function RegisterUser() {
                     </label>
                   </div>
                   {fe("emailNotifications").map((m, i) => (
+                    <div key={i} className="text-danger small mt-1">
+                      {m}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tercih Edilen Dil */}
+              <div className="col-lg-6 col-md-6 col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">Tercih Edilen Dil</label>
+                  <div className="form-group__input">
+                    <select
+                      className={`sherah-wc__form-input ${
+                        fe("preferredLanguage").length ? "is-invalid" : ""
+                      }`}
+                      name="preferredLanguage"
+                      value={form.preferredLanguage}
+                      onChange={onChange}
+                    >
+                      <option value="TR">Türkçe</option>
+                      <option value="EN">English</option>
+                    </select>
+                  </div>
+                  {fe("preferredLanguage").map((m, i) => (
                     <div key={i} className="text-danger small mt-1">
                       {m}
                     </div>
