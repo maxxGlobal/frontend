@@ -47,3 +47,12 @@ export async function listNotifications(opts?: {
   );
   return res.data.data;
 }
+
+export async function deleteSentNotification(
+  id: number,
+  opts?: { signal?: AbortSignal }
+) {
+  await api.delete(`/notifications/admin/sent-notifications/${id}`, {
+    signal: opts?.signal,
+  });
+}
