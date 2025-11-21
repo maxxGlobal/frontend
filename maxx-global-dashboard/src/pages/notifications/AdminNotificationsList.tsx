@@ -1,4 +1,5 @@
 // src/pages/notifications/AdminSentNotificationsList.tsx
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 import Swal from "sweetalert2";
@@ -97,8 +98,11 @@ export default function AdminSentNotificationsList() {
       setRows(unique);
       setTotalElements(te);
       setTotalPages(tp);
-    } catch (e: any) {
-      MySwal.fire("Hata", e?.message || "Kayıtlar yüklenemedi", "error");
+    } catch (e: unknown) {
+      const message = axios.isAxiosError(e)
+        ? e.response?.data?.message || e.message
+        : (e as any)?.message;
+      MySwal.fire("Hata", message || "Kayıtlar yüklenemedi", "error");
     } finally {
       setLoading(false);
     }
@@ -147,8 +151,11 @@ export default function AdminSentNotificationsList() {
       } else {
         await load();
       }
-    } catch (e: any) {
-      await MySwal.fire("Hata", e?.message || "Bildirim silinemedi", "error");
+    } catch (e: unknown) {
+      const message = axios.isAxiosError(e)
+        ? e.response?.data?.message || e.message
+        : (e as any)?.message;
+      await MySwal.fire("Hata", message || "Bildirim silinemedi", "error");
     }
   }
 
