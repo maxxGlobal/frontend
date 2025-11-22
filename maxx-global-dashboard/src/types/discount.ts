@@ -75,6 +75,7 @@ export interface Discount {
   hasUsageLeft?: boolean;
   remainingUsage?: number;
   validityStatus?: string;
+  statusDescription?: string;
 
   isCategoryBased?: boolean;
   isVariantBased?: boolean;

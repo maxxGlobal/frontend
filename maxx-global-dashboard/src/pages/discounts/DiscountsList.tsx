@@ -122,16 +122,24 @@ export default function DiscountsList() {
     );
   };
 
-  const statusBadge = (s?: string | null) =>
-    s === "AKTİF" ? (
-      <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
-        AKTİF
+  const statusBadge = (discount: Discount) => {
+    const passive = isPassive(discount);
+    const label =
+      discount.statusDescription ||
+      discount.validityStatus ||
+      discount.status ||
+      (passive ? "PASİF" : "AKTİF");
+
+    return passive ? (
+      <div className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
+        {label}
       </div>
     ) : (
-      <div className="sherah-table__status sherah-color2 sherah-color2__bg--opactity">
-        PASİF
+      <div className="sherah-table__status sherah-color3 sherah-color3__bg--opactity">
+        {label}
       </div>
     );
+  };
 
   return (
     <div className="sherah-table p-0">
@@ -312,7 +320,7 @@ export default function DiscountsList() {
 
                           <td>
                             <div className="sherah-table__product-content sherah-table__product-desc">
-                              {statusBadge(d.status)}
+                              {statusBadge(d)}
                             </div>
                           </td>
 
