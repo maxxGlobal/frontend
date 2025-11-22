@@ -37,6 +37,7 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
       status: target.status == "AKTİF" ? "ACTIVE" : "DELETED",
       authorizedUser: target.authorizedUser ?? false,
       emailNotifications: target.emailNotifications ?? false,
+      preferredLanguage: target.preferredLanguage ?? "TR",
     });
   }, [target]);
 
@@ -109,6 +110,10 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
 
       if (typeof form.emailNotifications === "boolean") {
         payload.emailNotifications = form.emailNotifications;
+      }
+
+      if (form.preferredLanguage) {
+        payload.preferredLanguage = form.preferredLanguage;
       }
 
       // ✅ dealerId - sadece değer varsa ekle
@@ -355,6 +360,19 @@ export default function EditUserModal({ target, onClose, onSaved }: Props) {
                           : "Hayır"}
                       </label>
                     </div>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Tercih Edilen Dil</label>
+                    <select
+                      className="form-select"
+                      name="preferredLanguage"
+                      value={form.preferredLanguage ?? "TR"}
+                      onChange={onChange}
+                    >
+                      <option value="TR">Türkçe</option>
+                      <option value="EN">English</option>
+                    </select>
                   </div>
                 </div>
               </div>

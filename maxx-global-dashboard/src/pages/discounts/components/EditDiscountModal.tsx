@@ -42,7 +42,11 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
 
   // Form alanları
   const [name, setName] = useState(target.name ?? "");
+  const [nameEn, setNameEn] = useState(target.nameEn ?? "");
   const [description, setDescription] = useState(target.description ?? "");
+  const [descriptionEn, setDescriptionEn] = useState(
+    target.descriptionEn ?? ""
+  );
   const [discountType, setDiscountType] = useState<DiscountTypeCanonical>(
     normalizeDiscountType((target as any).discountType)
   );
@@ -80,6 +84,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
     target.priority != null ? String(target.priority) : ""
   );
   const [stackable, setStackable] = useState<boolean>(!!target.stackable);
+  const [configurationSummary, setConfigurationSummary] = useState<string>(
+    target.configurationSummary ?? ""
+  );
 
   // Seçenekler
   const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
@@ -120,7 +127,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   // Target değiştiğinde formu güncelle
   useEffect(() => {
     setName(target.name ?? "");
+    setNameEn(target.nameEn ?? "");
     setDescription(target.description ?? "");
+    setDescriptionEn(target.descriptionEn ?? "");
     setDiscountType(normalizeDiscountType((target as any).discountType));
     setDiscountValue(target.discountValue ?? 0);
     setStartDate(toInputLocal(target.startDate));
@@ -146,6 +155,7 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
     setAutoApply(!!target.autoApply);
     setPriority(target.priority != null ? String(target.priority) : "");
     setStackable(!!target.stackable);
+    setConfigurationSummary(target.configurationSummary ?? "");
 
     // ✅ Variant ID'leri
     const vIds =
@@ -329,6 +339,10 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       Swal.fire("Uyarı", "Ad zorunludur.", "warning");
       return;
     }
+    if (!nameEn.trim()) {
+      Swal.fire("Uyarı", "Ad (EN) zorunludur.", "warning");
+      return;
+    }
     if (!startDate || !endDate) {
       Swal.fire("Uyarı", "Başlangıç/Bitiş tarihleri zorunludur.", "warning");
       return;
@@ -387,7 +401,9 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
 
     const payload: DiscountUpdateRequest = {
       name: name.trim(),
+      nameEn: nameEn.trim() || name.trim(),
       description: description?.trim() || "",
+      descriptionEn: descriptionEn?.trim() || description?.trim() || "",
       discountType,
       discountValue: Number(discountValue),
       startDate: ensureSeconds(startDate),
@@ -412,6 +428,17 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
       autoApply,
       priority: prio,
       stackable,
+      dealerBasedDiscount: dealerIds.length > 0,
+      variantBasedDiscount: discountScope === "variant",
+      categoryBasedDiscount: discountScope === "category",
+      generalDiscount: discountScope === "general",
+      discountScope:
+        discountScope === "variant"
+          ? "VARIANT"
+          : discountScope === "category"
+            ? "CATEGORY"
+            : "GENERAL",
+      configurationSummary: configurationSummary.trim() || undefined,
     };
 
     try {
@@ -462,11 +489,31 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
               </div>
 
               <div className="mb-3">
+                <label className="form-label">Ad (EN) *</label>
+                <input
+                  className="form-control"
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  placeholder="Discount Name"
+                />
+              </div>
+
+              <div className="mb-3">
                 <label className="form-label">Açıklama</label>
                 <input
                   className="form-control"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Description (EN)</label>
+                <input
+                  className="form-control"
+                  value={descriptionEn}
+                  onChange={(e) => setDescriptionEn(e.target.value)}
+                  placeholder="Discount description"
                 />
               </div>
 
@@ -930,6 +977,18 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
                     placeholder="örn. 1"
                   />
                 </div>
+              </div>
+
+              {/* Yapılandırma Özeti */}
+              <div className="mb-3">
+                <label className="form-label">Yapılandırma Özeti</label>
+                <textarea
+                  className="form-control"
+                  value={configurationSummary}
+                  onChange={(e) => setConfigurationSummary(e.target.value)}
+                  rows={3}
+                  placeholder="Notlar veya yapılandırma özeti"
+                />
               </div>
 
               {/* Checkbox'lar */}

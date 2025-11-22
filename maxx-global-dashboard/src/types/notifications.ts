@@ -9,7 +9,9 @@ export interface NotificationType {
 /** Admin broadcast isteği */
 export interface AdminBroadcastRequest {
   title: string;
+  titleEn?: string;
   message: string;
+  messageEn?: string;
   type: string; // NotificationType.name
   relatedEntityId?: number | null;
   relatedEntityType?: string | null;

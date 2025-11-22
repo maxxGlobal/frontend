@@ -1,10 +1,14 @@
 // src/pages/notifications/AdminSentNotificationsList.tsx
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-import { listSentNotifications } from "../../services/notifications/list";
+import {
+  deleteSentNotification,
+  listSentNotifications,
+} from "../../services/notifications/list";
 import { listNotificationTypes } from "../../services/notifications/listTypes";
 
 import type {
@@ -94,8 +98,11 @@ export default function AdminSentNotificationsList() {
       setRows(unique);
       setTotalElements(te);
       setTotalPages(tp);
-    } catch (e: any) {
-      MySwal.fire("Hata", e?.message || "Kayıtlar yüklenemedi", "error");
+    } catch (e: unknown) {
+      const message = axios.isAxiosError(e)
+        ? e.response?.data?.message || e.message
+        : (e as any)?.message;
+      MySwal.fire("Hata", message || "Kayıtlar yüklenemedi", "error");
     } finally {
       setLoading(false);
     }
@@ -121,6 +128,36 @@ export default function AdminSentNotificationsList() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, size]);
+
+  async function handleDelete(id: number) {
+    const res = await MySwal.fire({
+      title: "Emin misiniz?",
+      text: "Bu bildirimi silmek üzeresiniz.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Evet, sil",
+      cancelButtonText: "Vazgeç",
+      confirmButtonColor: "#d33",
+    });
+
+    if (!res.isConfirmed) return;
+
+    try {
+      await deleteSentNotification(id);
+      await MySwal.fire("Başarılı", "Bildirim silindi.", "success");
+
+      if (rows.length === 1 && page > 0) {
+        setPage((p) => Math.max(0, p - 1));
+      } else {
+        await load();
+      }
+    } catch (e: unknown) {
+      const message = axios.isAxiosError(e)
+        ? e.response?.data?.message || e.message
+        : (e as any)?.message;
+      await MySwal.fire("Hata", message || "Bildirim silinemedi", "error");
+    }
+  }
 
   return (
     <div className="sherah-table p-0">
@@ -219,18 +256,25 @@ export default function AdminSentNotificationsList() {
                               : "-"}
                           </td>
                           <td className="text-end">
-                            {r.actionUrl ? (
-                              <a
-                                className="btn btn-sm btn-outline-secondary"
-                                href={r.actionUrl}
-                                target="_blank"
-                                rel="noreferrer"
+                            <div className="d-flex justify-content-end gap-2">
+                              {r.actionUrl ? (
+                                <a
+                                  className="btn btn-sm btn-outline-secondary"
+                                  href={r.actionUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Aç
+                                </a>
+                              ) : null}
+
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => handleDelete(r.id)}
                               >
-                                Aç
-                              </a>
-                            ) : (
-                              <span className="text-muted small">—</span>
-                            )}
+                                Sil
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

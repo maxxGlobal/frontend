@@ -24,7 +24,9 @@ export default function DiscountCreate() {
 
   // Form state
   const [name, setName] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [description, setDescription] = useState<string>("");
+  const [descriptionEn, setDescriptionEn] = useState<string>("");
   const [discountType, setDiscountType] = useState<
     "PERCENTAGE" | "FIXED_AMOUNT"
   >("PERCENTAGE");
@@ -39,8 +41,13 @@ export default function DiscountCreate() {
   const [usageLimit, setUsageLimit] = useState<string>("");
   const [usageLimitPerCustomer, setUsageLimitPerCustomer] =
     useState<string>("");
-  const [discountCode, setDiscountCode] = useState<string>(""); 
-  const [priority, setPriority] = useState<string>(""); 
+  const [discountCode, setDiscountCode] = useState<string>("");
+  const [priority, setPriority] = useState<string>("");
+  const [isActive, setIsActive] = useState<boolean>(true);
+  const [autoApply, setAutoApply] = useState<boolean>(true);
+  const [stackable, setStackable] = useState<boolean>(true);
+  const [configurationSummary, setConfigurationSummary] =
+    useState<string>("");
 
   // Seçenekler
   const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
@@ -209,6 +216,10 @@ export default function DiscountCreate() {
       Swal.fire("Uyarı", "Ad zorunludur.", "warning");
       return;
     }
+    if (!nameEn.trim()) {
+      Swal.fire("Uyarı", "Ad (EN) zorunludur.", "warning");
+      return;
+    }
     if (!startDate || !endDate) {
       Swal.fire("Uyarı", "Başlangıç ve Bitiş tarihi zorunludur.", "warning");
       return;
@@ -265,7 +276,9 @@ export default function DiscountCreate() {
 
     const payload: DiscountCreateRequest = {
       name: name.trim(),
+      nameEn: nameEn.trim() || name.trim(),
       description: description?.trim() || "",
+      descriptionEn: descriptionEn?.trim() || description?.trim() || "",
       discountType,
       discountValue: Number(discountValue),
       startDate: ensureSeconds(startDate),
@@ -285,8 +298,22 @@ export default function DiscountCreate() {
           : Number(maximumDiscountAmount),
       usageLimit: ul,
       usageLimitPerCustomer: ulpc,
-      discountCode: discountCode.trim() || undefined, 
-      priority: prio 
+      discountCode: discountCode.trim() || undefined,
+      priority: prio,
+      isActive,
+      autoApply,
+      stackable,
+      dealerBasedDiscount: dealerIds.length > 0,
+      variantBasedDiscount: discountScope === "variant",
+      categoryBasedDiscount: discountScope === "category",
+      generalDiscount: discountScope === "general",
+      discountScope:
+        discountScope === "variant"
+          ? "VARIANT"
+          : discountScope === "category"
+            ? "CATEGORY"
+            : "GENERAL",
+      configurationSummary: configurationSummary.trim() || undefined
     };
 
     try {
@@ -337,6 +364,23 @@ export default function DiscountCreate() {
             </div>
           </div>
 
+          {/* Ad (EN) */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Ad (EN) *</label>
+              <div className="form-group__input">
+                <input
+                  type="text"
+                  className="sherah-wc__form-input"
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  required
+                  placeholder="Discount Name"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Açıklama */}
           <div className="col-lg-6 col-12">
             <div className="form-group">
@@ -348,6 +392,22 @@ export default function DiscountCreate() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="İndirim Açıklaması"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Description (EN) */}
+          <div className="col-lg-6 col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Description (EN)</label>
+              <div className="form-group__input">
+                <input
+                  type="text"
+                  className="sherah-wc__form-input"
+                  value={descriptionEn}
+                  onChange={(e) => setDescriptionEn(e.target.value)}
+                  placeholder="Discount description"
                 />
               </div>
             </div>
@@ -422,6 +482,55 @@ export default function DiscountCreate() {
                   min="0"
                   max="100"
                   placeholder="örn. 10"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Durum ve Uygulama Ayarları */}
+          <div className="col-lg-4 col-12">
+            <div className="form-group d-flex align-items-center justify-content-between">
+              <label className="sherah-wc__form-label mb-0">Aktif</label>
+              <div className="form-check form-switch m-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="discountActive"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-4 col-12">
+            <div className="form-group d-flex align-items-center justify-content-between">
+              <label className="sherah-wc__form-label mb-0">Otomatik Uygula</label>
+              <div className="form-check form-switch m-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="discountAutoApply"
+                  checked={autoApply}
+                  onChange={(e) => setAutoApply(e.target.checked)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-4 col-12">
+            <div className="form-group d-flex align-items-center justify-content-between">
+              <label className="sherah-wc__form-label mb-0">Birlikte Kullanılabilir</label>
+              <div className="form-check form-switch m-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="discountStackable"
+                  checked={stackable}
+                  onChange={(e) => setStackable(e.target.checked)}
                 />
               </div>
             </div>
@@ -1037,7 +1146,23 @@ export default function DiscountCreate() {
                 />
               </div>
             </div>
-          </div> 
+          </div>
+
+          {/* Yapılandırma Özeti */}
+          <div className="col-12">
+            <div className="form-group">
+              <label className="sherah-wc__form-label">Yapılandırma Özeti</label>
+              <div className="form-group__input">
+                <textarea
+                  className="sherah-wc__form-input"
+                  value={configurationSummary}
+                  onChange={(e) => setConfigurationSummary(e.target.value)}
+                  rows={3}
+                  placeholder="Notlar veya yapılandırma özeti"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <button
