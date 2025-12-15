@@ -20,6 +20,19 @@ const resources = {
         logout: "Çıkış Yap",
         viewAll: "Tümünü Gör",
       },
+      footer: {
+        logoAlt: "Medintera logosu",
+        description:
+          "Medintera olarak, savunma ve medikal sektörlerinde en yenilikçi ve güvenilir üretim ortağı olmayı, teknolojiyi en üst düzeyde kullanarak global ölçekte tanınan bir marka haline gelmeyi hedefliyoruz.",
+        aboutTitle: "Hakkımızda",
+        aboutLink: "Hakkımızda",
+        productsTitle: "Ürünler",
+        productsLink: "Ürünlerimiz",
+        contactTitle: "İletişim",
+        contactLink: "Bize Ulaşın",
+        brand: "Medintera",
+        rights: " Her hakkı saklıdır",
+      },
       header: {
         notifications: {
           title: "Bildirimler",
@@ -340,6 +353,19 @@ const resources = {
           search: "Search",
           logout: "Logout",
           viewAll: "View All",
+        },
+        footer: {
+          logoAlt: "Medintera logo",
+          description:
+            "As Medintera, we aim to be the most innovative and reliable production partner in the defense and medical industries, becoming a globally recognized brand by using technology at the highest level.",
+          aboutTitle: "About Us",
+          aboutLink: "About Us",
+          productsTitle: "Products",
+          productsLink: "Our Products",
+          contactTitle: "Contact",
+          contactLink: "Contact Us",
+          brand: "Medintera",
+          rights: " All rights reserved",
         },
       header: {
         notifications: {

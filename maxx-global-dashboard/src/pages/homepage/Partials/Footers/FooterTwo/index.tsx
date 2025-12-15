@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Facebook from "../../../Helpers/icons/Facebook";
 import Instagram from "../../../Helpers/icons/Instagram";
 import Youtube from "../../../Helpers/icons/Youtube";
 const Logo = "/assets/img/medintera-logo.png";
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="footer-section-wrapper bg-white">
       <div className="container-x block mx-auto pt-[30px]">
@@ -13,15 +16,17 @@ export default function Footer() {
             {/* logo area */}
             <div className="mb-5">
               <Link to="/homepage">
-                <img width="260" height="20" src={Logo} alt="logo" />
+                <img
+                  width="260"
+                  height="20"
+                  src={Logo}
+                  alt={t("footer.logoAlt")}
+                />
               </Link>
             </div>
             <div>
               <p className="text-[#9A9A9A] text-[15px] w-[300px] leading-[28px]">
-                Medintera olarak, savunma ve medikal sektörlerinde en yenilikçi
-                ve güvenilir üretim ortağı olmayı, teknolojiyi en üst düzeyde
-                kullanarak global ölçekte tanınan bir marka haline gelmeyi
-                hedefliyoruz.
+                {t("footer.description")}
               </p>
             </div>
           </div>
@@ -29,7 +34,7 @@ export default function Footer() {
             <div className="lg:w-2/10 w-full mb-10 lg:mb-0">
               <div className="mb-5">
                 <h6 className="text-[18] font-500 text-[#2F2F2F]">
-                  Hakkımızda
+                  {t("footer.aboutTitle")}
                 </h6>
               </div>
               <div>
@@ -37,7 +42,7 @@ export default function Footer() {
                   <li>
                     <Link to="/homepage/about">
                       <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                        Hakkımızda
+                        {t("footer.aboutLink")}
                       </span>
                     </Link>
                   </li>
@@ -69,14 +74,16 @@ export default function Footer() {
           </div> */}
             <div className="lg:w-2/10 w-full mb-10 lg:mb-0">
               <div className="mb-5">
-                <h6 className="text-[18] font-500 text-[#2F2F2F]">Ürünler</h6>
+                <h6 className="text-[18] font-500 text-[#2F2F2F]">
+                  {t("footer.productsTitle")}
+                </h6>
               </div>
               <div>
                 <ul className="flex flex-col space-y-5 ">
                   <li>
                     <Link to="/homepage/all-product">
                       <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                        Ürünlerimiz
+                        {t("footer.productsLink")}
                       </span>
                     </Link>
                   </li>
@@ -85,14 +92,16 @@ export default function Footer() {
             </div>
             <div className="lg:w-2/10 w-full mb-10 lg:mb-0">
               <div className="mb-5">
-                <h6 className="text-[18] font-500 text-[#2F2F2F]">İletişim</h6>
+                <h6 className="text-[18] font-500 text-[#2F2F2F]">
+                  {t("footer.contactTitle")}
+                </h6>
               </div>
               <div>
                 <ul className="flex flex-col space-y-5 ">
                   <li>
                     <Link to="/homepage/contact">
                       <span className="text-[#9A9A9A] text-[15px] hover:text-qblack border-b border-transparent hover:border-qblack">
-                        Bize Ulaşın
+                        {t("footer.contactLink")}
                       </span>
                     </Link>
                   </li>
@@ -122,9 +131,9 @@ export default function Footer() {
                 rel="noreferrer"
                 className="font-500 text-qblack mx-1"
               >
-                Medintera
+                {t("footer.brand")}
               </a>
-              Her hakkı saklıdır
+              {t("footer.rights")}
             </div>
           </div>
         </div>
