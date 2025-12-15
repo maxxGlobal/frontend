@@ -104,6 +104,51 @@ const resources = {
             favoritesErrorText: "Favori işlemi başarısız",
           },
         },
+        flashSale: {
+          metaTitle: "Medintera – Bayi İndirimleri",
+          metaDescription: "Bayi İndirimleri",
+          pageTitle: "Bayi İndirimleri",
+          breadcrumbs: {
+            home: "AnaSayfa",
+            flashSale: "İndirimler",
+          },
+          errors: {
+            missingDealer:
+              "Bayi bilgisi bulunamadı. Lütfen giriş yapmayı kontrol edin.",
+            fetchFailed:
+              "İndirimli ürünler getirilemedi. Lütfen sayfayı yenileyin.",
+          },
+          fallbackDescription: "Özel indirim kampanyası",
+          modal: {
+            title: "{{discountName}} - Geçerli Ürünler ({{count}})",
+            noProducts: "Bu indirim için ürün bulunamadı.",
+            discounted: "İndirimli",
+            close: "Kapat",
+          },
+          stats: {
+            applicableProducts: "Geçerli Ürün",
+            viewProducts: "Ürünleri Görüntüle",
+            minimumOrder: "Minimum sipariş tutarı:",
+            maximumDiscount: "Maksimum indirim:",
+            campaignDates: "Kampanya Tarihleri",
+            start: "Başlangıç:",
+            end: "Bitiş:",
+            usageStatus: "Kullanım Durumu",
+          },
+          daysLeft: {
+            expired: "Süresi dolmuş",
+            remaining: "{{count}} gün kaldı",
+          },
+          empty: {
+            title: "Henüz indirim bulunmuyor",
+            description: "Bu bayi için aktif indirim kampanyası bulunmamaktadır.",
+          },
+          popover: {
+            products: "Ürünler ({{count}})",
+            dealers: "Bayiler ({{count}})",
+            separator: " / ",
+          },
+        },
         about: {
           metaTitle: "Medintera – Hakkımızda",
           metaDescription: "Hakkımızda",
@@ -367,6 +412,51 @@ const resources = {
             loading: "Loading…",
             favoritesErrorTitle: "Error",
             favoritesErrorText: "Favorite action failed",
+          },
+        },
+        flashSale: {
+          metaTitle: "Medintera – Dealer Discounts",
+          metaDescription: "Dealer Discounts",
+          pageTitle: "Dealer Discounts",
+          breadcrumbs: {
+            home: "Home",
+            flashSale: "Discounts",
+          },
+          errors: {
+            missingDealer:
+              "Dealer information could not be found. Please check your login.",
+            fetchFailed:
+              "Discounted products could not be loaded. Please refresh the page.",
+          },
+          fallbackDescription: "Exclusive discount campaign",
+          modal: {
+            title: "{{discountName}} - Applicable Products ({{count}})",
+            noProducts: "No products found for this discount.",
+            discounted: "Discounted",
+            close: "Close",
+          },
+          stats: {
+            applicableProducts: "Applicable Product",
+            viewProducts: "View Products",
+            minimumOrder: "Minimum order amount:",
+            maximumDiscount: "Maximum discount:",
+            campaignDates: "Campaign Dates",
+            start: "Start:",
+            end: "End:",
+            usageStatus: "Usage Status",
+          },
+          daysLeft: {
+            expired: "Expired",
+            remaining: "{{count}} days left",
+          },
+          empty: {
+            title: "No discounts yet",
+            description: "There are no active discount campaigns for this dealer.",
+          },
+          popover: {
+            products: "Products ({{count}})",
+            dealers: "Dealers ({{count}})",
+            separator: " / ",
           },
         },
         about: {

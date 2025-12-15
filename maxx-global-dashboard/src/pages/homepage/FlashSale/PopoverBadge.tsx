@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Item = { id: number; name?: string };
 
@@ -11,6 +12,7 @@ export default function PopoverBadge({ products = [], dealers = [] }: Props) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<number | null>(null);
+  const { t } = useTranslation();
 
   const productCount = products.length;
   const dealerCount = dealers.length;
@@ -34,8 +36,10 @@ export default function PopoverBadge({ products = [], dealers = [] }: Props) {
     timerRef.current = window.setTimeout(() => setOpen(false), 150);
   };
 
-  const btnText = `${productCount ? `${productCount} ürün` : ""}${
-    dealerCount ? `${productCount ? " / " : ""}${dealerCount} bayi` : ""
+  const btnText = `${productCount ? t("pages.flashSale.popover.products", { count: productCount }) : ""}${
+    dealerCount
+      ? `${productCount ? t("pages.flashSale.popover.separator") : ""}${t("pages.flashSale.popover.dealers", { count: dealerCount })}`
+      : ""
   }`;
 
   return (
@@ -73,7 +77,7 @@ export default function PopoverBadge({ products = [], dealers = [] }: Props) {
           {productCount > 0 && (
             <div className="mb-3">
               <p className="font-semibold mb-4 text-gray-700">
-                Ürünler ({productCount})
+                {t("pages.flashSale.popover.products", { count: productCount })}
               </p>
               <div className="flex flex-wrap gap-1">
                 {products.map((p) => (
@@ -91,7 +95,7 @@ export default function PopoverBadge({ products = [], dealers = [] }: Props) {
           {dealerCount > 0 && (
             <div>
               <p className="font-semibold mb-4 text-gray-700">
-                Bayiler ({dealerCount})
+                {t("pages.flashSale.popover.dealers", { count: dealerCount })}
               </p>
               <div className="flex flex-wrap gap-1">
                 {dealers.map((d) => (
