@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { useTranslation } from "react-i18next";
 
 import Cart from "../../../Cart";
 import ThinBag from "../../../Helpers/icons/ThinBag";
@@ -19,24 +20,33 @@ import {
 import { listNotifications } from "../../../../../services/notifications/list";
 import type { NotificationRow } from "../../../../../types/notifications";
 import { useCart } from "../../../Helpers/CartContext";
+import LanguageSwitcher from "../../../Helpers/LanguageSwitcher";
 
 const MySwal = withReactContent(Swal);
 const qkUnread = ["notifications", "unreadCount"];
 
-function formatTimeAgo(iso?: string | null) {
-  if (!iso) return "";
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "az önce";
-  if (mins < 60) return `${mins} dk`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} sa`;
-  return `${Math.floor(hrs / 24)} gün`;
-}
-
 export default function Middlebar({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const formatTimeAgo = useMemo(
+    () =>
+      (iso?: string | null) => {
+        if (!iso) return "";
+        const diff = Date.now() - new Date(iso).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return t("header.notifications.timeAgo.justNow");
+        if (mins < 60)
+          return t("header.notifications.timeAgo.minutes", { count: mins });
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24)
+          return t("header.notifications.timeAgo.hours", { count: hrs });
+        return t("header.notifications.timeAgo.days", {
+          count: Math.floor(hrs / 24),
+        });
+      },
+    [t]
+  );
 
   const { data: wishlistCount = 0 } = useQuery<number>({
     queryKey: ["favoriteCount"],
@@ -73,12 +83,12 @@ export default function Middlebar({ className }: { className?: string }) {
 
   const handleMarkAll = async () => {
     const confirm = await MySwal.fire({
-      title: "Tümünü Oku?",
-      text: "Tüm bildirimleri okundu olarak işaretlemek istiyor musunuz?",
+      title: t("header.notifications.markAllTitle"),
+      text: t("header.notifications.markAllBody"),
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Evet",
-      cancelButtonText: "Vazgeç",
+      confirmButtonText: t("header.notifications.confirm"),
+      cancelButtonText: t("header.notifications.cancel"),
     });
     if (!confirm.isConfirmed) return;
 
@@ -90,9 +100,17 @@ export default function Middlebar({ className }: { className?: string }) {
       qc.setQueryData<number>(qkUnread, 0);
       await qc.invalidateQueries({ queryKey: qkUnread });
 
-      await MySwal.fire("Tamam", "Tüm bildirimler okundu.", "success");
+      await MySwal.fire(
+        t("header.notifications.confirm"),
+        t("header.notifications.success"),
+        "success"
+      );
     } catch (err: any) {
-      await MySwal.fire("Hata", err?.message ?? "İşlem başarısız", "error");
+      await MySwal.fire(
+        t("header.notifications.error"),
+        err?.message ?? t("header.notifications.error"),
+        "error"
+      );
     } finally {
       setUpdating(false);
     }
@@ -121,6 +139,7 @@ export default function Middlebar({ className }: { className?: string }) {
           </div>
 
           <div className="flex gap-4 items-center">
+            <LanguageSwitcher className="hidden md:flex" />
             <div
               className="group relative py-4"
               onMouseEnter={loadNotifications}
@@ -145,14 +164,14 @@ export default function Middlebar({ className }: { className?: string }) {
                     {items.length > 0 && (
                       <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200">
                         <h3 className="text-qblack font-semibold">
-                          Bildirimler
+                          {t("header.notifications.title")}
                         </h3>
                         <div className="flex gap-2">
                           <button
                             onClick={handleMarkAll}
                             disabled={updating}
                             className="text-white bg-qh2-green border p-1 rounded py-0 cursor-pointer"
-                            title="Tümünü okundu işaretle"
+                            title={t("header.notifications.markAllTitle")}
                           >
                             ✓
                           </button>
@@ -162,10 +181,12 @@ export default function Middlebar({ className }: { className?: string }) {
 
                     <div className="product-items max-h-[310px] overflow-y-auto">
                       {loading ? (
-                        <div className="p-4 text-center">Yükleniyor…</div>
+                        <div className="p-4 text-center">
+                          {t("header.notifications.loading")}
+                        </div>
                       ) : items.length === 0 ? (
                         <div className="p-4 text-center text-gray-500">
-                          Bildirim yok
+                          {t("header.notifications.empty")}
                         </div>
                       ) : (
                         <ul>
@@ -190,7 +211,8 @@ export default function Middlebar({ className }: { className?: string }) {
                                   {n.message}
                                 </span>
                                 <span className="text-gray-500 text-[11px] mt-1">
-                                  {formatTimeAgo(n.createdAt)} önce
+                                  {formatTimeAgo(n.createdAt)}{" "}
+                                  {t("header.notifications.timeAgoSuffix")}
                                 </span>
                               </div>
                             </li>
@@ -204,16 +226,15 @@ export default function Middlebar({ className }: { className?: string }) {
                         <div className="px-4 mt-4 border-t border-gray-200 pt-4">
                           <Link to="/homepage/notifications">
                             <div className="bg-yellow-500 text-white w-full h-[45px] flex items-center justify-center rounded-md">
-                              <span>Tüm Bildirimleri Gör</span>
+                              <span>{t("header.notifications.viewAll")}</span>
                             </div>
                           </Link>
                         </div>
                         <div className="px-4 mt-4 border-t border-gray-200 py-3 text-center">
                           <p className="text-[13px] font-medium text-qgray">
                             <span className="text-qblack">
-                              Tüm bildiriminizi
-                            </span>{" "}
-                            görüntülemek için yukarıdaki butona tıklayın.
+                              {t("header.notifications.viewAllHint")}
+                            </span>
                           </p>
                         </div>
                       </>
@@ -254,7 +275,7 @@ export default function Middlebar({ className }: { className?: string }) {
                   <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path>
                 </svg>
               </div>
-              <div className="text">Çıkış Yap</div>
+              <div className="text">{t("common.logout")}</div>
             </button>
           </div>
         </div>
