@@ -2,6 +2,7 @@ import Star from "../Helpers/icons/Star";
 import InputCom from "../Helpers/InputCom";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import StarRating from "../Helpers/StarRating";
+import { useTranslation } from "react-i18next";
 
 export default function Reviews({
   comments,
@@ -20,6 +21,7 @@ export default function Reviews({
   hoverHandler,
   reviewLoading,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="review-wrapper w-full">
       <div className="w-full reviews mb-[60px]">
@@ -39,7 +41,7 @@ export default function Reviews({
                         src={`${
                           import.meta.env.VITE_PUBLIC_URL
                         }/assets/images/comment-user-1.png`}
-                        alt=""
+                        alt={t("pages.singleProduct.reviews.defaultUserAlt")}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -48,7 +50,7 @@ export default function Reviews({
                         {comment.author}
                       </p>
                       <p className="text-[13px] font-normal text-qgray">
-                        London,UK
+                        {t("pages.singleProduct.reviews.defaultLocation")}
                       </p>
                     </div>
                   </div>
@@ -81,22 +83,22 @@ export default function Reviews({
                         <div className="flex space-x-3 items-center">
                           <div className="w-[50px] h-[50px] rounded-full overflow-hidden">
                             <img
-                              src={`${
-                                import.meta.env.VITE_PUBLIC_URL
-                              }/assets/images/comment-user-2.png`}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-[18px] font-medium text-qblack">
-                              {reply.author}
-                            </p>
-                            <p className="text-[13px] font-normal text-qgray">
-                              London,UK
-                            </p>
-                          </div>
-                        </div>
+                          src={`${
+                            import.meta.env.VITE_PUBLIC_URL
+                          }/assets/images/comment-user-2.png`}
+                          alt={t("pages.singleProduct.reviews.defaultUserAlt")}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[18px] font-medium text-qblack">
+                          {reply.author}
+                        </p>
+                        <p className="text-[13px] font-normal text-qgray">
+                          {t("pages.singleProduct.reviews.defaultLocation")}
+                        </p>
+                      </div>
+                    </div>
                       </div>
                       <div className="comment mb-[30px]">
                         <p className="text-[15px] text-qgray leading-7 text-normal">
@@ -114,13 +116,13 @@ export default function Reviews({
             type="button"
             className="black-btn w-[300px] h-[50px] text-sm font-semibold"
           >
-            Load More
+            {t("pages.singleProduct.reviews.loadMore")}
           </button>
         </div>
       </div>
       <div className="write-review w-full">
         <h1 className="text-2xl font-medium text-qblack mb-5">
-          Write Your Reviews
+          {t("pages.singleProduct.reviews.title")}
         </h1>
 
         <div className="flex space-x-1 items-center mb-[30px]">
@@ -139,7 +141,7 @@ export default function Reviews({
           <div className="sm:flex sm:space-x-[30px] items-center mb-5">
             <div className="sm:w-1/3 w-full">
               <InputCom
-                label="name*"
+                label={t("pages.singleProduct.reviews.name")}
                 placeholder=""
                 type="text"
                 name="name"
@@ -150,7 +152,7 @@ export default function Reviews({
             </div>
             <div className="sm:w-1/3 w-full mt-5 sm:mt-0">
               <InputCom
-                label="Email*"
+                label={t("pages.singleProduct.reviews.email")}
                 placeholder=""
                 type="email"
                 name="name"
@@ -161,7 +163,7 @@ export default function Reviews({
             </div>
             <div className="sm:w-1/3 w-full mt-5 sm:mt-0">
               <InputCom
-                label="Phone Number*"
+                label={t("pages.singleProduct.reviews.phone")}
                 placeholder=""
                 type="text"
                 name="name"
@@ -173,7 +175,7 @@ export default function Reviews({
           </div>
           <div className="w-full mb-[30px]">
             <h6 className="input-label text-qgray capitalize text-[13px] font-normal block mb-2 ">
-              Message*
+              {t("pages.singleProduct.reviews.message")}
             </h6>
             <textarea
               value={message}
@@ -193,7 +195,9 @@ export default function Reviews({
               className="black-btn w-[300px] h-[50px]  flex justify-center"
             >
               <span className="flex space-x-1 items-center h-full">
-                <span className="text-sm font-semibold">Submit Review</span>
+                <span className="text-sm font-semibold">
+                  {t("pages.singleProduct.reviews.submit")}
+                </span>
                 {reviewLoading && (
                   <span className="w-5 " style={{ transform: "scale(0.3)" }}>
                     <LoaderStyleOne />

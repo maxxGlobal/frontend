@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type ImgItem = { id: number | string; url: string; isPrimary?: boolean };
 const PLACEHOLDER = "/assets/img/resim-yok.jpg";
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function ProductView({ name, images, primaryImageUrl }: Props) {
+  const { t } = useTranslation();
   // 🔑 Görsel listesi: önce images, sonra primaryImageUrl, yoksa placeholder
   const list = useMemo<ImgItem[]>(() => {
     if (images && images.length > 0) return images.filter((i) => !!i.url);
@@ -33,7 +35,7 @@ export default function ProductView({ name, images, primaryImageUrl }: Props) {
           <div className="w-full h-[600px] border border-qgray-border flex justify-center items-center overflow-hidden relative mb-3">
             <img
               src={PLACEHOLDER}
-              alt={name || "product"}
+              alt={name || t("pages.singleProduct.fallbackName")}
               className="object-contain"
               onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
             />
@@ -51,7 +53,7 @@ export default function ProductView({ name, images, primaryImageUrl }: Props) {
         <div className="w-full h-[600px] border border-qgray-border flex justify-center items-center overflow-hidden relative mb-3">
           <img
             src={list[activeIdx].url}
-            alt={name || "product"}
+            alt={name || t("pages.singleProduct.fallbackName")}
             className="object-contain"
             onError={(e) => (e.currentTarget.src = PLACEHOLDER)}
           />
@@ -67,7 +69,7 @@ export default function ProductView({ name, images, primaryImageUrl }: Props) {
             >
               <img
                 src={img.url}
-                alt={name || `thumb-${idx}`}
+                alt={name || t("pages.singleProduct.fallbackName")}
                 className={`w-full h-full object-contain ${
                   activeIdx !== idx ? "opacity-50" : ""
                 }`}

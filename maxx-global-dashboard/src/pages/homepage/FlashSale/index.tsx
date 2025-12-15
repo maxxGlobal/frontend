@@ -1,5 +1,6 @@
 // src/pages/homepage/FlashSale/index.tsx
 import { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import Layout from "../Partials/Layout";
 import { listDiscountsByDealer } from "../../../services/discounts/list-by-dealer";
 import type { Discount } from "../../../types/discount";
@@ -9,15 +10,11 @@ import type { Crumb } from "../Helpers/PageTitle";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
+import { getAcceptLanguageHeader } from "../../../utils/language";
 
-const crumbs: Crumb[] = [
-  { name: "home", path: "/homepage" },
-  { name: "İndirimler", path: "/homepage/flash-sale" },
-];
-
-function fmt(amount: number, currency?: string | null) {
+function fmt(amount: number, locale: string, currency?: string | null) {
   try {
-    return amount.toLocaleString("tr-TR", {
+    return amount.toLocaleString(locale, {
       style: "currency",
       currency: currency || "TRY",
     });
@@ -61,6 +58,7 @@ function ProductModal({
   products,
   discountName,
 }: ProductModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -92,7 +90,10 @@ function ProductModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">
-            {discountName} - Geçerli Ürünler ({products.length})
+            {t("pages.flashSale.modal.title", {
+              discountName,
+              count: products.length,
+            })}
           </h3>
           <button
             onClick={onClose}
@@ -118,7 +119,9 @@ function ProductModal({
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           {products.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">Bu indirim için ürün bulunamadı.</p>
+              <p className="text-gray-500">
+                {t("pages.flashSale.modal.noProducts")}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -136,12 +139,12 @@ function ProductModal({
                       {product.categoryName}
                     </p>
                   </div>
-                  <div className="ml-4 flex-shrink-0">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      İndirimli
-                    </span>
-                  </div>
+                <div className="ml-4 flex-shrink-0">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {t("pages.flashSale.modal.discounted")}
+                  </span>
                 </div>
+              </div>
               ))}
             </div>
           )}
@@ -153,7 +156,7 @@ function ProductModal({
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
           >
-            Kapat
+            {t("pages.flashSale.modal.close")}
           </button>
         </div>
       </div>
@@ -162,6 +165,7 @@ function ProductModal({
 }
 
 export default function FlashSale() {
+  const { t, i18n } = useTranslation();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +179,18 @@ export default function FlashSale() {
     }>;
     discountName: string;
   } | null>(null);
+  const locale = getAcceptLanguageHeader(i18n.language);
+
+  const crumbs: Crumb[] = useMemo(
+    () => [
+      { name: t("pages.flashSale.breadcrumbs.home"), path: "/homepage" },
+      {
+        name: t("pages.flashSale.breadcrumbs.flashSale"),
+        path: "/homepage/flash-sale",
+      },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -194,9 +210,7 @@ export default function FlashSale() {
         setDealerCurrency(currency);
 
         if (!dealerId) {
-          setError(
-            "Bayi bilgisi bulunamadı. Lütfen giriş yapmayı kontrol edin."
-          );
+          setError(t("pages.flashSale.errors.missingDealer"));
           return;
         }
         const discountList = await listDiscountsByDealer(dealerId);
@@ -206,7 +220,7 @@ export default function FlashSale() {
         setDiscounts(activeDiscounts);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
-          setError("İndirimli ürünler getirilemedi. Lütfen sayfayı yenileyin.");
+          setError(t("pages.flashSale.errors.fetchFailed"));
         }
       } finally {
         const elapsed = Date.now() - start;
@@ -216,7 +230,7 @@ export default function FlashSale() {
     })();
 
     return () => controller.abort();
-  }, []);
+  }, [t]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, Discount[]>();
@@ -235,29 +249,29 @@ export default function FlashSale() {
     });
   }, [discounts]);
 
-  const getDiscountBadgeColor = (discount: any) => {
-    const now = new Date();
-    const endDate = new Date(discount.endDate);
-    const daysLeft = Math.ceil(
-      (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (daysLeft <= 3) return "bg-red-500";
-    if (daysLeft <= 7) return "bg-orange-500";
-    return "bg-green-500";
-  };
-
-  const getDaysLeft = (endDate: string) => {
+  const getDaysInfo = (endDate: string) => {
     const now = new Date();
     const end = new Date(endDate);
     const daysLeft = Math.ceil(
       (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    if (daysLeft <= 0) return "Süresi dolmuş";
-    if (daysLeft === 1) return "1 gün kaldı";
-    if (daysLeft <= 7) return `${daysLeft} gün kaldı`;
-    return `${daysLeft} gün kaldı`;
+    if (Number.isNaN(daysLeft) || daysLeft <= 0) {
+      return { daysLeft: 0, label: t("pages.flashSale.daysLeft.expired") };
+    }
+
+    return {
+      daysLeft,
+      label: t("pages.flashSale.daysLeft.remaining", { count: daysLeft }),
+    };
+  };
+
+  const getDiscountBadgeColor = (discount: any) => {
+    const { daysLeft } = getDaysInfo(discount.endDate);
+
+    if (daysLeft <= 3) return "bg-red-500";
+    if (daysLeft <= 7) return "bg-orange-500";
+    return "bg-green-500";
   };
 
   const handleShowProducts = (discount: any) => {
@@ -275,8 +289,11 @@ export default function FlashSale() {
     return (
       <Layout>
         <Helmet>
-          <title>Medintera – Bayi İndirimleri</title>
-          <meta name="description" content="Bayi İndirimleri" />
+          <title>{t("pages.flashSale.metaTitle")}</title>
+          <meta
+            name="description"
+            content={t("pages.flashSale.metaDescription")}
+          />
         </Helmet>
         <div className="flex justify-center items-center w-full h-[70vh]">
           <LoaderStyleOne />
@@ -288,12 +305,15 @@ export default function FlashSale() {
   return (
     <Layout childrenClasses="pt-0 pb-0">
       <Helmet>
-        <title>Medintera – Bayi İndirimleri</title>
-        <meta name="description" content="Bayi İndirimleri" />
+        <title>{t("pages.flashSale.metaTitle")}</title>
+        <meta
+          name="description"
+          content={t("pages.flashSale.metaDescription")}
+        />
       </Helmet>
       <div className="w-full">
         <div className="title-area w-full">
-          <PageTitle title="Bayi İndirimleri" breadcrumb={crumbs} />
+          <PageTitle title={t("pages.flashSale.pageTitle")} breadcrumb={crumbs} />
         </div>
 
         <div className="container-x mx-auto py-8">
@@ -319,90 +339,87 @@ export default function FlashSale() {
           {!error && grouped.length > 0 && (
             <>
               <div className="grid lg:grid-cols-1 gap-6">
-                {grouped.map((discount) => (
-                  <div
-                    key={discount.id}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300"
-                  >
-                    <div className="p-6 border-b border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div
-                            className={`${getDiscountBadgeColor(
-                              discount
-                            )} text-white px-4 py-2 rounded-full text-lg font-bold`}
-                          >
-                            {(() => {
-                              const isPercentage = isPercentageDiscount(
-                                discount.discountType
-                              );
+                {grouped.map((discount) => {
+                  const { label: daysLabel, daysLeft } = getDaysInfo(
+                    discount.endDate
+                  );
 
-                              return isPercentage
-                                ? `%${discount.discountValue}`
-                                : fmt(discount.discountValue, dealerCurrency);
-                            })()}
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-900">
-                              {discount.name}
-                            </h3>
-                            <p className="text-gray-600 mt-1">
-                              {discount.description ||
-                                "Özel indirim kampanyası"}
-                            </p>
-                          </div>
-                        </div>
+                  return (
+                    <div
+                      key={discount.id}
+                      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300"
+                    >
+                      <div className="p-6 border-b border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div
+                              className={`${getDiscountBadgeColor(
+                                discount
+                              )} text-white px-4 py-2 rounded-full text-lg font-bold`}
+                            >
+                              {(() => {
+                                const isPercentage = isPercentageDiscount(
+                                  discount.discountType
+                                );
 
-                        <div className="text-right">
-                          <div
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              getDaysLeft(discount.endDate).includes("dolmuş")
-                                ? "bg-red-100 text-red-800"
-                                : getDaysLeft(discount.endDate).includes(
-                                    "1 gün"
-                                  ) ||
-                                  getDaysLeft(discount.endDate).includes(
-                                    "2 gün"
-                                  ) ||
-                                  getDaysLeft(discount.endDate).includes(
-                                    "3 gün"
-                                  )
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-green-100 text-green-800"
-                            }`}
-                          >
-                            {getDaysLeft(discount.endDate)}
+                                return isPercentage
+                                  ? `%${discount.discountValue}`
+                                  : fmt(discount.discountValue, locale, dealerCurrency);
+                              })()}
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-bold text-gray-900">
+                                {discount.name}
+                              </h3>
+                              <p className="text-gray-600 mt-1">
+                                {discount.description ||
+                                  t("pages.flashSale.fallbackDescription")}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <div
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                daysLeft <= 0
+                                  ? "bg-red-100 text-red-800"
+                                  : daysLeft <= 3
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-green-100 text-green-800"
+                              }`}
+                            >
+                              {daysLabel}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="p-6">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 gap-4">
-                            {/* Geçerli Ürün - modal ile */}
-                            <div className="bg-gray-50 rounded-lg p-4">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div className="text-2xl font-bold text-gray-900">
-                                    {discount.allProducts?.length || 0}
-                                  </div>
-                                  <div className="text-sm text-gray-600">
-                                    Geçerli Ürün
+                        <div className="p-6">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-1 gap-4">
+                                {/* Geçerli Ürün - modal ile */}
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="text-2xl font-bold text-gray-900">
+                                        {discount.allProducts?.length || 0}
+                                      </div>
+                                      <div className="text-sm text-gray-600">
+                                        {t("pages.flashSale.stats.applicableProducts")}
+                                      </div>
+                                    </div>
+                                    {discount.allProducts?.length > 0 && (
+                                      <button
+                                        onClick={() => handleShowProducts(discount)}
+                                        className="px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                                      >
+                                        {t("pages.flashSale.stats.viewProducts")}
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
-                                {discount.allProducts?.length > 0 && (
-                                  <button
-                                    onClick={() => handleShowProducts(discount)}
-                                    className="px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                                  >
-                                    Ürünleri Görüntüle
-                                  </button>
-                                )}
                               </div>
-                            </div>
-                          </div>
 
                           {discount.minimumOrderAmount && (
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -419,10 +436,11 @@ export default function FlashSale() {
                                   />
                                 </svg>
                                 <span className="text-sm text-blue-700">
-                                  Minimum sipariş tutarı:{" "}
+                                  {t("pages.flashSale.stats.minimumOrder")} {" "}
                                   <strong>
                                     {fmt(
                                       discount.minimumOrderAmount,
+                                      locale,
                                       dealerCurrency
                                     )}
                                   </strong>
@@ -446,10 +464,11 @@ export default function FlashSale() {
                                   />
                                 </svg>
                                 <span className="text-sm text-purple-700">
-                                  Maksimum indirim:{" "}
+                                  {t("pages.flashSale.stats.maximumDiscount")}{" "}
                                   <strong>
                                     {fmt(
                                       discount.maximumDiscountAmount,
+                                      locale,
                                       dealerCurrency
                                     )}
                                   </strong>
@@ -462,25 +481,27 @@ export default function FlashSale() {
                         <div className="space-y-4">
                           <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
                             <h4 className="font-semibold text-gray-900 mb-3">
-                              Kampanya Tarihleri
+                              {t("pages.flashSale.stats.campaignDates")}
                             </h4>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
                                 <span className="text-gray-600">
-                                  Başlangıç:
+                                  {t("pages.flashSale.stats.start")}
                                 </span>
                                 <span className="font-medium">
                                   {new Date(
                                     discount.startDate
-                                  ).toLocaleDateString("tr-TR")}
+                                  ).toLocaleDateString(locale)}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Bitiş:</span>
+                                <span className="text-gray-600">
+                                  {t("pages.flashSale.stats.end")}
+                                </span>
                                 <span className="font-medium">
                                   {new Date(
                                     discount.endDate
-                                  ).toLocaleDateString("tr-TR")}
+                                  ).toLocaleDateString(locale)}
                                 </span>
                               </div>
                             </div>
@@ -490,7 +511,7 @@ export default function FlashSale() {
                             <div className="bg-gray-50 rounded-lg p-4">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm text-gray-600">
-                                  Kullanım Durumu
+                                  {t("pages.flashSale.stats.usageStatus")}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {discount.totalUsage || 0} /{" "}
@@ -546,10 +567,10 @@ export default function FlashSale() {
                   ></path>
                 </svg>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Henüz indirim bulunmuyor
+                  {t("pages.flashSale.empty.title")}
                 </h3>
                 <p className="text-gray-600">
-                  Bu bayi için aktif indirim kampanyası bulunmamaktadır.
+                  {t("pages.flashSale.empty.description")}
                 </p>
               </div>
             </div>

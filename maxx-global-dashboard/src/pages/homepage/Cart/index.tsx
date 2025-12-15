@@ -2,29 +2,36 @@ import { useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../Helpers/CartContext";
 import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
 
 interface CartProps {
   className?: string;
   type?: number;
 }
 
-function formatCurrency(amount: number | string | null | undefined, currency?: string | null) {
+function formatCurrency(
+  amount: number | string | null | undefined,
+  currency: string | null | undefined,
+  locale: string
+) {
   if (amount === null || amount === undefined) return "-";
   const numeric = Number(amount);
   if (Number.isFinite(numeric)) {
     try {
-      return numeric.toLocaleString("tr-TR", {
-        style: "currency",
-        currency: currency ?? "TRY",
-      });
+      if (currency) {
+        return new Intl.NumberFormat(locale, { style: "currency", currency }).format(numeric);
+      }
+      return numeric.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } catch {
-      return `${numeric.toFixed(2)} ${currency ?? ""}`.trim();
+      const formatted = numeric.toFixed(2);
+      return `${formatted}${currency ? ` ${currency}` : ""}`.trim();
     }
   }
   return String(amount);
 }
 
 export default function Cart({ className, type }: CartProps) {
+  const { t, i18n } = useTranslation();
   const { items, cart, removeItem, clearCart } = useCart();
 
   const [removingItemId, setRemovingItemId] = useState<number | null>(null);
@@ -42,12 +49,14 @@ export default function Cart({ className, type }: CartProps) {
   const handleRemove = useCallback(
     async (id: number, name?: string | null) => {
       const result = await Swal.fire({
-        title: "Emin misiniz?",
-        text: `${name ?? "Bu ürün"} sepetten kaldırılsın mı?`,
+        title: t("pages.cart.removeConfirmTitle"),
+        text: t("pages.cart.removeConfirmText", {
+          product: name || t("pages.cart.mini.productFallback"),
+        }),
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Evet, Kaldır",
-        cancelButtonText: "İptal",
+        confirmButtonText: t("pages.cart.removeConfirmOk"),
+        cancelButtonText: t("pages.cart.removeConfirmCancel"),
         confirmButtonColor: "#dc2626",
         cancelButtonColor: "#6b7280",
       });
@@ -58,33 +67,36 @@ export default function Cart({ className, type }: CartProps) {
         await removeItem(id);
         Swal.fire({
           icon: "success",
-          title: "Ürün Kaldırıldı",
+          title: t("pages.cart.removeSuccessTitle"),
           timer: 1200,
           showConfirmButton: false,
         });
       } catch (e: any) {
         Swal.fire({
           icon: "error",
-          title: "Silme Hatası",
-          text: e?.response?.data?.message || e?.message || "Ürün kaldırılırken bir hata oluştu.",
-          confirmButtonText: "Tamam",
+          title: t("pages.cart.removeErrorTitle"),
+          text:
+            e?.response?.data?.message ||
+            e?.message ||
+            t("pages.cart.removeErrorText"),
+          confirmButtonText: t("common.ok", { defaultValue: "OK" }),
           confirmButtonColor: "#dc2626",
         });
       } finally {
         setRemovingItemId(null);
       }
     },
-    [removeItem]
+    [removeItem, t]
   );
 
   const handleClear = useCallback(async () => {
     const result = await Swal.fire({
-      title: "Sepeti Temizle",
-      text: "Sepetteki tüm ürünler kaldırılacak. Devam edilsin mi?",
+      title: t("pages.cart.clearConfirmTitle"),
+      text: t("pages.cart.clearConfirmText"),
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Evet, Temizle",
-      cancelButtonText: "İptal",
+      confirmButtonText: t("pages.cart.clearConfirmOk"),
+      cancelButtonText: t("pages.cart.clearConfirmCancel"),
       confirmButtonColor: "#dc2626",
       cancelButtonColor: "#6b7280",
     });
@@ -95,22 +107,23 @@ export default function Cart({ className, type }: CartProps) {
       await clearCart();
       Swal.fire({
         icon: "success",
-        title: "Sepet Temizlendi",
+        title: t("pages.cart.clearSuccessTitle"),
         timer: 1200,
         showConfirmButton: false,
       });
     } catch (e: any) {
       Swal.fire({
         icon: "error",
-        title: "Hata",
-        text: e?.response?.data?.message || e?.message || "Sepet temizlenirken bir hata oluştu.",
-        confirmButtonText: "Tamam",
+        title: t("pages.cart.clearErrorTitle"),
+        text:
+          e?.response?.data?.message || e?.message || t("pages.cart.clearErrorText"),
+        confirmButtonText: t("common.ok", { defaultValue: "OK" }),
         confirmButtonColor: "#dc2626",
       });
     } finally {
       setClearing(false);
     }
-  }, [clearCart]);
+  }, [clearCart, t]);
 
   return (
     <div
@@ -122,7 +135,9 @@ export default function Cart({ className, type }: CartProps) {
       <div className="w-full h-full flex flex-col">
         <div className="product-items max-h-[310px] overflow-y-auto">
           {items.length === 0 && (
-            <div className="p-4 text-center text-gray-500">Sepet boş</div>
+            <div className="p-4 text-center text-gray-500">
+              {t("pages.cart.mini.empty")}
+            </div>
           )}
           <ul>
             {items.map((item) => (
@@ -135,7 +150,7 @@ export default function Cart({ className, type }: CartProps) {
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
-                        alt={item.productName ?? "Ürün"}
+                        alt={item.productName ?? t("pages.cart.mini.productFallback")}
                         className="w-full h-full object-cover rounded"
                       />
                     ) : (
@@ -144,10 +159,10 @@ export default function Cart({ className, type }: CartProps) {
                   </div>
                   <div className="flex flex-col">
                     <p className="title text-[13px] font-semibold text-qblack leading-4 line-clamp-2">
-                      {item.productName ?? "Ürün"}
+                      {item.productName ?? t("pages.cart.mini.productFallback")}
                     </p>
                     <span className="text-qred font-bold text-[15px]">
-                      {formatCurrency(item.unitPrice, item.currency)} x {item.quantity}
+                      {formatCurrency(item.unitPrice, item.currency, i18n.language || "tr")} x {item.quantity}
                     </span>
                   </div>
                 </div>
@@ -157,9 +172,11 @@ export default function Cart({ className, type }: CartProps) {
                   onClick={() => handleRemove(item.id, item.productName)}
                   disabled={removingItemId === item.id}
                   className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50"
-                  title="Ürünü sepetten kaldır"
+                  title={t("pages.cart.mini.removeTitle")}
                 >
-                  {removingItemId === item.id ? "Kaldırılıyor..." : "Sil"}
+                  {removingItemId === item.id
+                    ? t("pages.cart.mini.removing")
+                    : t("pages.cart.mini.remove")}
                 </button>
               </li>
             ))}
@@ -170,16 +187,18 @@ export default function Cart({ className, type }: CartProps) {
           <>
             <div className="px-4 mt-4 border-t border-gray-200 pt-4">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-[15px] font-medium text-qblack">Toplam</span>
+                <span className="text-[15px] font-medium text-qblack">
+                  {t("pages.cart.mini.total")}
+                </span>
                 <span className="text-[15px] font-bold text-qred">
-                  {formatCurrency(subtotal, currency)}
+                  {formatCurrency(subtotal, currency, i18n.language || "tr")}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <Link to="/homepage/basket">
                   <div className="bg-yellow-500 text-white w-full h-[45px] flex items-center justify-center rounded-md hover:brightness-95">
-                    <span>Sepeti Görüntüle</span>
+                    <span>{t("pages.cart.mini.viewCart")}</span>
                   </div>
                 </Link>
 
@@ -189,14 +208,16 @@ export default function Cart({ className, type }: CartProps) {
                   disabled={clearing}
                   className="w-full h-[45px] bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                 >
-                  {clearing ? "Temizleniyor..." : "Sepeti Temizle"}
+                  {clearing ? t("pages.cart.mini.clearing") : t("pages.cart.mini.clearCart")}
                 </button>
               </div>
             </div>
 
             <div className="px-4 mt-4 border-t border-gray-200 py-3 text-center">
               <p className="text-[13px] font-medium text-qgray">
-                <span className="text-qblack">Sipariş Detayınız</span> için Sepeti Görüntüle butonuna tıklayınız.
+                <span className="text-qblack">{t("pages.cart.mini.orderDetail")}</span>
+                {" "}
+                {t("pages.cart.mini.viewCartHint")}
               </p>
             </div>
           </>

@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 import { listNotifications } from "../../../services/notifications/list";
 import type { NotificationRow } from "../../../types/notifications";
 import { markAllNotificationsRead } from "../../../services/notifications/header";
 import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
-import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
+import { getAcceptLanguageHeader } from "../../../utils/language";
 
 export default function NotificationsPage() {
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState<NotificationRow[] | null>(null);
   const [updating, setUpdating] = useState(false);
+  const locale = getAcceptLanguageHeader(i18n.language);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -51,13 +55,16 @@ export default function NotificationsPage() {
   return (
     <Layout>
       <Helmet>
-        <title>Medintera – Bildirimler</title>
-        <meta name="description" content="Bildirimler" />
+        <title>{t("pages.notifications.metaTitle")}</title>
+        <meta
+          name="description"
+          content={t("pages.notifications.metaDescription")}
+        />
       </Helmet>
       <div className="cart-page-wrapper w-full bg-white pb-[60px]">
         <div className="w-full">
           <PageTitle
-            title="Bildirimlerim"
+            title={t("pages.notifications.pageTitle")}
             breadcrumb={[
               { name: "home", path: "/homepage" },
               { name: "homepage", path: "/homepage" },
@@ -70,7 +77,7 @@ export default function NotificationsPage() {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-800">
-                  Tüm Bildirimler
+                  {t("pages.notifications.allTitle")}
                 </h2>
                 {items.length > 0 && (
                   <button
@@ -78,13 +85,15 @@ export default function NotificationsPage() {
                     disabled={updating}
                     className="inline-flex items-center px-4 py-2 rounded-md bg-qh2-green text-white text-sm font-medium hover:bg-green-700 transition disabled:opacity-60"
                   >
-                    {updating ? "İşleniyor..." : "Tümünü Oku"}
+                    {updating
+                      ? t("pages.notifications.processing")
+                      : t("header.notifications.markAllAction")}
                   </button>
                 )}
               </div>
               {items.length === 0 ? (
                 <div className="text-center text-gray-500">
-                  Görüntülenecek bildirim yok.
+                  {t("pages.notifications.empty")}
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-200">
@@ -102,7 +111,7 @@ export default function NotificationsPage() {
                         </p>
                       </div>
                       <span className="text-xs text-gray-400 mt-2 sm:mt-0 sm:ml-4">
-                        {new Date(n.createdAt).toLocaleString("tr-TR")}
+                        {new Date(n.createdAt).toLocaleString(locale)}
                       </span>
                     </li>
                   ))}
