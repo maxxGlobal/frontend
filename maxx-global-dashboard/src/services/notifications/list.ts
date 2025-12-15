@@ -52,7 +52,7 @@ export async function deleteSentNotification(
   id: number,
   opts?: { signal?: AbortSignal }
 ) {
-  await api.delete(`/notifications/admin/sent-notifications/${id}`, {
+  await api.delete(`/notifications/${id}`, {
     signal: opts?.signal,
   });
 }

@@ -332,27 +332,9 @@ export default function DiscountsList() {
                                 title="Güncelle"
                               >
                                 <i className="fa-regular fa-pen-to-square" />
-                              </button>
+                              </button> 
 
-                              {!passive && (
-                                <button
-                                  className="sherah-table__action sherah-color2 sherah-color2__bg--offset border-0"
-                                  onClick={() => setDeleteTarget(d)}
-                                  title="Sil"
-                                >
-                                  <i className="fa-regular fa-trash-can" />
-                                </button>
-                              )}
-
-                              {passive && (
-                                <button
-                                  className="sherah-table__action sherah-color3 sherah-color3__bg--opactity border-0"
-                                  onClick={() => handleRestore(d.id)}
-                                  title="Geri Yükle"
-                                >
-                                  <i className="fa-solid fa-rotate-left" />
-                                </button>
-                              )}
+                              
                             </div>
                           </td>
                         </tr>
