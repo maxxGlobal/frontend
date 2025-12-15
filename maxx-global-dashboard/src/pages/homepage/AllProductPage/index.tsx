@@ -10,10 +10,12 @@ import { listProducts } from "../../../services/products/list";
 import { listProductsByCategory } from "../../../services/products/listByCategory";
 import { listProductsBySearch } from "../../../services/products/search";
 import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
 
 export default function AllProductPage() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export default function AllProductPage() {
           e.code !== "ERR_CANCELED" &&
           !controller.signal.aborted
         ) {
-          setError("Ürünler getirilemedi");
+          setError(t("pages.products.fetchError"));
           setProducts([]);
         }
       } finally {
@@ -89,7 +91,7 @@ export default function AllProductPage() {
       isMounted = false;
       controller.abort();
     };
-  }, [selectedCatId, currentPage, searchQuery]);
+  }, [selectedCatId, currentPage, searchQuery, t]);
 
   const visibleProducts = useMemo(() => {
     const base = (products ?? []).filter((p) => p.status === "AKTİF");
@@ -126,8 +128,11 @@ export default function AllProductPage() {
   return (
     <Layout>
       <Helmet>
-        <title>Medintera – Ürünler</title>
-        <meta name="description" content="Ürünler" />
+        <title>{t("pages.products.metaTitle")}</title>
+        <meta
+          name="description"
+          content={t("pages.products.metaDescription") ?? ""}
+        />
       </Helmet>
       <div className="products-page-wrapper w-full">
         <div className="container-x mx-auto">
@@ -140,17 +145,25 @@ export default function AllProductPage() {
               <div className="products-sorting w-full bg-white md:h-[70px] flex md:flex-row flex-col md:justify-between md:items-center p-[30px] mb-[40px]">
                 <div>
                   <p className="font-400 text-[13px]">
-                    <span className="text-qgray">Gösteriliyor</span>{" "}
+                    <span className="text-qgray">
+                      {t("pages.products.showingLabel")}
+                    </span>{" "}
                     {loading || products === null
                       ? "…"
-                      : `${visibleProducts.length} / ${totalPages * size} adet`}
+                      : t("pages.products.showingCount", {
+                          count: visibleProducts.length,
+                          total: totalPages * size,
+                        })}
                   </p>
                 </div>
 
                 {/* Sayfa bilgisi göster */}
                 {totalPages > 1 && !loading && (
                   <div className="text-sm text-qgray">
-                    Sayfa {currentPage + 1} / {totalPages}
+                    {t("pages.products.page", {
+                      current: currentPage + 1,
+                      total: totalPages,
+                    })}
                   </div>
                 )}
               </div>
@@ -161,16 +174,16 @@ export default function AllProductPage() {
                 </div>
               )}
               {(loading || products === null) && !error && (
-                <div className="flex justify-center py-10">
-                  <LoaderStyleOne />
-                </div>
-              )}
+                  <div className="flex justify-center py-10">
+                    <LoaderStyleOne />
+                  </div>
+                )}
               {!loading &&
                 products !== null &&
                 !error &&
                 visibleProducts.length === 0 && (
                   <div className="mb-6 p-4 rounded bg-yellow-50 text-yellow-700 text-sm">
-                    Seçilen filtreye uygun ürün bulunamadı.
+                    {t("pages.products.noResults")}
                   </div>
                 )}
 
@@ -189,7 +202,7 @@ export default function AllProductPage() {
                         disabled={currentPage === 0}
                         className="px-4 py-2 bg-qh2-green rounded text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-opacity-90 transition-colors"
                       >
-                        Önceki
+                        {t("pages.products.previous")}
                       </button>
 
                       {/* Sayfa numaraları */}
@@ -230,7 +243,7 @@ export default function AllProductPage() {
                         disabled={currentPage + 1 >= totalPages}
                         className="px-4 py-2 bg-qh2-green rounded text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-opacity-90 transition-colors"
                       >
-                        Sonraki
+                        {t("pages.products.next")}
                       </button>
                     </div>
                   )}

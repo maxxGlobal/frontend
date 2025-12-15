@@ -7,6 +7,7 @@ import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { useCart } from "../Helpers/CartContext";
 import { Helmet } from "react-helmet-async";
 import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
 import { listDiscountsByDealer } from "../../../services/discounts/list-by-dealer";
@@ -20,13 +21,17 @@ import { createOrderWithValidation } from "../../../services/orders/create";
 import type { Discount } from "../../../types/discount";
 import type { CartItemResponse } from "../../../types/cart";
 
-function formatCurrency(amount: number | string | null | undefined, currency?: string | null) {
+function formatCurrency(
+  amount: number | string | null | undefined,
+  currency?: string | null,
+  locale: string = "tr-TR"
+) {
   if (amount === null || amount === undefined) return "-";
 
   const numeric = Number(amount);
   if (Number.isFinite(numeric)) {
     try {
-      return numeric.toLocaleString("tr-TR", {
+      return numeric.toLocaleString(locale, {
         style: "currency",
         currency: currency ?? "TRY",
       });
@@ -39,6 +44,11 @@ function formatCurrency(amount: number | string | null | undefined, currency?: s
 }
 
 export default function CartPage() {
+  const { t, i18n } = useTranslation();
+  const locale = useMemo(
+    () => (i18n.language?.startsWith("en") ? "en-US" : "tr-TR"),
+    [i18n.language]
+  );
   const { cart, items, loading, error, refresh, updateItem, removeItem, clearCart, dealerId: contextDealerId } = useCart();
   const [refreshing, setRefreshing] = useState(false);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -275,10 +285,10 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
   const pageTitle = useMemo(() => {
     if (!cart?.dealerName) {
-      return "Sepetim";
+      return t("pages.cart.pageTitle");
     }
-    return `Sepetim – ${cart.dealerName}`;
-  }, [cart?.dealerName]);
+    return `${t("pages.cart.pageTitle")} – ${cart.dealerName}`;
+  }, [cart?.dealerName, t]);
 
 
 
@@ -497,8 +507,11 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
     return (
       <Layout>
         <Helmet>
-          <title>Medintera – Sepet</title>
-          <meta name="description" content="Sepet" />
+          <title>{t("pages.cart.metaTitle")}</title>
+          <meta
+            name="description"
+            content={t("pages.cart.metaDescription") ?? ""}
+          />
         </Helmet>
         <div className="flex justify-center items-center h-[70vh]">
           <LoaderStyleOne />
@@ -512,8 +525,11 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
   return (
     <Layout>
       <Helmet>
-        <title>Medintera – Sepet</title>
-        <meta name="description" content="Sepet" />
+        <title>{t("pages.cart.metaTitle")}</title>
+        <meta
+          name="description"
+          content={t("pages.cart.metaDescription") ?? ""}
+        />
       </Helmet>
       <div className="cart-page-wrapper w-full bg-white pb-[60px]">
         <div className="w-full">

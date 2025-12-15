@@ -3,24 +3,31 @@ import PageTitle from "../Helpers/PageTitle";
 import type { Crumb } from "../Helpers/PageTitle";
 import Layout from "../Partials/Layout";
 import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 const AboutImage = "/assets/img/about.png";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
 
-const crumbs: Crumb[] = [
-  { name: "home", path: "/homepage" },
-  { name: "Hakkımızda", path: "/homepage/about" },
-];
+type Service = { title: string; description: string };
+
 export default function About() {
+  const { t } = useTranslation();
+  const crumbs: Crumb[] = [
+    { name: "home", path: "/homepage" },
+    { name: t("pages.about.title"), path: "/homepage/about" },
+  ];
+  const services =
+    (t("pages.about.services", { returnObjects: true }) as Service[]) ?? [];
+
   return (
     <Layout childrenClasses="pt-0 pb-0">
       <Helmet>
-        <title>Medintera – Hakkımızda</title>
-        <meta name="description" content="Hakkımızda" />
+        <title>{t("pages.about.metaTitle")}</title>
+        <meta name="description" content={t("pages.about.metaDescription") ?? ""} />
       </Helmet>
       <div className="about-page-wrapper w-full">
         <div className="title-area w-full">
-          <PageTitle title="Hakkımızda" breadcrumb={crumbs} />
+          <PageTitle title={t("pages.about.title") ?? ""} breadcrumb={crumbs} />
         </div>
         <div className="aboutus-wrapper w-full">
           <div className="container-x mx-auto">
@@ -30,27 +37,11 @@ export default function About() {
               </div>
               <div className="content flex-1">
                 <p className="text-[15px] text-qgraytwo leading-7 mb-2.5">
-                  Özellikle kırık tedavilerindeki gelişmeler çok sayıda ürünün
-                  üretilmesini ve hekimlerin kullanımına arz edilmesini
-                  sağlamıştır. Sağlık hizmetlerinde teknolojik cihazların
-                  kullanımı cerrahi işlem ve tedavi sürelerini kısaltmakta,
-                  tedavilerin başarı oranlarını artırmakta ve toplam hasta
-                  memnuniyetini giderek artırmaktadır. Tıbbi cihazların ve
-                  ortopedik implantların kullanıma uygun bir şekilde
-                  üretilmeleri, kalite unsurlarının incelenmesi ve biyolojik
-                  uygunluklarının bulunması gibi aşamaları bulunmaktadır.
-                  Üretilen cihazların CE ve FDA gibi kalite değerlendirme
-                  kuruluşları tarafından denetlenerek insan sağlığı yönünden
-                  etkin ve güvenilir olduğunun belgelenmiş olması gerekir. Gerek
-                  Türkiye gerekse global tıbbi cihaz pazarına firmamız
-                  tarafından sunulan tüm ürünler en yüksek kalite standartları
-                  ve güvenlik gerekliliklerini taşımaktadır. Eksternal Fiksatör
-                  Sistemleri firmamızın uzmanlık alanıdır. Bunlarla hasta
-                  memnuniyetini en üst seviyeye çıkarmayı hedeflemekteyiz.
+                  {t("pages.about.body")}
                 </p>
                 <Link to="/homepage/contact">
                   <div className="w-auto h-10">
-                    <span className="yellow-btn">İletişime Geçin</span>
+                    <span className="yellow-btn">{t("pages.about.contactCta")}</span>
                   </div>
                 </Link>
               </div>
@@ -63,66 +54,67 @@ export default function About() {
             data-aos="fade-down"
             className="best-services w-full bg-qyellow flex flex-col space-y-10 lg:space-y-0 lg:flex-row lg:justify-between lg:items-center lg:h-[200px] px-10 lg:py-0 py-12 lg:gap-[50px]"
           >
-            <div className="item">
-              <div className="space-x-5 items-center">
-                <div className="flex justify-center mb-3">
-                  <span>
-                    <svg
-                      width="36"
-                      height="36"
-                      viewBox="0 0 36 36"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1 1H5.63636V24.1818H35"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeMiterlimit="10"
-                        strokeLinecap="square"
-                      />
-                      <path
-                        d="M8.72763 35.0002C10.4347 35.0002 11.8185 33.6163 11.8185 31.9093C11.8185 30.2022 10.4347 28.8184 8.72763 28.8184C7.02057 28.8184 5.63672 30.2022 5.63672 31.9093C5.63672 33.6163 7.02057 35.0002 8.72763 35.0002Z"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeMiterlimit="10"
-                        strokeLinecap="square"
-                      />
-                      <path
-                        d="M31.9073 35.0002C33.6144 35.0002 34.9982 33.6163 34.9982 31.9093C34.9982 30.2022 33.6144 28.8184 31.9073 28.8184C30.2003 28.8184 28.8164 30.2022 28.8164 31.9093C28.8164 33.6163 30.2003 35.0002 31.9073 35.0002Z"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeMiterlimit="10"
-                        strokeLinecap="square"
-                      />
-                      <path
-                        d="M34.9982 1H11.8164V18H34.9982V1Z"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeMiterlimit="10"
-                        strokeLinecap="square"
-                      />
-                      <path
-                        d="M11.8164 7.18164H34.9982"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeMiterlimit="10"
-                        strokeLinecap="square"
-                      />
-                    </svg>
-                  </span>
-                </div>
-                <div className="text-center mb-3">
-                  <p className="text-black text-[15px] font-700 tracking-wide mb-1 uppercase">
-                    Hassas Mühendislik
-                  </p>
-                  <p className="text-sm text-qblack text-wrap">
-                    Gelişmiş CNC teknolojisiyle yüksek hassasiyetli parçalar
-                    üretimi.
-                  </p>
+            {services.map((service, idx) => (
+              <div className="item" key={`${service.title}-${idx}`}>
+                <div className="space-x-5 items-center">
+                  <div className="flex justify-center mb-3">
+                    <span>
+                      <svg
+                        width="36"
+                        height="36"
+                        viewBox="0 0 36 36"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M1 1H5.63636V24.1818H35"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeMiterlimit="10"
+                          strokeLinecap="square"
+                        />
+                        <path
+                          d="M8.72763 35.0002C10.4347 35.0002 11.8185 33.6163 11.8185 31.9093C11.8185 30.2022 10.4347 28.8184 8.72763 28.8184C7.02057 28.8184 5.63672 30.2022 5.63672 31.9093C5.63672 33.6163 7.02057 35.0002 8.72763 35.0002Z"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeMiterlimit="10"
+                          strokeLinecap="square"
+                        />
+                        <path
+                          d="M31.9073 35.0002C33.6144 35.0002 34.9982 33.6163 34.9982 31.9093C34.9982 30.2022 33.6144 28.8184 31.9073 28.8184C30.2003 28.8184 28.8164 30.2022 28.8164 31.9093C28.8164 33.6163 30.2003 35.0002 31.9073 35.0002Z"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeMiterlimit="10"
+                          strokeLinecap="square"
+                        />
+                        <path
+                          d="M34.9982 1H11.8164V18H34.9982V1Z"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeMiterlimit="10"
+                          strokeLinecap="square"
+                        />
+                        <path
+                          d="M11.8164 7.18164H34.9982"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeMiterlimit="10"
+                          strokeLinecap="square"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                  <div className="text-center mb-3">
+                    <p className="text-black text-[15px] font-700 tracking-wide mb-1 uppercase">
+                      {service.title}
+                    </p>
+                    <p className="text-sm text-qblack text-wrap">
+                      {service.description}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
             <div className="item">
               <div className="space-x-5 items-center">
                 <div className="flex justify-center mb-3">
