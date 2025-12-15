@@ -4,6 +4,7 @@ import Close from "../../Helpers/icons/Close";
 import Search from "../../Helpers/icons/Search";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getUnreadCount } from "../../../../services/notifications/header";
 import { listAllCategories } from "../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../../public/assets/icons/MedicalIcons";
@@ -11,6 +12,7 @@ import { getFavoriteCount } from "../../../../services/favorites/count";
 import { BiChevronRight } from "react-icons/bi";
 import Bell from "../../Helpers/icons/Bell";
 import NotificationCart from "../../Notifications/Cart";
+import LanguageSwitcher from "../../Helpers/LanguageSwitcher";
 
 import {
   buildCategoryTree,
@@ -44,6 +46,7 @@ function collectDescendantsIds(node: CatNode): number[] {
 }
 
 export default function Drawer({ className, open, action }: DrawerProps) {
+  const { t } = useTranslation();
   const { data: wishlistCount = 0 } = useQuery({
     queryKey: ["favoriteCount"],
     queryFn: getFavoriteCount,
@@ -161,6 +164,9 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                 <Close />
               </button>
             </div>
+            <div className="mt-3">
+              <LanguageSwitcher />
+            </div>
           </div>
           <div className="w-full mt-5 px-5">
             <div className="search-bar w-full h-[34px] flex">
@@ -173,15 +179,15 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                     if (e.key === "Enter") handleSearch();
                   }}
                   className="w-full text-xs h-full focus:outline-none focus:ring-0 placeholder:text-qgraytwo pl-2.5 pr-2"
-                  placeholder="Ürün Ara..."
-                  aria-label="Ürün ara"
+                  placeholder={t("drawer.searchPlaceholder")}
+                  aria-label={t("drawer.searchPlaceholder")}
                 />
               </div>
               <button
                 type="button"
                 onClick={handleSearch}
                 className="w-[40px] h-full bg-[#2D6F6D] flex justify-center items-center"
-                aria-label="Ara"
+                aria-label={t("drawer.search")}
               >
                 <span>
                   <Search />
@@ -197,7 +203,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                 tab === "category" ? "text-qblack" : "text-qgray"
               }`}
             >
-              Kategoriler
+              {t("drawer.tabs.categories")}
             </span>
             <span className="w-[1px] h-[14px] bg-qgray" />
             <span
@@ -206,7 +212,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                 tab === "menu" ? "text-qblack" : "text-qgray "
               }`}
             >
-              Ana Menü
+              {t("drawer.tabs.menu")}
             </span>
           </div>
 
@@ -238,7 +244,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                         </svg>
                       </span>
                       <span className="text-sm ps-0 text-left ms-0 font-400 ">
-                        Tümü
+                        {t("drawer.all")}
                       </span>
                     </div>
                     <div>
@@ -272,7 +278,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
 
                 {totalItems === 0 && (
                   <li className="px-5 py-3 text-xs text-gray-500">
-                    Kategori bulunamadı.
+                    {t("drawer.noCategories")}
                   </li>
                 )}
               </ul>
@@ -284,7 +290,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   <Link to="/homepage" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
-                        <span className="text-sm font-400">AnaSayfa</span>
+                        <span className="text-sm font-400">{t("drawer.home")}</span>
                       </div>
                       <div>
                         <span>
@@ -299,7 +305,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   <Link to="/homepage/all-product" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
-                        <span className="text-sm font-400">Ürünlerimiz</span>
+                        <span className="text-sm font-400">{t("drawer.products")}</span>
                       </div>
                       <div>
                         <span>
@@ -361,7 +367,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   <Link to="/homepage/about" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
-                        <span className="text-sm font-400">Hakkımızda</span>
+                        <span className="text-sm font-400">{t("drawer.about")}</span>
                       </div>
                       <div>
                         <span>
@@ -376,7 +382,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                   <Link to="/homepage/contact" onClick={action}>
                     <div className="flex justify-between items-center px-5 h-12 bg-white hover:bg-qyellow transition-all duration-300 ease-in-out cursor-pointer">
                       <div className="flex items-center space-x-6">
-                        <span className="text-sm font-400">İletişim</span>
+                        <span className="text-sm font-400">{t("drawer.contact")}</span>
                       </div>
                       <div>
                         <span>
@@ -392,7 +398,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
                       <div className="bg-[#2D6F6D] flex justify-center items-center cursor-pointer h-full rounded-sm">
                         <div className="flex space-x-2 items-center">
                           <span className="text-sm font-600 text-white">
-                            Sipariş Geçmişi
+                            {t("drawer.orders")}
                           </span>
                         </div>
                       </div>

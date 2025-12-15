@@ -15,6 +15,7 @@ export type User = {
   phoneNumber?: string | null;
   dealer?: DealerMini | null;
   roles: Role[];
+  preferredLanguage?: string | null;
 };
 
 export type LoginResponse = {

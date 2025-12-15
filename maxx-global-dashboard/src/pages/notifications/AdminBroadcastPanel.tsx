@@ -33,7 +33,9 @@ const PRIORITY_OPTIONS: PriorityOpt[] = [
 export default function AdminBroadcastPanel() {
   // temel alanlar
   const [title, setTitle] = useState("");
+  const [titleEn, setTitleEn] = useState("");
   const [message, setMessage] = useState("");
+  const [messageEn, setMessageEn] = useState("");
   const [typeName, setTypeName] = useState<string>("");
 
   const [relatedEntityId, setRelatedEntityId] = useState<number | undefined>();
@@ -251,7 +253,9 @@ export default function AdminBroadcastPanel() {
       // 5) Payload’u sadece bu NIHAI değişkenlerle kur
       const payload: AdminBroadcastRequest = {
         title: title.trim(),
+        titleEn: titleEn.trim() || undefined,
         message: message.trim(),
+        messageEn: messageEn.trim() || undefined,
         type: typeName,
         relatedEntityId: relatedEntityId ?? undefined,
         relatedEntityType: relatedEntityType || undefined,
@@ -276,7 +280,9 @@ export default function AdminBroadcastPanel() {
 
       // 6) Reset
       setTitle("");
+      setTitleEn("");
       setMessage("");
+      setMessageEn("");
       setRelatedEntityId(undefined);
       setRelatedEntityType("");
       setPriority("");
@@ -330,6 +336,16 @@ export default function AdminBroadcastPanel() {
               />
             </div>
             <div className="col-md-6">
+              <label className="form-label">Başlık (EN)</label>
+              <input
+                style={{ height: 64 }}
+                className="form-control"
+                value={titleEn}
+                onChange={(e) => setTitleEn(e.target.value)}
+                placeholder="e.g. New order created"
+              />
+            </div>
+            <div className="col-md-6">
               <label className="form-label">Tip</label>
               <Select<TypeOption, false>
                 options={typeOptions}
@@ -349,6 +365,17 @@ export default function AdminBroadcastPanel() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Kısa mesaj…"
+              />
+            </div>
+
+            <div className="col-12">
+              <label className="form-label">Mesaj (EN)</label>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={messageEn}
+                onChange={(e) => setMessageEn(e.target.value)}
+                placeholder="Short message in English…"
               />
             </div>
 

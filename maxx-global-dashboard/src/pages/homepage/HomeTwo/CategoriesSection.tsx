@@ -6,10 +6,12 @@ import {
   buildCategoryTree,
   type CatNode,
 } from "../../../services/categories/buildTree";
+import { useTranslation } from "react-i18next";
 
 export default function CategoriesSection() {
   const [roots, setRoots] = useState<CatNode[]>([]);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -65,7 +67,7 @@ export default function CategoriesSection() {
             })}
             {roots.length === 0 && (
               <div className="col-span-full text-center text-sm text-gray-500">
-                Kategoriler bulunamadı.
+                {t("pages.homeTwo.categories.empty")}
               </div>
             )}
           </div>

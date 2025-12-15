@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAcceptLanguageHeader, getPreferredLanguage } from "../../utils/language";
 
 export async function listMaterials(signal?: AbortSignal): Promise<string[]> {
   const token = localStorage.getItem("token"); // login sonrası sakladığınız token
@@ -10,6 +11,7 @@ export async function listMaterials(signal?: AbortSignal): Promise<string[]> {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "*/*",
+        "Accept-Language": getAcceptLanguageHeader(getPreferredLanguage()),
       },
     }
   );

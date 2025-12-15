@@ -34,7 +34,9 @@ export interface DiscountCategory {
 export interface Discount {
   id: number;
   name: string;
+  nameEn?: string;
   description?: string;
+  descriptionEn?: string;
   discountType: DiscountType;
   discountValue: number;
   startDate: string;
@@ -57,7 +59,8 @@ export interface Discount {
   autoApply?: boolean;
   priority?: number;
   stackable?: boolean;
-  
+  configurationSummary?: string;
+
   // Metadata
   createdAt?: string;
   updatedAt?: string;
@@ -72,12 +75,17 @@ export interface Discount {
   hasUsageLeft?: boolean;
   remainingUsage?: number;
   validityStatus?: string;
-  
+  statusDescription?: string;
+
   isCategoryBased?: boolean;
   isVariantBased?: boolean;
   isDealerBased?: boolean;
   isGeneralDiscount?: boolean;
-  
+  dealerBasedDiscount?: boolean;
+  categoryBasedDiscount?: boolean;
+  variantBasedDiscount?: boolean;
+  generalDiscount?: boolean;
+
   // Geriye dönük uyumluluk için (eski API'lerle çalışabilmek için)
   status?: string;
   createdDate?: string;
@@ -86,7 +94,9 @@ export interface Discount {
 
 export interface DiscountCreateRequest {
   name: string;
+  nameEn: string;
   description?: string;
+  descriptionEn?: string;
   discountType: DiscountType;
   discountValue: number;
   startDate: string;
@@ -97,7 +107,6 @@ export interface DiscountCreateRequest {
   dealerIds?: number[];
   categoryIds?: number[];
   
-  isActive?: boolean;
   minimumOrderAmount?: number;
   maximumDiscountAmount?: number;
   usageLimit?: number;
@@ -106,6 +115,13 @@ export interface DiscountCreateRequest {
   autoApply?: boolean;
   priority?: number;
   stackable?: boolean;
+  isActive: boolean;
+  dealerBasedDiscount?: boolean;
+  categoryBasedDiscount?: boolean;
+  variantBasedDiscount?: boolean;
+  generalDiscount?: boolean;
+  discountScope?: string;
+  configurationSummary?: string;
 }
 
 export interface DiscountUpdateRequest extends DiscountCreateRequest {}

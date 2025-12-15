@@ -1,12 +1,14 @@
 // src/lib/api.ts - Simplified version without refresh token
 import axios from "axios";
 import { getToken } from "../services/auth/authService";
+import { getAcceptLanguageHeader, getPreferredLanguage } from "../utils/language";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "/api",
   withCredentials: true, // Cookie'leri otomatik gönder
   headers: {
     'Content-Type': 'application/json',
+    'Accept-Language': getAcceptLanguageHeader(getPreferredLanguage()),
   },
   timeout: 30000, // 30 saniye timeout
 });
@@ -101,10 +103,14 @@ api.interceptors.request.use(
         performLogout("Token expired");
         return Promise.reject(new Error("Token expired"));
       }
-      
+
       // Token'ı header'a ekle
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    config.headers["Accept-Language"] = getAcceptLanguageHeader(
+      getPreferredLanguage()
+    );
     
     // Request ID ekle (debugging için)
     if (crypto.randomUUID) {

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { listRandomProducts } from "../../../services/products/random";
 import type { ProductRow } from "../../../types/product";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
+import { useTranslation } from "react-i18next";
 
 type BannerProps = {
   className?: string;
@@ -11,16 +12,18 @@ type BannerProps = {
 export default function Banner({ className }: BannerProps) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
+        setHasError(false);
         const data = await listRandomProducts(2);
         setProducts(data);
       } catch (e: any) {
-        setError("Ürünler getirilemedi");
+        setHasError(true);
       } finally {
         setLoading(false);
       }
@@ -37,13 +40,13 @@ export default function Banner({ className }: BannerProps) {
                 <LoaderStyleOne />
               </div>
             )}
-            {error && (
+            {hasError && (
               <div className="w-full text-center py-10 text-red-500">
-                {error}
+                {t("pages.homeTwo.banner.loadError")}
               </div>
             )}
 
-            {!loading && !error && products.length > 0 && (
+            {!loading && !hasError && products.length > 0 && (
               <>
                 <div
                   data-aos="fade-right"
@@ -65,13 +68,16 @@ export default function Banner({ className }: BannerProps) {
                       {products[0].name}
                     </h2>
                     <p className="text-sm text-gray-200 my-4">
-                      Stok: {products[0].stockQuantity} {products[0].unit}
+                      {t("pages.homeTwo.banner.stock", {
+                        count: products[0].stockQuantity,
+                        unit: products[0].unit ?? "",
+                      })}
                     </p>
                     <Link
                       to={`/homepage/product/${products[0].id}`}
                       className="inline-block bg-qyellow text-white px-5 py-2 rounded hover:bg-qh2-green transition w-fit"
                     >
-                      Detaya Git
+                      {t("pages.homeTwo.banner.viewDetails")}
                     </Link>
                   </div>
                 </div>
@@ -102,13 +108,16 @@ export default function Banner({ className }: BannerProps) {
                           {p.name}
                         </h2>
                         <p className="text-sm text-gray-200 my-4">
-                          Stok: {p.stockQuantity} {p.unit}
+                          {t("pages.homeTwo.banner.stock", {
+                            count: p.stockQuantity,
+                            unit: p.unit ?? "",
+                          })}
                         </p>
                         <Link
                           to={`/homepage/product/${p.id}`}
                           className="inline-block bg-qh2-green text-white px-4 py-2 rounded hover:bg-qyellow transition w-fit"
                         >
-                          Detaya Git
+                          {t("pages.homeTwo.banner.viewDetails")}
                         </Link>
                       </div>
                     </div>

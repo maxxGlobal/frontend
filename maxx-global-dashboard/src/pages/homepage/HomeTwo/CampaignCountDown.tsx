@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 type CampaignCountDownProps = {
   className?: string;
@@ -8,6 +9,7 @@ type CampaignCountDownProps = {
 export default function CampaignCountDown({
   className,
 }: CampaignCountDownProps) {
+  const { t } = useTranslation();
   return (
     <div>
       <div className={`w-full lg:h-[560px] ${className || ""}`}>
@@ -26,16 +28,16 @@ export default function CampaignCountDown({
                   {/* title */}
                   <div className="countdown-title mb-4 ">
                     <h1 className="lg:text-[54px] text-[38px] text-qyellow font-600">
-                      İndirimli Ürünler
+                      {t("pages.homeTwo.countdown.title")}
                     </h1>
                     <p className="text-[18px] text-qblack leading-7">
-                      İndirimdeki Ürünlere Göz Atın
-                      <br /> Fırsatları Kaçırmayın
+                      {t("pages.homeTwo.countdown.subtitleLine1")}
+                      <br /> {t("pages.homeTwo.countdown.subtitleLine2")}
                     </p>
                     <div className="w-max mt-4">
                       <div className="bg-qyellow banner-discount-btn flex group  space-x-2 items-center border border-qyellow px-4 py-2 rounded-xl transition hover:text-white hover:bg-qh2-green">
                         <span className="text-sm font-600 tracking-wide leading-7 ">
-                          Alışveriş Yap
+                          {t("pages.homeTwo.countdown.cta")}
                         </span>
                         <span>
                           <svg

@@ -32,6 +32,7 @@ export interface UserRow {
   createdAt: string;
   authorizedUser?: boolean;
   emailNotifications?: boolean;
+  preferredLanguage?: string | null;
 }
 
 export interface RegisterUserRequest {
@@ -45,6 +46,7 @@ export interface RegisterUserRequest {
   roleId: number;
   authorizedUser: boolean;
   emailNotifications: boolean;
+  preferredLanguage: string;
 }
 
 export interface RegisteredUser {
@@ -54,6 +56,7 @@ export interface RegisteredUser {
   email: string;
   authorizedUser?: boolean;
   emailNotifications?: boolean;
+  preferredLanguage?: string | null;
 }
 
 export interface UserProfile {
@@ -70,6 +73,7 @@ export interface UserProfile {
   avatarUrl?: string | null;
   authorizedUser?: boolean;
   emailNotifications?: boolean;
+  preferredLanguage?: string | null;
 }
 
 export type UpdateUserRequest = Partial<{
@@ -84,6 +88,7 @@ export type UpdateUserRequest = Partial<{
   status: string; // ör: "ACTIVE" | "PASSIVE" vs.
   authorizedUser: boolean;
   emailNotifications: boolean;
+  preferredLanguage: string;
 }>;
 
 export type UpdatedUser = UserRow;

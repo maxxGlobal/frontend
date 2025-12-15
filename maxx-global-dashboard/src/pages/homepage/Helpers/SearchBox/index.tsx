@@ -1,5 +1,6 @@
 // src/components/SearchBox.tsx
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type SearchBoxProps = {
   className?: string;
@@ -8,6 +9,7 @@ type SearchBoxProps = {
 
 export default function SearchBox({ className, onSearch }: SearchBoxProps) {
   const [q, setQ] = useState("");
+  const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export default function SearchBox({ className, onSearch }: SearchBoxProps) {
         <input
           type="text"
           className="flex-1 px-3 py-2 outline-none"
-          placeholder="Ürün Ara..."
+          placeholder={t("common.searchPlaceholder")}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -32,7 +34,7 @@ export default function SearchBox({ className, onSearch }: SearchBoxProps) {
           type="submit"
           className="px-4 py-2 me-1 bg-qh2-green text-white text-sm rounded"
         >
-          Ara
+          {t("common.search")}
         </button>
       </form>
     </div>
