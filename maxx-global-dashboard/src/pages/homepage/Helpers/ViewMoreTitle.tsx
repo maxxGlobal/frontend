@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 type ViewMoreTitleProps = {
   categoryTitle?: string;
@@ -14,6 +15,7 @@ export default function ViewMoreTitle({
   children,
   seeMoreUrl = "/homepage/all-product",
 }: ViewMoreTitleProps) {
+  const { t } = useTranslation();
   return (
     <div className={`section-wrapper w-full ${className || ""}`}>
       <div className="container-x mx-auto">
@@ -26,7 +28,9 @@ export default function ViewMoreTitle({
           <div>
             <Link to={seeMoreUrl}>
               <div className="flex space-x-2 items-center">
-                <p className="text-base font-600 text-qblack">Tümünü Gör</p>
+                <p className="text-base font-600 text-qblack">
+                  {t("common.viewAll")}
+                </p>
                 <span className="animate-right-dir">
                   <svg
                     width="17"

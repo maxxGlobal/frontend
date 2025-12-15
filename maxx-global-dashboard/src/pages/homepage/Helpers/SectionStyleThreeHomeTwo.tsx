@@ -1,8 +1,9 @@
 // src/pages/SectionStyleThreeHomeTwo.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
 
 import ViewMoreTitle from "./ViewMoreTitle";
 import ThinLove from "./icons/ThinLove";
@@ -22,19 +23,25 @@ type BannerProps = {
 export default function SectionStyleThreeHomeTwo({
   className,
   showProducts = 3,
-  sectionTitle = "Popüler Ürünler",
+  sectionTitle,
   seeMoreUrl,
 }: BannerProps) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null); 
-   const [favorites, setFavorites] = useState<Record<number, boolean>>({}); 
-   const qc = useQueryClient();
+  const [hasError, setHasError] = useState(false);
+  const [favorites, setFavorites] = useState<Record<number, boolean>>({});
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const resolvedTitle = useMemo(
+    () => sectionTitle ?? t("pages.homeTwo.popularTitle"),
+    [sectionTitle, t]
+  );
  
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
+        setHasError(false);
         const data = await listPopularProducts(showProducts, 30);
         setProducts(data);
         const q: Record<number, number> = {};
@@ -48,7 +55,7 @@ export default function SectionStyleThreeHomeTwo({
          setFavorites(fav);
       } catch (e) {
         console.error("Popüler ürünler getirilemedi:", e);
-        setError("Popüler ürünler getirilemedi");
+        setHasError(true);
       } finally {
         setLoading(false);
       }
@@ -71,20 +78,28 @@ export default function SectionStyleThreeHomeTwo({
       setFavorites((p) => ({ ...p, [id]: !p[id] }));
       Swal.fire({
         icon: "error",
-        title: "Hata",
-        text: "Favori işlemi başarısız",
+        title: t("pages.homeTwo.popular.favoritesErrorTitle"),
+        text: t("pages.homeTwo.popular.favoritesErrorText"),
       });
     }
   }
 
   return (
     <div className={`section-style-one ${className || ""}`}>
-      <ViewMoreTitle categoryTitle={sectionTitle} seeMoreUrl={seeMoreUrl}>
+      <ViewMoreTitle categoryTitle={resolvedTitle} seeMoreUrl={seeMoreUrl}>
         <div className="products-section w-full mt-10">
-          {loading && <p className="text-center py-6">Yükleniyor…</p>}
-          {error && <p className="text-center py-6 text-red-500">{error}</p>}
+          {loading && (
+            <p className="text-center py-6">
+              {t("pages.homeTwo.popular.loading")}
+            </p>
+          )}
+          {hasError && (
+            <p className="text-center py-6 text-red-500">
+              {t("pages.homeTwo.popular.loadError")}
+            </p>
+          )}
 
-          {!loading && !error && products.length > 0 && (
+          {!loading && !hasError && products.length > 0 && (
             <div className="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-10">
               {products.map((p) => (
                 <div key={p.id} className="item" data-aos="fade-up">
@@ -116,7 +131,10 @@ export default function SectionStyleThreeHomeTwo({
                         )}
                         {p.stockQuantity != null && (
                           <p className="text-xs text-gray-500 mb-1">
-                            Stok: {p.stockQuantity} {p.unit ?? ""}
+                            {t("pages.homeTwo.banner.stock", {
+                              count: p.stockQuantity,
+                              unit: p.unit ?? "",
+                            })}
                           </p>
                         )}
                       </div>

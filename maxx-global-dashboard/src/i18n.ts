@@ -18,6 +18,7 @@ const resources = {
         searchPlaceholder: "Ürün Ara...",
         search: "Ara",
         logout: "Çıkış Yap",
+        viewAll: "Tümünü Gör",
       },
       header: {
         notifications: {
@@ -71,6 +72,38 @@ const resources = {
         purple: "Mor",
       },
       pages: {
+        homeTwo: {
+          metaTitle: "Medintera – Anasayfa",
+          metaDescription: "Anasayfa",
+          categoriesTitle: "Kategoriler",
+          popularTitle: "Popüler Ürünler",
+          banner: {
+            loadError: "Ürünler getirilemedi",
+            stock: "Stok: {{count}} {{unit}}",
+            viewDetails: "Detaya Git",
+          },
+          countdown: {
+            title: "İndirimli Ürünler",
+            subtitleLine1: "İndirimdeki Ürünlere Göz Atın",
+            subtitleLine2: "Fırsatları Kaçırmayın",
+            cta: "Alışveriş Yap",
+          },
+          categories: {
+            empty: "Kategoriler bulunamadı.",
+          },
+          discountBanner: {
+            highlight: "İndirimli",
+            title: "Ürünlerimizden Faydalanın",
+            subtitle: "İndirimli Ürünleri Görmek İçin Tıklayınız",
+            cta: "İndirimler",
+          },
+          popular: {
+            loadError: "Popüler ürünler getirilemedi",
+            loading: "Yükleniyor…",
+            favoritesErrorTitle: "Hata",
+            favoritesErrorText: "Favori işlemi başarısız",
+          },
+        },
         about: {
           metaTitle: "Medintera – Hakkımızda",
           metaDescription: "Hakkımızda",
@@ -245,14 +278,15 @@ const resources = {
     },
     en: {
       translation: {
-      common: {
-        language: "Language",
-        turkish: "Turkish",
-        english: "English",
-        searchPlaceholder: "Search product...",
-        search: "Search",
-        logout: "Logout",
-      },
+        common: {
+          language: "Language",
+          turkish: "Turkish",
+          english: "English",
+          searchPlaceholder: "Search product...",
+          search: "Search",
+          logout: "Logout",
+          viewAll: "View All",
+        },
       header: {
         notifications: {
           title: "Notifications",
@@ -303,6 +337,38 @@ const resources = {
         purple: "Purple",
       },
       pages: {
+        homeTwo: {
+          metaTitle: "Medintera – Home",
+          metaDescription: "Homepage",
+          categoriesTitle: "Categories",
+          popularTitle: "Popular Sales",
+          banner: {
+            loadError: "Products could not be loaded",
+            stock: "Stock: {{count}} {{unit}}",
+            viewDetails: "View Details",
+          },
+          countdown: {
+            title: "Discounted Products",
+            subtitleLine1: "Browse discounted products",
+            subtitleLine2: "Don't miss out",
+            cta: "Shop Now",
+          },
+          categories: {
+            empty: "No categories found.",
+          },
+          discountBanner: {
+            highlight: "Discounted",
+            title: "Products — Take advantage",
+            subtitle: "Click to see discounted products",
+            cta: "Discounts",
+          },
+          popular: {
+            loadError: "Popular products could not be loaded",
+            loading: "Loading…",
+            favoritesErrorTitle: "Error",
+            favoritesErrorText: "Favorite action failed",
+          },
+        },
         about: {
           metaTitle: "Medintera – About Us",
           metaDescription: "About us",
