@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { useTranslation } from "react-i18next";
 
 import { listNotifications } from "../../../services/notifications/list";
 import { markAllNotificationsRead } from "../../../services/notifications/header";
 import type { NotificationRow } from "../../../types/notifications";
+import { getAcceptLanguageHeader } from "../../../utils/language";
 
 const MySwal = withReactContent(Swal);
 
@@ -16,10 +18,12 @@ export default function NotificationBox({
   className,
   type,
 }: NotificationBoxProps) {
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const locale = getAcceptLanguageHeader(i18n.language);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -38,12 +42,12 @@ export default function NotificationBox({
 
   const handleMarkAll = async () => {
     const confirm = await MySwal.fire({
-      title: "Tümünü Oku?",
-      text: "Tüm bildirimleri okundu olarak işaretlemek istiyor musunuz?",
+      title: t("header.notifications.markAllTitle"),
+      text: t("header.notifications.markAllBody"),
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Evet",
-      cancelButtonText: "Vazgeç",
+      confirmButtonText: t("header.notifications.confirm"),
+      cancelButtonText: t("header.notifications.cancel"),
     });
     if (!confirm.isConfirmed) return;
 
@@ -67,12 +71,16 @@ export default function NotificationBox({
       await qc.refetchQueries({ queryKey: ["notificationCount"], exact: true });
 
       await MySwal.fire(
-        "Tamam",
-        "Tüm bildirimler okundu olarak işaretlendi.",
+        t("header.notifications.title"),
+        t("header.notifications.success"),
         "success"
       );
     } catch (err: any) {
-      await MySwal.fire("Hata", err?.message ?? "İşlem başarısız", "error");
+      await MySwal.fire(
+        t("header.notifications.title"),
+        err?.message ?? t("header.notifications.error"),
+        "error"
+      );
     } finally {
       setUpdating(false);
     }
@@ -80,7 +88,9 @@ export default function NotificationBox({
 
   if (loading)
     return (
-      <div className={`p-4 text-center ${className || ""}`}>Yükleniyor…</div>
+      <div className={`p-4 text-center ${className || ""}`}>
+        {t("header.notifications.loading")}
+      </div>
     );
 
   return (
@@ -93,12 +103,14 @@ export default function NotificationBox({
       <div className="w-full h-full flex flex-col">
         {items.length > 0 && (
           <div className="flex justify-between items-center px-4 py-2 border-b border-gray-200">
-            <h3 className="text-qblack font-semibold">Bildirimler</h3>
+            <h3 className="text-qblack font-semibold">
+              {t("header.notifications.title")}
+            </h3>
             <button
               onClick={handleMarkAll}
               disabled={updating}
               className="np-icon-btn text-qh2-green hover:text-green-700 transition"
-              title="Tümünü okundu işaretle"
+              title={t("header.notifications.markAllTitle")}
             >
               ✓
             </button>
@@ -107,7 +119,9 @@ export default function NotificationBox({
 
         <div className="product-items max-h-[310px] overflow-y-auto">
           {items.length === 0 && (
-            <div className="p-4 text-center text-gray-500">Bildirim yok</div>
+            <div className="p-4 text-center text-gray-500">
+              {t("header.notifications.empty")}
+            </div>
           )}
           <ul>
             {items.map((n) => (
@@ -125,7 +139,7 @@ export default function NotificationBox({
                     {n.message}
                   </span>
                   <span className="text-gray-500 text-[11px] mt-1">
-                    {new Date(n.createdAt).toLocaleString("tr-TR")}
+                    {new Date(n.createdAt).toLocaleString(locale)}
                   </span>
                 </div>
               </li>
@@ -137,7 +151,7 @@ export default function NotificationBox({
           <div className="px-4 mt-4 border-t border-gray-200 pt-4">
             <Link to="/homepage/notifications">
               <div className="bg-yellow-500 text-white w-full h-[45px] flex items-center justify-center rounded-md">
-                <span>Tüm Bildirimleri Gör</span>
+                <span>{t("header.notifications.viewAll")}</span>
               </div>
             </Link>
           </div>
