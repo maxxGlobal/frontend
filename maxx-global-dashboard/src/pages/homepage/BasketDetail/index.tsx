@@ -97,7 +97,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       updateTimeoutRef.current[item.id] = setTimeout(async () => {
         try {
           setUpdatingItemId(item.id);
-    if (!activeDealerId) throw new Error("Bayi bulunamadı");
+    if (!activeDealerId) throw new Error(t("pages.cart.missingDealerTitle"));
 
     await updateItem(item.id, {
       dealerId: activeDealerId,
@@ -120,9 +120,12 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
           Swal.fire({
             icon: "error",
-            title: "Güncelleme Hatası",
-            text: error?.response?.data?.message || error?.message || "Miktar güncellenirken bir hata oluştu.",
-            confirmButtonText: "Tamam",
+            title: t("pages.cart.qtyErrorTitle"),
+            text:
+              error?.response?.data?.message ||
+              error?.message ||
+              t("pages.cart.qtyErrorText"),
+            confirmButtonText: t("pages.cart.modal.confirm") ?? "OK",
             confirmButtonColor: "#dc2626",
           });
         } finally {
@@ -131,19 +134,19 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         }
       }, 800); // 800ms debounce
     },
-    [updateItem]
+    [t, updateItem]
   );
 
 
   const handleRemove = useCallback(
     async (item: CartItemResponse) => {
       const result = await Swal.fire({
-        title: "Emin misiniz?",
-        text: `${item.productName} ürününü sepetten kaldırmak istediğinizden emin misiniz?`,
+        title: t("pages.cart.removeConfirmTitle"),
+        text: t("pages.cart.removeConfirmText", { product: item.productName }),
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Evet, Kaldır",
-        cancelButtonText: "İptal",
+        confirmButtonText: t("pages.cart.removeConfirmOk"),
+        cancelButtonText: t("pages.cart.removeConfirmCancel"),
         confirmButtonColor: "#dc2626",
         cancelButtonColor: "#6b7280",
       });
@@ -160,8 +163,8 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
         Swal.fire({
           icon: "success",
-          title: "Ürün Kaldırıldı",
-          text: "Ürün sepetinizden başarıyla kaldırıldı.",
+          title: t("pages.cart.removeSuccessTitle"),
+          text: t("pages.cart.removeSuccessText"),
           timer: 1500,
           showConfirmButton: false,
         });
@@ -169,19 +172,19 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         console.error("Ürün kaldırılırken hata:", error);
         Swal.fire({
           icon: "error",
-          title: "Silme Hatası",
+          title: t("pages.cart.removeErrorTitle"),
           text:
             error?.response?.data?.message ||
             error?.message ||
-            "Ürün kaldırılırken bir hata oluştu.",
-          confirmButtonText: "Tamam",
+            t("pages.cart.removeErrorText"),
+          confirmButtonText: t("pages.cart.modal.confirm") ?? "OK",
           confirmButtonColor: "#dc2626",
         });
       } finally {
         setRemovingItemId(null);
       }
     },
-    [removeItem]
+    [removeItem, t]
   );
 
 
@@ -210,16 +213,16 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
     } catch (err: any) {
       Swal.fire({
         icon: "error",
-        title: "Sepet Yenilenemedi",
+        title: t("pages.cart.refreshErrorTitle"),
         text:
           err?.response?.data?.message ||
           err?.message ||
-          "Sepet bilgileri yenilenirken bir hata oluştu.",
+          t("pages.cart.refreshErrorText"),
       });
     } finally {
       setRefreshing(false);
     }
-  }, [refresh]);
+  }, [refresh, t]);
 
   // İndirimleri yükle
   useEffect(() => {
@@ -297,8 +300,8 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       if (!activeDealerId) {
         Swal.fire({
           icon: "error",
-          title: "Bayi bulunamadı",
-          text: "Lütfen tekrar giriş yaparak deneyin.",
+          title: t("pages.cart.missingDealerTitle"),
+          text: t("pages.cart.missingDealerText"),
         });
         return null;
       }
@@ -306,8 +309,8 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       if (!items.length) {
         Swal.fire({
           icon: "info",
-          title: "Sepetiniz boş",
-          text: "İşlem yapmadan önce sepete ürün ekleyin.",
+          title: t("pages.cart.emptyTitle"),
+          text: t("pages.cart.emptyText"),
         });
         return null;
       }
@@ -322,8 +325,8 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       if (!products.length) {
         Swal.fire({
           icon: "info",
-          title: "Ürün bulunamadı",
-          text: "İşleme devam etmek için geçerli ürünler gerekiyor.",
+          title: t("pages.cart.invalidProductsTitle"),
+          text: t("pages.cart.invalidProductsText"),
         });
         return null;
       }
@@ -336,14 +339,14 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         notes: notes.trim() ? notes.trim() : undefined,
       };
     },
-    [activeDealerId, items, selectedDiscountId, notes]
+    [activeDealerId, items, selectedDiscountId, notes, t]
   );
 
   const handleApplyDiscount = useCallback(async () => {
     if (!selectedDiscountId) {
       Swal.fire({
         icon: "info",
-        title: "Bir indirim seçin",
+        title: t("pages.cart.selectDiscount"),
         timer: 1200,
         showConfirmButton: false,
       });
@@ -362,25 +365,27 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       if (result.stockWarnings?.length) {
         Swal.fire({
           icon: "warning",
-          title: "Stok Uyarısı",
+          title: t("pages.cart.stockWarningTitle"),
           text: result.stockWarnings.join(", "),
-          confirmButtonText: "Tamam",
+          confirmButtonText: t("pages.cart.modal.confirm") ?? "OK",
           confirmButtonColor: "#059669",
         });
     } else if ((result.discountAmount ?? 0) > 0 || result.discountDescription) {
         Swal.fire({
           icon: "success",
-          title: "İndirim uygulandı",
-          text: `${formatCurrency(result.discountAmount, result.currency)} indirim uygulandı`,
+          title: t("pages.cart.discountApplied"),
+          text: t("pages.cart.discountAppliedText", {
+            amount: formatCurrency(result.discountAmount, result.currency, locale),
+          }),
           timer: 1500,
           showConfirmButton: false,
         });
       } else {
         Swal.fire({
           icon: "info",
-          title: "İndirim uygulanamadı",
-          text: result.discountDescription || "Bu indirim şu anda uygulanamıyor.",
-          confirmButtonText: "Tamam",
+          title: t("pages.cart.discountNotAppliedTitle"),
+          text: result.discountDescription || t("pages.cart.discountNotAppliedText"),
+          confirmButtonText: t("pages.cart.modal.confirm") ?? "OK",
           confirmButtonColor: "#059669",
         });
       }
@@ -389,16 +394,16 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       setCalculationResult(null);
       Swal.fire({
         icon: "error",
-        title: "İndirim Hesaplanamadı",
+        title: t("pages.cart.discountFailedTitle"),
         text:
           err?.response?.data?.message ||
           err?.message ||
-          "İndirim uygulanırken bir hata oluştu.",
+          t("pages.cart.discountFailedText"),
       });
     } finally {
       setApplyingDiscount(false);
     }
-  }, [buildOrderRequest, selectedDiscountId]);
+  }, [buildOrderRequest, locale, selectedDiscountId, t]);
 
   const handleClearDiscount = useCallback(() => {
     setSelectedDiscountId(null);
@@ -441,16 +446,16 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       console.error("Sipariş önizlemesi alınamadı:", err);
       Swal.fire({
         icon: "error",
-        title: "Önizleme başarısız",
+        title: t("pages.cart.previewFailedTitle"),
         text:
           err?.response?.data?.message ||
           err?.message ||
-          "Sipariş önizlemesi alınırken bir hata oluştu.",
+          t("pages.cart.previewFailedText"),
       });
     } finally {
       setLoadingPreview(false);
     }
-  }, [buildOrderRequest]);
+  }, [buildOrderRequest, t]);
 
   const handleCreateOrder = useCallback(async () => {
     const request = buildOrderRequest(true);
@@ -463,22 +468,24 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       const result = await createOrderWithValidation(request);
       Swal.fire({
         icon: "success",
-        title: "Sipariş oluşturuldu",
+        title: t("pages.cart.orderCreatedTitle"),
         html: `
-          <p><strong>Sipariş Numarası:</strong> ${result.orderNumber}</p>
-          <p><strong>Toplam Tutar:</strong> ${formatCurrency(
-          result.totalAmount <=1 ? "" : result.totalAmount,
-          result.currency
-        )}</p>
+          <p><strong>${t("pages.cart.orderCreatedNumber")}</strong> ${result.orderNumber}</p>
+          <p><strong>${t("pages.cart.orderCreatedTotal")}</strong> ${formatCurrency(
+            result.totalAmount <= 1 ? "" : result.totalAmount,
+            result.currency,
+            locale
+          )}</p>
           ${result.hasDiscount
-            ? `<p><strong>İndirim:</strong> ${formatCurrency(
-              result.savingsAmount,
-              result.currency
-            )}</p>`
+            ? `<p><strong>${t("pages.cart.orderCreatedDiscount")}</strong> ${formatCurrency(
+                result.savingsAmount,
+                result.currency,
+                locale
+              )}</p>`
             : ""
           }
         `,
-        confirmButtonText: "Tamam",
+        confirmButtonText: t("pages.cart.modal.confirm") ?? "OK",
         confirmButtonColor: "#059669",
       });
       setShowPreviewModal(false);
@@ -492,16 +499,16 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
       console.error("Sipariş oluşturulamadı:", err);
       Swal.fire({
         icon: "error",
-        title: "Sipariş oluşturulamadı",
+        title: t("pages.cart.orderCreateFailedTitle"),
         text:
           err?.response?.data?.message ||
           err?.message ||
-          "Sipariş oluşturulurken bir hata meydana geldi.",
+          t("pages.cart.orderCreateFailedText"),
       });
     } finally {
       setCreatingOrder(false);
     }
-  }, [buildOrderRequest, clearCart]);
+  }, [buildOrderRequest, clearCart, locale, t]);
 
   if (loading && !cart) {
     return (
@@ -551,25 +558,27 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
             )}
 
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-qblack">Sepet Özeti</h2>
+              <h2 className="text-lg font-semibold text-qblack">{t("pages.cart.summary")}</h2>
               <div className="flex gap-3">
                 <button
                   onClick={handleManualRefresh}
                   disabled={refreshing || loading}
                   className="px-4 py-2 bg-qh2-green text-white rounded disabled:opacity-50 hover:bg-green-600 transition"
                 >
-                  {refreshing || loading ? "Yenileniyor..." : "Sepeti Yenile"}
+                  {refreshing || loading
+                    ? t("pages.cart.cartTotals.loading")
+                    : t("pages.cart.refresh")}
                 </button>
                 {hasItems && (
                   <button
                     onClick={async () => {
                       const result = await Swal.fire({
-                        title: "Sepeti Temizle",
-                        text: "Sepetteki tüm ürünleri kaldırmak istediğinizden emin misiniz?",
+                        title: t("pages.cart.clearConfirmTitle"),
+                        text: t("pages.cart.clearConfirmText"),
                         icon: "warning",
                         showCancelButton: true,
-                        confirmButtonText: "Evet, Temizle",
-                        cancelButtonText: "İptal",
+                        confirmButtonText: t("pages.cart.clearConfirmOk"),
+                        cancelButtonText: t("pages.cart.clearConfirmCancel"),
                         confirmButtonColor: "#dc2626",
                         cancelButtonColor: "#6b7280",
                       });
@@ -579,17 +588,20 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                           await clearCart();
                           Swal.fire({
                             icon: "success",
-                            title: "Sepet Temizlendi",
-                            text: "Tüm ürünler sepetten kaldırıldı.",
+                            title: t("pages.cart.clearSuccessTitle"),
+                            text: t("pages.cart.clearSuccessText"),
                             timer: 1500,
                             showConfirmButton: false,
                           });
                         } catch (error: any) {
                           Swal.fire({
                             icon: "error",
-                            title: "Hata",
-                            text: error?.response?.data?.message || error?.message || "Sepet temizlenirken bir hata oluştu.",
-                            confirmButtonText: "Tamam",
+                            title: t("pages.cart.clearErrorTitle"),
+                            text:
+                              error?.response?.data?.message ||
+                              error?.message ||
+                              t("pages.cart.clearErrorText"),
+                            confirmButtonText: t("pages.cart.modal.confirm") ?? "OK",
                             confirmButtonColor: "#dc2626",
                           });
                         }
@@ -598,25 +610,25 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                     disabled={refreshing || loading}
                     className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-50 hover:bg-red-700 transition"
                   >
-                    Sepeti Temizle
+                    {t("pages.cart.clearCart")}
                   </button>
                 )}
               </div>
             </div>
 
             {!hasItems ? (
-              <div className="py-20 text-center text-qgray text-sm">Sepetiniz boş.</div>
+              <div className="py-20 text-center text-qgray text-sm">{t("pages.cart.emptyText")}</div>
             ) : (
               <div className="overflow-x-auto border border-[#EDEDED]">
                 <table className="w-full text-sm text-left text-gray-600">
                   <thead className="bg-[#F6F6F6] text-gray-700 uppercase text-xs">
                     <tr>
-                      <th className="px-6 py-3">Ürün</th>
-                      <th className="px-6 py-3 text-center">Varyant</th>
-                      <th className="px-6 py-3 text-center">Adet</th>
-                      <th className="px-6 py-3 text-center">Birim Fiyat</th>
-                      <th className="px-6 py-3 text-center">Tutar</th>
-                      <th className="px-6 py-3 text-center">İşlem</th>
+                      <th className="px-6 py-3">{t("pages.cart.table.product")}</th>
+                      <th className="px-6 py-3 text-center">{t("pages.cart.table.variant")}</th>
+                      <th className="px-6 py-3 text-center">{t("pages.cart.table.quantity")}</th>
+                      <th className="px-6 py-3 text-center">{t("pages.cart.table.unitPrice")}</th>
+                      <th className="px-6 py-3 text-center">{t("pages.cart.table.total")}</th>
+                      <th className="px-6 py-3 text-center">{t("pages.cart.table.actions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -627,7 +639,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                             {item.imageUrl ? (
                               <img
                                 src={item.imageUrl}
-                                alt={item.productName ?? "Ürün"}
+                                alt={item.productName ?? t("pages.cart.table.product")}
                                 className="w-16 h-16 object-cover rounded"
                               />
                             ) : (
@@ -635,7 +647,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                             )}
                             <div>
                               <p className="text-sm font-semibold text-qblack">
-                                {item.productName ?? "Ürün"}
+                                {item.productName ?? t("pages.cart.table.product")}
                               </p>
                               {item.variantSku && (
                                 <p className="text-xs text-qgray">SKU: {item.variantSku}</p>
@@ -654,14 +666,16 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                             className="w-20 border rounded px-2 py-1 text-center disabled:opacity-50"
                           />
                           {updatingItemId === item.id && (
-                            <span className="block text-xs text-gray-500 mt-1">Güncelleniyor...</span>
+                            <span className="block text-xs text-gray-500 mt-1">
+                              {t("pages.cart.table.updating")}
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          {formatCurrency(item.unitPrice, item.currency)}
+                          {formatCurrency(item.unitPrice, item.currency, locale)}
                         </td>
                         <td className="px-6 py-4 text-center font-semibold text-qred">
-                          {formatCurrency(item.totalPrice, item.currency)}
+                          {formatCurrency(item.totalPrice, item.currency, locale)}
                         </td>
                         <td className="px-6 py-4 text-center">
                           <button
@@ -669,7 +683,9 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                             disabled={removingItemId === item.id}
                             className="text-red-600 hover:text-red-800 disabled:opacity-50"
                           >
-                            {removingItemId === item.id ? "Kaldırılıyor..." : "Kaldır"}
+                            {removingItemId === item.id
+                              ? t("pages.cart.table.removing")
+                              : t("pages.cart.table.remove")}
                           </button>
                         </td>
                       </tr>
@@ -680,22 +696,24 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
             )}
             {hasItems && (
               <>
-                {/* 🆕 Sipariş Notu */}
+                {/* Order note */}
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold mb-3 text-qblack">Sipariş Notu</h3>
+                  <h3 className="text-lg font-semibold mb-3 text-qblack">
+                    {t("pages.cart.notesLabel")}
+                  </h3>
                   <div className="border border-[#EDEDED] rounded p-4 bg-white">
                     <textarea
                       id="notes"
                       name="notes"
                       rows={3}
                       maxLength={500}
-                      placeholder="Teslimat veya faturalandırma ile ilgili özel bir isteğiniz varsa yazın (max 500 karakter)."
+                      placeholder={t("pages.cart.notesPlaceholder", { max: 500 }) ?? ""}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-qh2-green"
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      {notes.length}/500
+                      {t("pages.cart.notesCounter", { count: notes.length, max: 500 })}
                     </div>
                   </div>
                 </div>
@@ -706,7 +724,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
               <>
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-3 text-qblack">
-                    Uygulanabilir İndirimler
+                    {t("pages.cart.availableDiscountsTitle")}
                   </h3>
                   {discountsLoading ? (
                     <div className="flex items-center justify-center py-8">
@@ -714,7 +732,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                     </div>
                   ) : !discounts.length ? (
                     <p className="text-sm text-qgray">
-                      Bu bayi için tanımlı indirim bulunamadı.
+                      {t("pages.cart.noDiscountsText")}
                     </p>
                   ) : (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -734,7 +752,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                             }`}
                         >
                           <div className="text-xs uppercase font-semibold text-qh2-green mb-2">
-                            İndirim Kodu
+                            {t("pages.cart.discountCodeLabel")}
                           </div>
                           <div className="text-base font-semibold text-qblack mb-1">
                             {discount.name}
@@ -757,11 +775,13 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                     <button
                       onClick={handleApplyDiscount}
                       disabled={
-                        applyingDiscount || !selectedDiscountId || !discounts.length
+                      applyingDiscount || !selectedDiscountId || !discounts.length
                       }
                       className="px-4 py-2 bg-qh2-green text-white rounded disabled:opacity-50"
                     >
-                      {applyingDiscount ? "Hesaplanıyor..." : "İndirimi Uygula"}
+                      {applyingDiscount
+                        ? t("pages.cart.cartTotals.applying")
+                        : t("pages.cart.cartTotals.apply")}
                     </button>
                     {(selectedDiscountId || calculationResult) && (
                       <button
@@ -769,7 +789,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                         disabled={applyingDiscount}
                         className="px-4 py-2 bg-gray-400 text-white rounded disabled:opacity-50"
                       >
-                        İndirimi Temizle
+                        {t("pages.cart.cartTotals.clear")}
                       </button>
                     )}
                   </div>
@@ -777,7 +797,9 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
                 {calculationResult?.stockWarnings?.length ? (
                   <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded">
-                    <h4 className="text-orange-800 font-semibold mb-2">Stok Uyarıları</h4>
+                    <h4 className="text-orange-800 font-semibold mb-2">
+                      {t("pages.cart.cartTotals.stockWarnings")}
+                    </h4>
                     <ul className="list-disc list-inside text-orange-700 text-sm space-y-1">
                       {calculationResult.stockWarnings.map((warning, index) => (
                         <li key={index}>{warning}</li>
@@ -788,21 +810,23 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
                 <div className="mt-8 grid gap-4 md:grid-cols-2">
                   <div className="border border-[#EDEDED] rounded p-6">
-                    <h3 className="text-base font-semibold mb-4 text-qblack">Sipariş Bilgileri</h3>
+                    <h3 className="text-base font-semibold mb-4 text-qblack">
+                      {t("pages.cart.cartTotals.orderInfo")}
+                    </h3>
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-qgray">Ürün Sayısı</span>
+                      <span className="text-qgray">{t("pages.cart.cartTotals.itemCount")}</span>
                       <span className="text-qblack font-medium">{totalItems}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-qgray">Ara Toplam</span>
+                      <span className="text-qgray">{t("pages.cart.cartTotals.subtotal")}</span>
                       <span className="text-qblack font-semibold">
-                        {formatCurrency(subtotal, currency)}
+                        {formatCurrency(subtotal, currency, locale)}
                       </span>
                     </div>
                     {displayedDiscountAmount > 0 && (
                       <div className="flex justify-between text-sm mt-2 text-green-600">
-                        <span>İndirim</span>
-                        <span>-{formatCurrency(displayedDiscountAmount, currency)}</span>
+                        <span>{t("pages.cart.cartTotals.discount")}</span>
+                        <span>-{formatCurrency(displayedDiscountAmount, currency, locale)}</span>
                       </div>
                     )}
                     {calculationResult?.discountDescription && (
@@ -813,16 +837,18 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                   </div>
 
                   <div className="border border-[#EDEDED] rounded p-6 bg-gray-50">
-                    <h3 className="text-base font-semibold mb-4 text-qblack">Bayi Bilgileri</h3>
+                    <h3 className="text-base font-semibold mb-4 text-qblack">
+                      {t("pages.cart.cartTotals.dealerInfo")}
+                    </h3>
                     <div className="text-sm text-qgray">
                       <p>
-                        <span className="font-medium text-qblack">Bayi:</span>{" "}
+                        <span className="font-medium text-qblack">{t("pages.cart.cartTotals.dealer")}</span>{" "}
                         {cart?.dealerName ?? "-"}
                       </p>
                       <p>
-                        <span className="font-medium text-qblack">Sepet Güncelleme:</span>{" "}
+                        <span className="font-medium text-qblack">{t("pages.cart.cartTotals.lastActivity")}</span>{" "}
                         {cart?.lastActivityAt
-                          ? new Date(cart.lastActivityAt).toLocaleString("tr-TR")
+                          ? new Date(cart.lastActivityAt).toLocaleString(locale)
                           : "-"}
                       </p>
                     </div>
@@ -832,9 +858,9 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                 <div className="mt-6 flex justify-end">
                   <div className="w-full sm:w-[360px] border border-[#EDEDED] rounded p-6">
                     <div className="flex justify-between text-base font-semibold text-qblack mb-2">
-                      <span>Genel Toplam</span>
+                      <span>{t("pages.cart.cartTotals.grandTotal")}</span>
                       <span className="text-qred">
-                        {formatCurrency(displayedTotal, currency)}
+                        {formatCurrency(displayedTotal, currency, locale)}
                       </span>
                     </div>
                     <button
@@ -842,7 +868,9 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                       disabled={loadingPreview || applyingDiscount}
                       className="w-full h-[50px] rounded-sm flex justify-center items-center bg-qh2-green text-white font-semibold disabled:opacity-50"
                     >
-                      {loadingPreview ? "Yükleniyor..." : "Sipariş Oluştur"}
+                      {loadingPreview
+                        ? t("pages.cart.cartTotals.loading")
+                        : t("pages.cart.cartTotals.createOrder")}
                     </button>
                   </div>
                 </div>
@@ -857,7 +885,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Siparişi Onayla</h2>
+              <h2 className="text-xl font-bold text-gray-800">{t("pages.cart.modal.title")}</h2>
               <button
                 onClick={() => {
                   setShowPreviewModal(false);
@@ -871,21 +899,21 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
             </div>
             <div className="p-6 space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">Sipariş Özeti</h3>
+                <h3 className="text-lg font-semibold mb-2 text-gray-800">{t("pages.cart.modal.summary")}</h3>
                 <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-700">
                   <div className="flex justify-between">
-                    <span>Toplam Ürün</span>
+                    <span>{t("pages.cart.cartTotals.itemCount")}</span>
                     <span className="font-medium">{previewData.totalItems}</span>
                   </div>
                   <div className="flex justify-between mt-2">
-                    <span>Para Birimi</span>
+                    <span>{t("pages.cart.cartTotals.currency")}</span>
                     <span className="font-medium">{previewData.currency}</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">Ürünler</h3>
+                <h3 className="text-lg font-semibold mb-2 text-gray-800">{t("pages.cart.modal.items")}</h3>
                 <div className="space-y-3">
                   {(previewData.itemCalculations ?? []).map((item) => {
                     const hasDiscount = (item.discountAmount ?? 0) > 0;
@@ -902,29 +930,34 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                         <div className="flex justify-between items-start gap-4">
                           <div className="flex-1">
                             <p className="font-medium text-gray-800">{item.productName}</p>
-                            <p className="text-xs text-gray-500">Kod: {item.productCode}</p>
-                            <p className="text-xs text-gray-500 mt-1">Miktar: {item.quantity}</p>
+                            <p className="text-xs text-gray-500">
+                              {t("pages.cart.modal.productCode")} {item.productCode}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {t("pages.cart.modal.quantity")}: {item.quantity}
+                            </p>
                           </div>
                           <div className="text-right text-sm">
                             {hasDiscount ? (
                               <div>
                                 <div className="line-through text-gray-400">
-                                  {formatCurrency(originalPrice, previewData.currency)}
+                                  {formatCurrency(originalPrice, previewData.currency, locale)}
                                 </div>
                                 <div className="font-semibold text-green-600">
-                                  {formatCurrency(item.totalPrice, previewData.currency)}
+                                  {formatCurrency(item.totalPrice, previewData.currency, locale)}
                                 </div>
                                 <div className="text-xs text-green-500">
                                   -
                                   {formatCurrency(
                                     item.discountAmount,
-                                    previewData.currency
+                                    previewData.currency,
+                                    locale
                                   )}
                                 </div>
                               </div>
                             ) : (
                               <div className="font-semibold">
-                                {formatCurrency(item.totalPrice, previewData.currency)}
+                                {formatCurrency(item.totalPrice, previewData.currency, locale)}
                               </div>
                             )}
                           </div>
@@ -937,7 +970,9 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
               {previewData.stockWarnings?.length ? (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h4 className="text-orange-800 font-semibold mb-2">Stok Uyarıları</h4>
+                  <h4 className="text-orange-800 font-semibold mb-2">
+                    {t("pages.cart.cartTotals.stockWarnings")}
+                  </h4>
                   <ul className="list-disc list-inside text-orange-700 text-sm space-y-1">
                     {previewData.stockWarnings.map((warning, index) => (
                       <li key={index}>{warning}</li>
@@ -948,24 +983,24 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm space-y-2">
                 <div className="flex justify-between">
-                  <span>Ara Toplam</span>
+                  <span>{t("pages.cart.modal.subtotal")}</span>
                   <span className="font-medium">
-                    {formatCurrency(previewData.subtotal, previewData.currency)}
+                    {formatCurrency(previewData.subtotal, previewData.currency, locale)}
                   </span>
                 </div>
                 {(previewData.discountAmount ?? 0) > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>İndirim</span>
+                    <span>{t("pages.cart.cartTotals.discount")}</span>
                     <span>
                       -
-                      {formatCurrency(previewData.discountAmount, previewData.currency)}
+                      {formatCurrency(previewData.discountAmount, previewData.currency, locale)}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between text-base font-semibold text-qblack border-t pt-2">
-                  <span>Toplam</span>
+                  <span>{t("pages.cart.modal.total")}</span>
                   <span className="text-qred">
-                    {formatCurrency(previewData.totalAmount, previewData.currency)}
+                    {formatCurrency(previewData.totalAmount, previewData.currency, locale)}
                   </span>
                 </div>
               </div>
@@ -973,7 +1008,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
 
             {notes.trim() && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <h4 className="text-gray-800 font-semibold mb-2">Sipariş Notu</h4>
+                <h4 className="text-gray-800 font-semibold mb-2">{t("pages.cart.modal.note")}</h4>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">
                   {notes.trim()}
                 </p>
@@ -989,14 +1024,16 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
                 disabled={creatingOrder}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 disabled:opacity-50"
               >
-                İptal
+                {t("pages.cart.modal.cancel")}
               </button>
               <button
                 onClick={handleCreateOrder}
                 disabled={creatingOrder}
                 className="flex-1 px-4 py-2 bg-qh2-green text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
               >
-                {creatingOrder ? "Sipariş Oluşturuluyor..." : "Siparişi Onayla"}
+                {creatingOrder
+                  ? t("pages.cart.modal.confirming")
+                  : t("pages.cart.modal.confirm")}
               </button>
             </div>
           </div>
