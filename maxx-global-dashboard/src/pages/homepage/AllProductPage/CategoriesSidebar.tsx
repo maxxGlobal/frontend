@@ -6,6 +6,7 @@ import {
   buildCategoryTree,
   type CatNode,
 } from "../../../services/categories/buildTree";
+import { useTranslation } from "react-i18next";
 
 function collectDescendantsIds(node: CatNode): number[] {
   const out: number[] = [node.id];
@@ -111,6 +112,8 @@ export default function CategoriesSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openNodeId, setOpenNodeId] = useState<number | null>(null);
 
+  const { t } = useTranslation();
+
   const navigate = useNavigate();
   const [sp] = useSearchParams();
 
@@ -181,7 +184,7 @@ export default function CategoriesSidebar() {
         className="w-full lg:hidden flex justify-between items-center px-3 py-3 text-sm font-semibold border-2 border-[#2D6F6D] rounded"
         onClick={() => setMobileOpen((v) => !v)}
       >
-        Kategoriler
+        {t("pages.products.filter.categoriesTitle")}
         <span
           className={`transition-transform ${mobileOpen ? "rotate-90" : ""}`}
         >
@@ -212,7 +215,7 @@ export default function CategoriesSidebar() {
 
       <div className={`${mobileOpen ? "block" : "hidden"} lg:block p-3`}>
         <h4 className="text-sm font-semibold mb-2 hidden lg:block">
-          Kategoriler
+          {t("pages.products.filter.categoriesTitle")}
         </h4>
         <ul className="space-y-1">
           <li>
@@ -221,12 +224,12 @@ export default function CategoriesSidebar() {
               onClick={clearAll}
               className={`w-full truncate text-sm text-left px-3 h-9 rounded transition-colors 
                 ${
-                  selectedCatId == null && !searchParam
+                selectedCatId == null && !searchParam
                     ? "bg-blue-100 font-semibold text-blue-700"
                     : "hover:bg-gray-100"
                 }`}
             >
-              Tümü
+              {t("pages.products.filter.all")}
             </button>
           </li>
           {tree.map((root) => (
