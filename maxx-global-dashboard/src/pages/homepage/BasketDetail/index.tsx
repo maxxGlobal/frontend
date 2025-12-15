@@ -49,6 +49,13 @@ export default function CartPage() {
     () => (i18n.language?.startsWith("en") ? "en-US" : "tr-TR"),
     [i18n.language]
   );
+  const crumbs: Crumb[] = useMemo(
+    () => [
+      { name: t("drawer.home"), path: "/homepage" },
+      { name: t("pages.cart.pageTitle"), path: "/homepage/basket" },
+    ],
+    [t]
+  );
   const { cart, items, loading, error, refresh, updateItem, removeItem, clearCart, dealerId: contextDealerId } = useCart();
   const [refreshing, setRefreshing] = useState(false);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -542,10 +549,7 @@ const updateTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({
         <div className="w-full">
           <PageTitle
             title={pageTitle}
-            breadcrumb={[
-              { name: "home", path: "/homepage" },
-              { name: "homepage", path: "/homepage" },
-            ]}
+            breadcrumb={crumbs}
           />
         </div>
 

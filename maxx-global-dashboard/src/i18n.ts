@@ -130,6 +130,14 @@ const resources = {
             },
           },
         },
+        favorites: {
+          metaTitle: "Medintera – Favoriler",
+          metaDescription: "Favoriler",
+          pageTitle: "Favori Ürünler",
+          breadcrumbHome: "AnaSayfa",
+          loadError: "Favori ürünler getirilemedi",
+          empty: "Henüz favori ürününüz bulunmamaktadır.",
+        },
         cart: {
           metaTitle: "Medintera – Sepet",
           metaDescription: "Sepet",
@@ -232,11 +240,11 @@ const resources = {
             confirming: "Sipariş Oluşturuluyor...",
           },
         },
+        },
       },
     },
-  },
-  en: {
-    translation: {
+    en: {
+      translation: {
       common: {
         language: "Language",
         turkish: "Turkish",
@@ -353,6 +361,14 @@ const resources = {
               babyItem: "Baby Items",
             },
           },
+        },
+        favorites: {
+          metaTitle: "Medintera – Favorites",
+          metaDescription: "Favorites",
+          pageTitle: "Favorite Products",
+          breadcrumbHome: "Home",
+          loadError: "We couldn’t load your favorite products",
+          empty: "You don’t have any favorite products yet.",
         },
         cart: {
           metaTitle: "Medintera – Cart",

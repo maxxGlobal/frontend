@@ -10,17 +10,22 @@ import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
-
-const crumbs: Crumb[] = [
-  { name: "home", path: "/homepage" },
-  { name: "Favoriler", path: "/homepage/favorites" },
-];
+import { useTranslation } from "react-i18next";
 
 export default function FavoritesProductPage() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ProductRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const MIN_LOADER_TIME = 800;
   const [ready, setReady] = useState(false);
+
+  const crumbs: Crumb[] = useMemo(
+    () => [
+      { name: t("pages.favorites.breadcrumbHome"), path: "/homepage" },
+      { name: t("pages.favorites.pageTitle"), path: "/homepage/favorites" },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -44,7 +49,7 @@ export default function FavoritesProductPage() {
         setProducts(onlyFavs);
       } catch (e: any) {
         if (e?.name !== "AbortError" && e?.code !== "ERR_CANCELED") {
-          setError(e?.message || "Favori ürünler getirilemedi");
+          setError(e?.message || t("pages.favorites.loadError"));
           setProducts([]);
         }
       } finally {
@@ -62,8 +67,11 @@ export default function FavoritesProductPage() {
     return (
       <Layout>
         <Helmet>
-          <title>Medintera – Favoriler</title>
-          <meta name="description" content="Favoriler" />
+          <title>{t("pages.favorites.metaTitle")}</title>
+          <meta
+            name="description"
+            content={t("pages.favorites.metaDescription") ?? ""}
+          />
         </Helmet>
         <div className="flex justify-center items-center w-full h-[70vh]">
           <LoaderStyleOne />
@@ -75,12 +83,15 @@ export default function FavoritesProductPage() {
   return (
     <Layout>
       <Helmet>
-        <title>Medintera – Favoriler</title>
-        <meta name="description" content="Favoriler" />
+        <title>{t("pages.favorites.metaTitle")}</title>
+        <meta
+          name="description"
+          content={t("pages.favorites.metaDescription") ?? ""}
+        />
       </Helmet>
       <div className="products-page-wrapper w-full">
         <div className="title-area w-full">
-          <PageTitle title="Favori Ürünler" breadcrumb={crumbs} />
+          <PageTitle title={t("pages.favorites.pageTitle")} breadcrumb={crumbs} />
         </div>
 
         <div className="container-x mx-auto mt-10">
@@ -91,7 +102,7 @@ export default function FavoritesProductPage() {
           )}
           {!error && visibleProducts.length === 0 && (
             <div className="mb-6 p-4 rounded bg-yellow-50 text-yellow-700 text-sm">
-              Henüz favori ürününüz bulunmamaktadır.
+              {t("pages.favorites.empty")}
             </div>
           )}
 
