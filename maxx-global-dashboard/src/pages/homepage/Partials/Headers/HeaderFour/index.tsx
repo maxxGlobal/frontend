@@ -49,7 +49,12 @@ export default function HeaderFour({
 
           <div>
             <Link to="/homepage">
-              <img width={140} height={36} src={Logo} alt="logo" />
+              <img
+                width={140}
+                height={36}
+                src={Logo}
+                alt={t("header.logoAlt")}
+              />
             </Link>
           </div>
           <div className="flex items-center gap-4">

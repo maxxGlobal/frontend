@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Arrow from "../../../Helpers/icons/Arrow";
+import { useTranslation } from "react-i18next";
 import { listAllCategories } from "../../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../../../public/assets/icons/MedicalIcons";
 import {
@@ -43,6 +44,7 @@ function countNodes(nodes: CatNode[]): number {
 }
 
 export default function Navbar({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const [categoryToggle, setToggle] = useState(false);
   const [roots, setRoots] = useState<CatNode[]>([]);
   const [elementsSize, setSize] = useState("0px");
@@ -118,7 +120,7 @@ export default function Navbar({ className }: { className?: string }) {
                       </svg>
                     </span>
                     <span className="text-sm font-600 text-qblacktext">
-                      Tüm Kategoriler
+                      {t("header.nav.allCategories")}
                     </span>
                   </div>
                   <div
@@ -168,13 +170,15 @@ export default function Navbar({ className }: { className?: string }) {
                               width="16"
                               height="16"
                             >
-                              <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 5v4H7a1 1 0 0 0 0 2h4v4a1 1 0 0 0 2 0v-4h4a1 1 0 0 0 0-2h-4V7a1 1 0 0 0-2 0z" />
-                            </svg>
-                          </span>
-                          <span className="text-xs font-400">Tümü</span>
-                        </div>
-                        <div>
-                          <Arrow className="fill-current w-2 h-3" />
+                          <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 5v4H7a1 1 0 0 0 0 2h4v4a1 1 0 0 0 2 0v-4h4a1 1 0 0 0 0-2h-4V7a1 1 0 0 0-2 0z" />
+                          </svg>
+                        </span>
+                        <span className="text-xs font-400">
+                          {t("header.nav.all")}
+                        </span>
+                      </div>
+                      <div>
+                        <Arrow className="fill-current w-2 h-3" />
                         </div>
                       </button>
                     </li>
@@ -203,7 +207,7 @@ export default function Navbar({ className }: { className?: string }) {
 
                     {totalItems === 0 && (
                       <li className="px-5 py-3 text-xs text-gray-500">
-                        Kategori bulunamadı.
+                        {t("header.nav.noCategories")}
                       </li>
                     )}
                   </ul>
@@ -215,14 +219,14 @@ export default function Navbar({ className }: { className?: string }) {
                   <li>
                     <Link to="/homepage">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
-                        <span>Anasayfa</span>
+                        <span>{t("header.nav.home")}</span>
                       </span>
                     </Link>
                   </li>
                   <li>
                     <Link to="/homepage/all-product">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
-                        <span>Ürünlerimiz</span>
+                        <span>{t("header.nav.products")}</span>
                       </span>
                     </Link>
                   </li>
@@ -230,14 +234,14 @@ export default function Navbar({ className }: { className?: string }) {
                   <li>
                     <Link to="/homepage/about">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
-                        <span>Hakkımızda</span>
+                        <span>{t("header.nav.about")}</span>
                       </span>
                     </Link>
                   </li>
                   <li>
                     <Link to="/homepage/contact">
                       <span className="flex items-center text-sm text-white font-600 cursor-pointer transition hover:text-qyellow">
-                        <span>İletişim</span>
+                        <span>{t("header.nav.contact")}</span>
                       </span>
                     </Link>
                   </li>
@@ -249,7 +253,7 @@ export default function Navbar({ className }: { className?: string }) {
                 <div className="bg-[#FFBB38] border border-[#FFBB38] flex justify-center items-center cursor-pointer transition h-full rounded-sm hover:bg-qh2-green">
                   <div className="flex space-x-2 items-center">
                     <span className="text-sm font-600 text-white">
-                      Sipariş Geçmişi
+                      {t("header.nav.orders")}
                     </span>
                   </div>
                 </div>
