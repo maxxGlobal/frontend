@@ -250,6 +250,15 @@ const resources = {
           loadError: "Favori ürünler getirilemedi",
           empty: "Henüz favori ürününüz bulunmamaktadır.",
         },
+        productCard: {
+          codeLabel: "Kod",
+          categoryLabel: "Kategori",
+          materialLabel: "Materyal",
+          pricePending: "Fiyat bilgisi bekleniyor",
+          priceMissing: "Fiyat bilgisi yok",
+          favoriteErrorTitle: "Hata",
+          favoriteErrorText: "Favori işlemi başarısız",
+        },
         cart: {
           metaTitle: "Medintera – Sepet",
           metaDescription: "Sepet",
@@ -690,6 +699,15 @@ const resources = {
           breadcrumbHome: "Home",
           loadError: "We couldn’t load your favorite products",
           empty: "You don’t have any favorite products yet.",
+        },
+        productCard: {
+          codeLabel: "Code",
+          categoryLabel: "Category",
+          materialLabel: "Material",
+          pricePending: "Price info pending",
+          priceMissing: "No price info",
+          favoriteErrorTitle: "Error",
+          favoriteErrorText: "Favorite action failed",
         },
         cart: {
           metaTitle: "Medintera – Cart",
