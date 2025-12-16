@@ -136,36 +136,7 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
           <p className="text-[12px] text-qgray mb-2">
             {t("pages.productCard.materialLabel")}: {d.material || "—"}
           </p>
-        )}
-        {d.prices?.length ? (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {d.prices.map((p, idx) => {
-              const key = p.productPriceId ?? `price-${idx}`;
-              const numericAmount =
-                typeof p.amount === "number" && Number.isFinite(p.amount)
-                  ? p.amount
-                  : null;
-              const formattedAmount =
-                numericAmount !== null
-                  ? formatAmount(numericAmount, p.currency)
-                  : t("pages.productCard.pricePending");
-
-              return (
-                <span
-                  key={key}
-                  className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-qblack"
-                >
-                  {formattedAmount}
-                </span>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-[12px] text-qgray mt-2">
-            {t("pages.productCard.priceMissing")}
-          </p>
-        )}
- 
+        )} 
       </div>
 
       {/* Favori butonu */}
