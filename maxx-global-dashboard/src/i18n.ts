@@ -393,6 +393,7 @@ const resources = {
             confirm: "Siparişi Onayla",
             confirming: "Sipariş Oluşturuluyor...",
         },
+      },
         singleProduct: {
           fallbackName: "ürün",
           loading: "Ürün yükleniyor…",
