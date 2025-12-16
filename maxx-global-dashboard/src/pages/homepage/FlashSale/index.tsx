@@ -139,12 +139,12 @@ function ProductModal({
                       {product.categoryName}
                     </p>
                   </div>
-                <div className="ml-4 flex-shrink-0">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {t("pages.flashSale.modal.discounted")}
-                  </span>
+                  <div className="ml-4 flex-shrink-0">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {t("pages.flashSale.modal.discounted")}
+                    </span>
+                  </div>
                 </div>
-              </div>
               ))}
             </div>
           )}
@@ -394,150 +394,151 @@ export default function FlashSale() {
                         </div>
                       </div>
 
-                        <div className="p-6">
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 gap-4">
-                                {/* Geçerli Ürün - modal ile */}
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <div className="text-2xl font-bold text-gray-900">
-                                        {discount.allProducts?.length || 0}
-                                      </div>
-                                      <div className="text-sm text-gray-600">
-                                        {t("pages.flashSale.stats.applicableProducts")}
-                                      </div>
+                      <div className="p-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4">
+                              {/* Geçerli Ürün - modal ile */}
+                              <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="text-2xl font-bold text-gray-900">
+                                      {discount.allProducts?.length || 0}
                                     </div>
-                                    {discount.allProducts?.length > 0 && (
-                                      <button
-                                        onClick={() => handleShowProducts(discount)}
-                                        className="px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                                      >
-                                        {t("pages.flashSale.stats.viewProducts")}
-                                      </button>
-                                    )}
+                                    <div className="text-sm text-gray-600">
+                                      {t("pages.flashSale.stats.applicableProducts")}
+                                    </div>
                                   </div>
+                                  {discount.allProducts?.length > 0 && (
+                                    <button
+                                      onClick={() => handleShowProducts(discount)}
+                                      className="px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                                    >
+                                      {t("pages.flashSale.stats.viewProducts")}
+                                    </button>
+                                  )}
                                 </div>
                               </div>
+                            </div>
 
-                          {discount.minimumOrderAmount && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-5 h-5 text-blue-500 mr-2"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                <span className="text-sm text-blue-700">
+                            {discount.minimumOrderAmount && (
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center">
+                                  <svg
+                                    className="w-5 h-5 text-blue-500 mr-2"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  <span className="text-sm text-blue-700">
                                   {t("pages.flashSale.stats.minimumOrder")} {" "}
-                                  <strong>
-                                    {fmt(
-                                      discount.minimumOrderAmount,
-                                      locale,
-                                      dealerCurrency
-                                    )}
-                                  </strong>
-                                </span>
+                                    <strong>
+                                      {fmt(
+                                        discount.minimumOrderAmount,
+                                        locale,
+                                        dealerCurrency
+                                      )}
+                                    </strong>
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {discount.maximumDiscountAmount && (
-                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-5 h-5 text-purple-500 mr-2"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                <span className="text-sm text-purple-700">
-                                  {t("pages.flashSale.stats.maximumDiscount")}{" "}
-                                  <strong>
-                                    {fmt(
-                                      discount.maximumDiscountAmount,
-                                      locale,
-                                      dealerCurrency
-                                    )}
-                                  </strong>
-                                </span>
+                            {discount.maximumDiscountAmount && (
+                              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                <div className="flex items-center">
+                                  <svg
+                                    className="w-5 h-5 text-purple-500 mr-2"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  <span className="text-sm text-purple-700">
+                                    {t("pages.flashSale.stats.maximumDiscount")}{" "}
+                                    <strong>
+                                      {fmt(
+                                        discount.maximumDiscountAmount,
+                                        locale,
+                                        dealerCurrency
+                                      )}
+                                    </strong>
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 mb-3">
-                              {t("pages.flashSale.stats.campaignDates")}
-                            </h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">
-                                  {t("pages.flashSale.stats.start")}
-                                </span>
-                                <span className="font-medium">
-                                  {new Date(
-                                    discount.startDate
-                                  ).toLocaleDateString(locale)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">
-                                  {t("pages.flashSale.stats.end")}
-                                </span>
-                                <span className="font-medium">
-                                  {new Date(
-                                    discount.endDate
-                                  ).toLocaleDateString(locale)}
-                                </span>
-                              </div>
-                            </div>
+                            )}
                           </div>
 
-                          {discount.usageLimit && (
-                            <div className="bg-gray-50 rounded-lg p-4">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm text-gray-600">
-                                  {t("pages.flashSale.stats.usageStatus")}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {discount.totalUsage || 0} /{" "}
-                                  {discount.usageLimit}
-                                </span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                  style={{
-                                    width: `${Math.min(
-                                      100,
-                                      ((discount.totalUsage || 0) /
-                                        discount.usageLimit) *
-                                        100
-                                    )}%`,
-                                  }}
-                                ></div>
+                          <div className="space-y-4">
+                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+                              <h4 className="font-semibold text-gray-900 mb-3">
+                                {t("pages.flashSale.stats.campaignDates")}
+                              </h4>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">
+                                    {t("pages.flashSale.stats.start")}
+                                  </span>
+                                  <span className="font-medium">
+                                    {new Date(
+                                      discount.startDate
+                                    ).toLocaleDateString(locale)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">
+                                    {t("pages.flashSale.stats.end")}
+                                  </span>
+                                  <span className="font-medium">
+                                    {new Date(
+                                      discount.endDate
+                                    ).toLocaleDateString(locale)}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          )}
+
+                            {discount.usageLimit && (
+                              <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-gray-600">
+                                    {t("pages.flashSale.stats.usageStatus")}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {discount.totalUsage || 0} /{" "}
+                                    {discount.usageLimit}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${Math.min(
+                                        100,
+                                        ((discount.totalUsage || 0) /
+                                          discount.usageLimit) *
+                                          100
+                                      )}%`,
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Product Modal */}
@@ -579,4 +580,4 @@ export default function FlashSale() {
       </div>
     </Layout>
   );
-}
+}SS

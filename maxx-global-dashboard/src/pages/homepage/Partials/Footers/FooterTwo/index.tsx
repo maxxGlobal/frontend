@@ -112,17 +112,6 @@ export default function Footer() {
         </div>
         <div className="bottom-bar border-t border-qgray-border lg:h-[82px] lg:flex justify-between items-center">
           <div className="flex lg:space-x-5 justify-between items-center mb-3 w-full">
-            <div className="flex space-x-5 items-center">
-              <a href="#">
-                <Instagram className="fill-current text-qgray hover:text-qblack" />
-              </a>
-              <a href="#">
-                <Facebook className="fill-current text-qgray hover:text-qblack" />
-              </a>
-              <a href="#">
-                <Youtube className="fill-current text-qgray hover:text-qblack" />
-              </a>
-            </div>
             <div className="blok sm:text-base text-[10px] text-qgray font-300">
               ©{new Date().getFullYear()}
               <a
