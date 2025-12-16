@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Layout from "../Partials/Layout";
 import { getDealerById } from "../../../services/dealers/getById";
 import type { DealerRow } from "../../../types/dealer";
@@ -21,6 +22,7 @@ function getDealerIdFromLocal(): number | null {
 }
 
 export default function Contact() {
+  const { t } = useTranslation();
   const [dealer, setDealer] = useState<DealerRow | null>(null);
 
   useEffect(() => {
@@ -33,15 +35,15 @@ export default function Contact() {
   }, []);
   const mapUrl = dealer?.address
     ? `https://www.google.com/maps?q=${encodeURIComponent(
-        "Ehlibeyt Mah. Tekstilciler Cd. 35 / 7 Çankaya, Ankara – Türkiye"
+        t("pages.contact.mapAddress")
       )}&output=embed`
     : "";
 
   return (
     <Layout childrenClasses="pt-0 pb-0">
       <Helmet>
-        <title>Medintera – İletişim</title>
-        <meta name="description" content="İletişim" />
+        <title>{t("pages.contact.metaTitle")}</title>
+        <meta name="description" content={t("pages.contact.metaDescription")} />
       </Helmet>
       <div className="page-title mb-10"></div>
       <div className="contact-wrapper w-full mb-10">
@@ -49,36 +51,38 @@ export default function Contact() {
           <div className="main-wrapper w-full lg:flex lg:space-x-[30px]">
             <div className="w-full">
               <h1 className="text-[22px] font-semibold text-qblack leading-[30px] mb-1">
-                İletişim Bilgileri
+                {t("pages.contact.pageTitle")}
               </h1>
               <p className="text-[15px] text-qgraytwo leading-[30px] mb-5">
-                Bize Aşağıdaki Bilgilerden Ulaşabilrsiniz
+                {t("pages.contact.subtitle")}
               </p>
 
               {/* Phone & Email */}
               <div className="xl:flex xl:space-x-[30px] mb-[30px]">
                 <div className="xl:w-1/2 w-full h-[196px] flex flex-col justify-center bg-[#FFEAE5] p-5">
                   <div className="flex justify-center mb-3">
-                    <img src={phoneIcon} alt={dealer?.name} />
+                    <img src={phoneIcon} alt={t("pages.contact.phoneAlt") || dealer?.name} />
                   </div>
                   <p className="text-[22px] text-black text-center font-semibold">
-                    Telefon
+                    {t("pages.contact.phoneTitle")}
                   </p>
                   <p className="text-[15px] text-black text-center">
-                    <a href="tel:+90 507 916 42 73">+90 507 916 42 73</a>
+                    <a href={`tel:${t("pages.contact.phoneHref")}`}>
+                      {t("pages.contact.phoneNumber")}
+                    </a>
                   </p>
                 </div>
 
                 <div className="xl:w-1/2 w-full h-[196px] flex flex-col justify-center bg-[#D3EFFF] p-5">
                   <div className="flex justify-center mb-3">
-                    <img src={emailIcon} alt={dealer?.name} />
+                    <img src={emailIcon} alt={t("pages.contact.emailAlt") || dealer?.name} />
                   </div>
                   <p className="text-[22px] text-black text-center font-semibold">
-                    Eposta
+                    {t("pages.contact.emailTitle")}
                   </p>
                   <p className="text-[15px] text-black text-center">
-                    <a href="mailto:bilgi@medintera.com.tr">
-                      bilgi@medintera.com.tr
+                    <a href={`mailto:${t("pages.contact.emailAddress")}`}>
+                      {t("pages.contact.emailAddress")}
                     </a>
                   </p>
                 </div>
@@ -87,17 +91,19 @@ export default function Contact() {
               {/* Address */}
               <div className="p-5 flex flex-col justify-between w-full bg-[#E7F2EC]">
                 <div className="flex justify-center mb-3">
-                  <img src={addressIcon} alt={dealer?.name} />
+                  <img src={addressIcon} alt={t("pages.contact.addressAlt") || dealer?.name} />
                 </div>
                 <div className="flex justify-center space-x-5">
                   <div>
                     <p className="text-[22px] text-black text-center font-semibold">
-                      Adres
+                      {t("pages.contact.addressTitle")}
                     </p>
                     <p className="text-[15px] text-black text-center">
-                      MEDİNTERA MİMARLIK TASARIM MEDİKAL SAN. VE TİC. LTD. ŞTİ.
-                      Ehlibeyt Mah. Tekstilciler Cd. 35 / 7 Çankaya, Ankara –
-                      Türkiye
+                      {t("pages.contact.companyName")}
+                      <br />
+                      {t("pages.contact.addressLine1")}
+                      <br />
+                      {t("pages.contact.addressLine2")}
                     </p>
                   </div>
                 </div>
