@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
 import ThinLove from "../icons/ThinLove";
 import { addFavorite } from "../../../../services/favorites/add";
 import { removeFavorite } from "../../../../services/favorites/remove";
@@ -40,10 +41,23 @@ function matchesMaterials(prod: Product, selected: string[] = []) {
 export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   if (datas.status !== "AKTİF") return null;
   if (!matchesMaterials(datas, filterMaterials)) return null;
-   const qc = useQueryClient();
+  const { t, i18n } = useTranslation();
+  const qc = useQueryClient();
   const d = datas;
-  const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite); 
-  
+  const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
+
+  const formatAmount = (amount: number, currency?: string | null) => {
+    try {
+      return new Intl.NumberFormat(i18n.language || "tr", {
+        style: "currency",
+        currency: currency || "TRY",
+      }).format(amount);
+    } catch {
+      const formatted = Number.isFinite(amount) ? amount.toFixed(2) : String(amount);
+      return `${formatted}${currency ? ` ${currency}` : ""}`.trim();
+    }
+  };
+
 
   async function handleFavorite(e: React.MouseEvent) {
     e.preventDefault();
@@ -62,8 +76,8 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
       setIsFav((prev) => !prev);
       Swal.fire({
         icon: "error",
-        title: "Hata",
-        text: "Favori işlemi başarısız",
+        title: t("pages.productCard.favoriteErrorTitle"),
+        text: t("pages.productCard.favoriteErrorText"),
       });
     }
   }
@@ -108,15 +122,19 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
           {d.name}
         </p>
 
-        {d.code && <p className="text-[12px] text-qgray mb-1">Kod: {d.code}</p>}
+        {d.code && (
+          <p className="text-[12px] text-qgray mb-1">
+            {t("pages.productCard.codeLabel")}: {d.code}
+          </p>
+        )}
         {d.categoryName && (
           <p className="text-[12px] text-qgray mb-2">
-            Kategori: {d.categoryName}
+            {t("pages.productCard.categoryLabel")}: {d.categoryName}
           </p>
         )}
         {d.material !== undefined && d.material !== null && (
           <p className="text-[12px] text-qgray mb-2">
-            Materyal: {d.material || "—"}
+            {t("pages.productCard.materialLabel")}: {d.material || "—"}
           </p>
         )}
         {d.prices?.length ? (
@@ -129,17 +147,8 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
                   : null;
               const formattedAmount =
                 numericAmount !== null
-                  ? (() => {
-                      try {
-                        return numericAmount.toLocaleString("tr-TR", {
-                          style: "currency",
-                          currency: p.currency || "TRY",
-                        });
-                      } catch {
-                        return `${numericAmount.toFixed(2)} ${p.currency || ""}`.trim();
-                      }
-                    })()
-                  : "Fiyat bilgisi bekleniyor";
+                  ? formatAmount(numericAmount, p.currency)
+                  : t("pages.productCard.pricePending");
 
               return (
                 <span
@@ -152,7 +161,9 @@ export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
             })}
           </div>
         ) : (
-          <p className="text-[12px] text-qgray mt-2">Fiyat bilgisi yok</p>
+          <p className="text-[12px] text-qgray mt-2">
+            {t("pages.productCard.priceMissing")}
+          </p>
         )}
  
       </div>

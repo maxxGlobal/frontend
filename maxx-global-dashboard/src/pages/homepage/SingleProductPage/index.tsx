@@ -14,11 +14,13 @@ import withReactContent from "sweetalert2-react-content";
 import { useCart } from "../Helpers/CartContext";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
+import { useTranslation } from "react-i18next";
 
 const MySwal = withReactContent(Swal);
 export default function ProductPage() {
   const { id: idParam } = useParams<{ id: string }>();
   const { addItem, items } = useCart();
+  const { t, i18n } = useTranslation();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export default function ProductPage() {
       setErr(null);
       const idNum = Number(idParam);
       if (!Number.isFinite(idNum) || idNum <= 0) {
-        setErr("Geçersiz ürün numarası.");
+        setErr(t("pages.singleProduct.errors.invalidId"));
         setLoading(false);
         return;
       }
@@ -83,14 +85,14 @@ export default function ProductPage() {
         setSelectedVariantId(nextVariantId);
       } catch (e: any) {
         if (e?.name !== "CanceledError" && e?.name !== "AbortError") {
-          setErr("Ürün detayı yüklenemedi.");
+          setErr(t("pages.singleProduct.errors.loadFailed"));
         }
       } finally {
         setLoading(false);
       }
     })();
     return () => controller.abort();
-  }, [idParam]);
+  }, [idParam, t]);
   useEffect(() => {
     const idNum = Number(idParam);
     if (!Number.isFinite(idNum) || idNum <= 0) {
@@ -114,10 +116,12 @@ export default function ProductPage() {
     const isActive = statusTr === "AKTİF";
     return (
       <span className={`badge ${isActive ? "bg-success" : "bg-danger"}`}>
-        {isActive ? "Aktif" : "Silinmiş"}
+        {isActive
+          ? t("pages.singleProduct.status.active")
+          : t("pages.singleProduct.status.deleted")}
       </span>
     );
-  }, [product]);
+  }, [product, t]);
 
   const variants = product?.variants ?? [];
 
@@ -128,13 +132,14 @@ export default function ProductPage() {
           .filter((val): val is string => !!val && String(val).trim().length > 0)
           .map((val) => String(val));
         const label =
-          labelParts.join(" • ") || `Varyant ${index + 1}`;
+          labelParts.join(" • ") ||
+          t("pages.singleProduct.variant.defaultLabel", { index: index + 1 });
         return {
           id: variant.id,
           label,
         };
       }),
-    [variants]
+    [t, variants]
   );
 
   const selectedVariant = useMemo(() => {
@@ -190,25 +195,29 @@ export default function ProductPage() {
     const amount = Number(selectedPrice.amount);
     if (!Number.isFinite(amount)) return null;
     const currency = selectedPrice.currency ?? "";
+    const locale = i18n.language || "tr";
     try {
       if (currency) {
-        return new Intl.NumberFormat("tr-TR", {
+        return new Intl.NumberFormat(locale, {
           style: "currency",
           currency,
         }).format(amount);
       }
-      return amount.toLocaleString("tr-TR", {
+      return amount.toLocaleString(locale, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
     } catch {
-      return `${amount.toLocaleString("tr-TR")}${currency ? ` ${currency}` : ""}`;
+      return `${amount.toLocaleString(locale)}${currency ? ` ${currency}` : ""}`;
     }
-  }, [selectedPrice]);
+  }, [i18n.language, selectedPrice]);
 
   const stockInfo = useMemo(() => {
     if (!product) {
-      return { isInStock: false, text: "Stok bilgisi mevcut değil" };
+      return {
+        isInStock: false,
+        text: t("pages.singleProduct.stock.noInfo"),
+      };
     }
 
     const fallbackStockQuantity = product.stockQuantity ?? null;
@@ -224,7 +233,10 @@ export default function ProductPage() {
       if (variantStock !== null && variantStock !== undefined) {
         return {
           isInStock: variantStock > 0,
-          text: variantStock > 0 ? `${variantStock} adet stokta` : "Stok yok",
+          text:
+            variantStock > 0
+              ? t("pages.singleProduct.stock.quantity", { count: variantStock })
+              : t("pages.singleProduct.stock.out"),
         };
       }
     }
@@ -233,16 +245,20 @@ export default function ProductPage() {
       return {
         isInStock: fallbackInStock,
         text: fallbackInStock
-          ? `${fallbackStockQuantity} adet stokta`
-          : "Stok yok",
+          ? t("pages.singleProduct.stock.quantity", {
+              count: fallbackStockQuantity,
+            })
+          : t("pages.singleProduct.stock.out"),
       };
     }
 
     return {
       isInStock: fallbackInStock,
-      text: fallbackInStock ? "Stokta" : "Stok yok",
+      text: fallbackInStock
+        ? t("pages.singleProduct.stock.available")
+        : t("pages.singleProduct.stock.out"),
     };
-  }, [product, selectedVariant]);
+  }, [product, selectedVariant, t]);
 
   const handleVariantChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { value } = event.target;
@@ -260,10 +276,10 @@ export default function ProductPage() {
     if (priceId === null) {
       const result = await MySwal.fire({
         icon: "question",
-        title: "Fiyat bilgisi bulunamadı",
-        text: "Bu ürünü fiyat bilgisi olmadan sepete eklemek istediğinize emin misiniz?",
-        confirmButtonText: "Evet, ekle",
-        cancelButtonText: "Vazgeç",
+        title: t("pages.singleProduct.cart.missingPriceTitle"),
+        text: t("pages.singleProduct.cart.missingPriceBody"),
+        confirmButtonText: t("pages.singleProduct.cart.confirm"),
+        cancelButtonText: t("pages.singleProduct.cart.cancel"),
         showCancelButton: true,
       });
 
@@ -289,18 +305,22 @@ export default function ProductPage() {
       const variantLabel = selectedVariantLabel ? ` (${selectedVariantLabel})` : "";
       await MySwal.fire({
         icon: "success",
-        title: "Başarılı",
-        text: `${product.name}${variantLabel} ürününden ${quantity} adet sepete eklendi`,
-        confirmButtonText: "Tamam",
+        title: t("pages.singleProduct.cart.successTitle"),
+        text: t("pages.singleProduct.cart.successBody", {
+          name: product.name,
+          variantLabel,
+          count: quantity,
+        }),
+        confirmButtonText: t("pages.singleProduct.cart.confirm"),
       });
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
         error?.message ||
-        "Sepete ürün eklenirken bir hata oluştu.";
+        t("pages.singleProduct.cart.addError");
       MySwal.fire({
         icon: "error",
-        title: "Hata",
+        title: t("pages.singleProduct.cart.errorTitle"),
         text: message,
       });
     }
@@ -310,7 +330,7 @@ export default function ProductPage() {
     return (
       <Layout>
         <div className="container-x mx-auto py-20 text-center text-gray-600">
-          Ürün yükleniyor…
+          {t("pages.singleProduct.loading")}
         </div>
       </Layout>
     );
@@ -334,9 +354,9 @@ export default function ProductPage() {
             <div className="container-x mx-auto">
               <BreadcrumbCom
                 paths={[
-                  { name: "Anasayfa", path: "/homepage" },
+                  { name: t("header.nav.home"), path: "/homepage" },
                   {
-                    name: product.name ?? "product",
+                    name: product.name ?? t("pages.singleProduct.fallbackName"),
                     path: `/homepage/product/${product.id}`,
                   },
                 ]}
@@ -370,13 +390,14 @@ export default function ProductPage() {
                     </p>
 
                     <p className="text-qgray text-sm mb-[30px] leading-7">
-                      {product.description || "Ürün açıklaması mevcut değil."}
+                      {product.description ||
+                        t("pages.singleProduct.descriptionFallback")}
                     </p>
 
                     {variantOptions.length > 0 && (
                       <div className="mb-4">
                         <label className="block text-sm font-semibold text-qblack mb-2">
-                          Boy Seçimi
+                          {t("pages.singleProduct.variant.label")}
                         </label>
                         <select
                           value={
@@ -387,7 +408,9 @@ export default function ProductPage() {
                           onChange={handleVariantChange}
                           className="w-full border border-qgray-border px-3 py-2 text-sm outline-none"
                         >
-                          <option value="">Boy seçiniz</option>
+                          <option value="">
+                            {t("pages.singleProduct.variant.placeholder")}
+                          </option>
                           {variantOptions.map((option) => (
                             <option key={option.id} value={option.id}>
                               {option.label}
@@ -404,8 +427,8 @@ export default function ProductPage() {
                     ) : (
                       <p className="text-sm text-qgray mb-4">
                         {variantOptions.length > 0
-                          ? "Fiyat için gerekli yetkiniz yok"
-                          : "Bu ürün için fiyat bilgisi bulunamadı. Siparişiniz fiyatlandırıldıktan sonra bilgilendirileceksiniz."}
+                          ? t("pages.singleProduct.price.unauthorized")
+                          : t("pages.singleProduct.price.unavailable")}
                       </p>
                     )}
 
@@ -450,7 +473,7 @@ export default function ProductPage() {
                           onClick={handleAddToCart}
                           className="cursor-pointer black-btn text-sm font-semibold w-full h-full"
                         >
-                          Sepete Ekle
+                          {t("pages.singleProduct.cart.addToCart")}
                         </button>
                       </div>
                     </div>
@@ -461,32 +484,44 @@ export default function ProductPage() {
                       className="mb-[20px] aos-init aos-animate"
                     >
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Kategori :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.category")} :
+                        </span>
                         <span className="ms-2">
                           {product.categoryName || "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Seri No :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.serialNumber")} :
+                        </span>
                         <span className="ms-2">
                           {product.serialNumber || "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Lot No :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.lotNumber")} :
+                        </span>
                         <span className="ms-2">{product.lotNumber || "-"}</span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Birim :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.unit")} :
+                        </span>
                         <span className="ms-2">{product.unit || "-"}</span>
                       </p>
 
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Materyal :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.material")} :
+                        </span>
                         <span className="ms-2">{product.material || "-"}</span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Boyut :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.size")} :
+                        </span>
                         <span className="ms-2">
                           {selectedVariant?.size || product.size || "-"}
                         </span>
@@ -498,22 +533,28 @@ export default function ProductPage() {
                         </p>
                       )}
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Çap :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.diameter")} :
+                        </span>
                         <span className="ms-2">{product.diameter || "-"}</span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Açı :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.angle")} :
+                        </span>
                         <span className="ms-2">{product.angle || "-"}</span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Ağırlık :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.weight")} :
+                        </span>
                         <span className="ms-2">
                           {product.weightGrams || "-"} gr
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          Medikal Cihaz Sınıfı :
+                          {t("pages.singleProduct.details.medicalDeviceClass")} :
                         </span>
                         <span className="ms-2">
                           {product.medicalDeviceClass || "-"}
@@ -521,7 +562,7 @@ export default function ProductPage() {
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          Regülasyon No :
+                          {t("pages.singleProduct.details.regulatoryNumber")} :
                         </span>
                         <span className="ms-2">
                           {product.regulatoryNumber || "-"}
@@ -529,67 +570,69 @@ export default function ProductPage() {
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          Üretim Tarihi :
+                          {t("pages.singleProduct.details.manufacturingDate")} :
                         </span>
                         <span className="ms-2">
                           {product.manufacturingDate || "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
-                        <span className="text-qblack font-600">Steril :</span>
+                        <span className="text-qblack font-600">
+                          {t("pages.singleProduct.details.sterile")} :
+                        </span>
                         <span className="ms-2">
                           {product.sterile === true
-                            ? "Evet"
+                            ? t("pages.singleProduct.common.yes")
                             : product.sterile === false
-                            ? "Hayır"
+                            ? t("pages.singleProduct.common.no")
                             : "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          Tek Kullanımlık :
+                          {t("pages.singleProduct.details.singleUse")} :
                         </span>
                         <span className="ms-2">
                           {product.singleUse === true
-                            ? "Evet"
+                            ? t("pages.singleProduct.common.yes")
                             : product.singleUse === false
-                            ? "Hayır"
+                            ? t("pages.singleProduct.common.no")
                             : "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          İmplante Edilebilir :
+                          {t("pages.singleProduct.details.implantable")} :
                         </span>
                         <span className="ms-2">
                           {product.implantable === true
-                            ? "Evet"
+                            ? t("pages.singleProduct.common.yes")
                             : product.implantable === false
-                            ? "Hayır"
+                            ? t("pages.singleProduct.common.no")
                             : "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          CE İşareti :
+                          {t("pages.singleProduct.details.ceMarking")} :
                         </span>
                         <span className="ms-2">
                           {product.ceMarking === true
-                            ? "Evet"
+                            ? t("pages.singleProduct.common.yes")
                             : product.ceMarking === false
-                            ? "Hayır"
+                            ? t("pages.singleProduct.common.no")
                             : "-"}
                         </span>
                       </p>
                       <p className="text-[13px] text-qgray leading-7">
                         <span className="text-qblack font-600">
-                          FDA Onaylı :
+                          {t("pages.singleProduct.details.fdaApproved")} :
                         </span>
                         <span className="ms-2">
                           {product.fdaApproved === true
-                            ? "Evet"
+                            ? t("pages.singleProduct.common.yes")
                             : product.fdaApproved === false
-                            ? "Hayır"
+                            ? t("pages.singleProduct.common.no")
                             : "-"}
                         </span>
                       </p>

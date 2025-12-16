@@ -131,7 +131,12 @@ export default function Middlebar({ className }: { className?: string }) {
       <div className="container-x mx-auto h-full">
         <div className="relative h-full flex justify-between items-center">
           <Link to="/homepage">
-            <img width={240} height={36} src={Logo} alt="logo" />
+            <img
+              width={240}
+              height={36}
+              src={Logo}
+              alt={t("header.logoAlt")}
+            />
           </Link>
 
           <div className="w-[517px] h-[44px]">
