@@ -458,26 +458,26 @@ const resources = {
             productsFromShop: "Mağazadaki Ürünler",
           },
         },
-        },
       },
     },
+  },
     en: {
       translation: {
-        common: {
-          language: "Language",
-          turkish: "Turkish",
-          english: "English",
-        searchPlaceholder: "Search product...",
-        search: "Search",
-        logout: "Logout",
-        viewAll: "View All",
-        ok: "OK",
-      },
-        footer: {
-          logoAlt: "Medintera logo",
-          description:
-            "As Medintera, we aim to be the most innovative and reliable production partner in the defense and medical industries, becoming a globally recognized brand by using technology at the highest level.",
-          aboutTitle: "About Us",
+          common: {
+            language: "Language",
+            turkish: "Turkish",
+            english: "English",
+            searchPlaceholder: "Search product...",
+            search: "Search",
+            logout: "Logout",
+            viewAll: "View All",
+            ok: "OK",
+          },
+          footer: {
+            logoAlt: "Medintera logo",
+            description:
+              "As Medintera, we aim to be the most innovative and reliable production partner in the defense and medical industries, becoming a globally recognized brand by using technology at the highest level.",
+            aboutTitle: "About Us",
           aboutLink: "About Us",
           productsTitle: "Products",
           productsLink: "Our Products",
