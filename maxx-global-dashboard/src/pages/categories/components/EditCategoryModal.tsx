@@ -26,6 +26,9 @@ const stripIndent = (s: string) => s.replace(/^[—\-\s]+/g, "").trim();
 function getFieldDisplayName(fieldName: string): string {
   const fieldMap: Record<string, string> = {
     name: "Kategori Adı",
+    nameEn: "Kategori Adı (İngilizce)",
+    description: "Açıklama",
+    descriptionEn: "Açıklama (İngilizce)",
     parentId: "Üst Kategori",
     status: "Durum",
   };
@@ -40,6 +43,9 @@ export default function EditCategoryModal({
 }: Props) {
   const [form, setForm] = useState<CategoryUpdateRequest>({
     name: category.name,
+    nameEn: (category as any).nameEn ?? "",
+    description: (category as any).description ?? "",
+    descriptionEn: (category as any).descriptionEn ?? "",
     parentId: undefined, // detayla doldurulacak
     status: category.status as any,
   });
@@ -86,6 +92,9 @@ export default function EditCategoryModal({
         setForm((f) => ({
           ...f,
           name: detail.name ?? f.name,
+          nameEn: detail.nameEn ?? f.nameEn,
+          description: detail.description ?? f.description,
+          descriptionEn: detail.descriptionEn ?? f.descriptionEn,
           parentId:
             selectedParentId === undefined ? null : selectedParentId ?? null,
           status: (detail.status as any) ?? f.status,
@@ -113,6 +122,15 @@ export default function EditCategoryModal({
       });
       return;
     }
+    if (!form.nameEn?.trim()) {
+      await MySwal.fire({
+        icon: "warning",
+        title: "Eksik Bilgi",
+        text: "İngilizce kategori adı zorunludur.",
+        confirmButtonText: "Tamam",
+      });
+      return;
+    }
 
     try {
       setSaving(true);
@@ -120,6 +138,9 @@ export default function EditCategoryModal({
 
       await updateCategory(category.id, {
         name: form.name?.trim(),
+        nameEn: form.nameEn?.trim(),
+        description: form.description?.trim() ?? "",
+        descriptionEn: form.descriptionEn?.trim() ?? "",
         parentId:
           form.parentId === ("" as unknown as number) ||
           form.parentId === undefined
@@ -264,6 +285,47 @@ export default function EditCategoryModal({
                   required
                   title="Kategori adı zorunlu bir alandır"
                   placeholder="Kategori adını girin"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">İngilizce Ad *</label>
+                <input
+                  name="nameEn"
+                  className="form-control"
+                  value={form.nameEn || ""}
+                  onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
+                  required
+                  title="İngilizce kategori adı zorunludur"
+                  placeholder="Kategori adını İngilizce girin"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Açıklama</label>
+                <textarea
+                  name="description"
+                  className="form-control"
+                  value={form.description ?? ""}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Kategori açıklamasını girin"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Açıklama (İngilizce)</label>
+                <textarea
+                  name="descriptionEn"
+                  className="form-control"
+                  value={form.descriptionEn ?? ""}
+                  onChange={(e) =>
+                    setForm({ ...form, descriptionEn: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Kategori açıklamasını İngilizce girin"
                 />
               </div>
 

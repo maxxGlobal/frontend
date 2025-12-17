@@ -9,6 +9,9 @@ function norm(raw: any): CategoryDetail {
   return {
     id: Number(raw?.id),
     name: String(raw?.name ?? ""),
+    nameEn: raw?.nameEn ?? null,
+    description: raw?.description ?? null,
+    descriptionEn: raw?.descriptionEn ?? null,
     parentCategoryName: raw?.parentCategoryName ?? null,
     createdAt: raw?.createdAt ?? null,
     status: raw?.status ?? null,

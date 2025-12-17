@@ -9,6 +9,9 @@ export interface CategorySummary {
 export interface Category {
   id: number;
   name: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentCategoryName?: string | null;
   parentId?: number | null;
   status?: CategoryStatus | null;
@@ -20,6 +23,9 @@ export interface Category {
 export interface CategoryRow {
   id: number;
   name: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentName?: string | null;
   status?: CategoryStatus | null;
   createdAt?: string | null;
@@ -28,11 +34,17 @@ export interface CategoryRow {
 
 export interface CategoryCreateRequest {
   name: string;
+  nameEn: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentId?: number | null;
 }
 
 export interface CategoryUpdateRequest {
   name?: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentId?: number | null;
   status?: CategoryStatus;
 }
@@ -43,6 +55,9 @@ export interface CategoryUpdateRequest {
 export interface CategoryDTO {
   id: number;
   name: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentCategoryName?: string | null;
   createdAt?: string | null;
   status?: string | null;
