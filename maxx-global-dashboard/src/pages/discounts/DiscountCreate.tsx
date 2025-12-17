@@ -4,15 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { createDiscount } from "../../services/discounts/create";
-import { listSimpleProducts } from "../../services/products/simple";
-import { listSimpleDealers } from "../../services/dealers/simple";
-import { listAllCategories } from "../../services/categories/listAll";
 import { getProductById } from "../../services/products/getById";
 import type { DiscountCreateRequest } from "../../types/discount";
 import type { ProductSimple } from "../../types/product";
 import type { DealerSummary } from "../../types/dealer";
 import type { CategoryRow } from "../../types/category";
 import type { ProductVariant } from "../../services/products/getById";
+import { useSimpleProducts } from "../../services/products/queries";
+import { useSimpleDealers } from "../../services/dealers/queries";
+import { useAllCategories } from "../../services/categories/queries";
 
 function ensureSeconds(v: string) {
   if (!v) return v;
@@ -50,10 +50,13 @@ export default function DiscountCreate() {
     useState<string>("");
 
   // Seçenekler
-  const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
-  const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
-  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]);
-  const [optsLoading, setOptsLoading] = useState<boolean>(true);
+  const { data: productOpts = [], isLoading: loadingProducts } =
+    useSimpleProducts();
+  const { data: dealerOpts = [], isLoading: loadingDealers } =
+    useSimpleDealers();
+  const { data: categoryOpts = [], isLoading: loadingCategories } =
+    useAllCategories();
+  const optsLoading = loadingProducts || loadingDealers || loadingCategories;
 
   // ✅ YENİ - Variant seçimi için
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -77,28 +80,18 @@ export default function DiscountCreate() {
   const [dealerFilter, setDealerFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setOptsLoading(true);
-        const [prods, dealers, categories] = await Promise.all([
-          listSimpleProducts(),
-          listSimpleDealers(),
-          listAllCategories(),
-        ]);
-        prods.sort((a, b) => a.name.localeCompare(b.name));
-        dealers.sort((a, b) => a.name.localeCompare(b.name));
-
-        setProductOpts(prods);
-        setDealerOpts(dealers);
-        setCategoryOpts(categories);
-      } catch {
-        Swal.fire("Hata", "Seçenek listeleri yüklenemedi", "error");
-      } finally {
-        setOptsLoading(false);
-      }
-    })();
-  }, []);
+  const sortedProducts = useMemo(
+    () => [...productOpts].sort((a, b) => a.name.localeCompare(b.name)),
+    [productOpts]
+  );
+  const sortedDealers = useMemo(
+    () => [...dealerOpts].sort((a, b) => a.name.localeCompare(b.name)),
+    [dealerOpts]
+  );
+  const sortedCategories = useMemo(
+    () => [...categoryOpts].sort((a, b) => a.name.localeCompare(b.name)),
+    [categoryOpts]
+  );
 
   // ✅ YENİ - Ürün seçildiğinde varyantlarını yükle
   const loadProductVariants = async (productId: number) => {
@@ -154,25 +147,25 @@ export default function DiscountCreate() {
   // Filtrelenmiş listeler
   const filteredProducts = useMemo(() => {
     const q = productFilter.trim().toLowerCase();
-    if (!q) return productOpts;
-    return productOpts.filter(
+    if (!q) return sortedProducts;
+    return sortedProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         (p.code ? p.code.toLowerCase().includes(q) : false)
     );
-  }, [productFilter, productOpts]);
+  }, [productFilter, sortedProducts]);
 
   const filteredDealers = useMemo(() => {
     const q = dealerFilter.trim().toLowerCase();
-    if (!q) return dealerOpts;
-    return dealerOpts.filter((d) => d.name.toLowerCase().includes(q));
-  }, [dealerFilter, dealerOpts]);
+    if (!q) return sortedDealers;
+    return sortedDealers.filter((d) => d.name.toLowerCase().includes(q));
+  }, [dealerFilter, sortedDealers]);
 
   const filteredCategories = useMemo(() => {
     const q = categoryFilter.trim().toLowerCase();
-    if (!q) return categoryOpts;
-    return categoryOpts.filter((c) => c.name.toLowerCase().includes(q));
-  }, [categoryFilter, categoryOpts]);
+    if (!q) return sortedCategories;
+    return sortedCategories.filter((c) => c.name.toLowerCase().includes(q));
+  }, [categoryFilter, sortedCategories]);
 
   // Checkbox yardımcıları
   function toggleId(

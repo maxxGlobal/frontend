@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import { listAllCategories } from "../../services/categories/listAll";
 import { listUpcomingDiscounts } from "../../services/discounts/upcoming";
 import type { Discount } from "../../types/discount";
 import type { CategoryRow } from "../../types/category";
@@ -9,6 +8,7 @@ import EditDiscountModal from "./components/EditDiscountModal";
 import PopoverBadgeVariant from "../../components/popover/PopoverBadgeVariant";
 import PopoverBadgeProduct from "../../components/popover/PopoverBadgeProduct";
 import PopoverBadgeDealer from "../../components/popover/PopoverBadgeDealer";
+import { useAllCategories } from "../../services/categories/queries";
 
 async function listDiscountsByCategory(
   _categoryId: number
@@ -23,8 +23,7 @@ function dedupeById<T extends { id: number }>(arr: T[]): T[] {
 }
 
 export default function DiscountsByCategory() {
-  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]);
-  const [optsLoading, setOptsLoading] = useState(true);
+  const { data: categoryOpts = [], isLoading: optsLoading } = useAllCategories();
 
   const [categoryId, setCategoryId] = useState<string>("");
   const [includeUpcoming, setIncludeUpcoming] = useState<boolean>(true);
@@ -34,18 +33,11 @@ export default function DiscountsByCategory() {
   const [editTarget, setEditTarget] = useState<Discount | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        setOptsLoading(true);
-        const categories = await listAllCategories();
-        setCategoryOpts(categories);
-      } catch {
-        Swal.fire("Hata", "Kategori listesi yüklenemedi", "error");
-      } finally {
-        setOptsLoading(false);
-      }
-    })();
-  }, []);
+    if (optsLoading) return;
+    if (!categoryOpts.length) {
+      Swal.fire("Hata", "Kategori listesi yüklenemedi", "error");
+    }
+  }, [categoryOpts.length, optsLoading]);
 
   async function handleFetch(e: React.FormEvent) {
     e.preventDefault();

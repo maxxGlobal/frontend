@@ -31,7 +31,7 @@ export default function SectionStyleThreeHomeTwo({
   const [hasError, setHasError] = useState(false);
   const [favorites, setFavorites] = useState<Record<number, boolean>>({});
   const qc = useQueryClient();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const resolvedTitle = useMemo(
     () => sectionTitle ?? t("pages.homeTwo.popularTitle"),
     [sectionTitle, t]
@@ -60,7 +60,7 @@ export default function SectionStyleThreeHomeTwo({
         setLoading(false);
       }
     })();
-  }, [showProducts]);
+  }, [showProducts, i18n.language]);
  
 
   async function handleFavorite(id: number) {

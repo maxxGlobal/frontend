@@ -1,29 +1,13 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMedicalIcon } from "../../../../public/assets/icons/MedicalIcons";
-import { listAllCategories } from "../../../services/categories/listAll";
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../../services/categories/buildTree";
+import { type CatNode } from "../../../services/categories/buildTree";
 import { useTranslation } from "react-i18next";
+import { useAllCategoryTree } from "../../../services/categories/queries";
 
 export default function CategoriesSection() {
-  const [roots, setRoots] = useState<CatNode[]>([]);
   const navigate = useNavigate();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setRoots(tree);
-      } catch (e) {}
-    })();
-    return () => controller.abort();
-  }, []);
+  const { data: roots = [] } = useAllCategoryTree();
 
   const handlePick = (cat: CatNode) => {
     navigate(`/homepage/all-product?cat=${cat.id}`);

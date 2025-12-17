@@ -14,14 +14,11 @@ import { listProducts } from "../../services/products/list";
 import { listProductsByCategory } from "../../services/products/listByCategory";
 import { listProductsBySearch } from "../../services/products/search";
 import { listActiveProducts } from "../../services/products/active";
-import { listAllCategories } from "../../services/categories/listAll";
 import { deleteProduct } from "../../services/products/delete";
 import { restoreProduct } from "../../services/products/restore";
 
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../services/categories/buildTree";
+import { type CatNode } from "../../services/categories/buildTree";
+import { useAllCategoryTree } from "../../services/categories/queries";
 
 function makeDefaultPage<T>(size: number): PageResponse<T> {
   return {
@@ -64,7 +61,6 @@ export default function ProductList() {
 
   const initialCat = urlCat ? Number(urlCat) : null;
 
-  const [cats, setCats] = useState<CatNode[]>([]);
   const [selectedCat, setSelectedCat] = useState<number | null>(initialCat);
 
   const [q, setQ] = useState(urlQ);
@@ -77,6 +73,7 @@ export default function ProductList() {
 
   // Görünüm modu (URL ile senkron)
   const [viewMode, setViewMode] = useState<ViewMode>(urlView);
+  const { data: categoryTree = [] } = useAllCategoryTree();
 
   // Mod'a göre sayfa boyutu: detail:12, compact:30
   const defaultSizeForMode = useMemo(
@@ -129,26 +126,10 @@ export default function ProductList() {
     return out;
   }
 
-  // Kategorileri tek sefer yükle
   useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadCategories() {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setCats(tree);
-        const leveled = flattenTreeToOptions(tree);
-        setCategories(leveled);
-      } catch (err) {
-        if (isAbortError(err)) return;
-        console.error("Kategori yükleme hatası:", err);
-      }
-    }
-
-    loadCategories();
-    return () => controller.abort();
-  }, []);
+    const leveled = flattenTreeToOptions(categoryTree);
+    setCategories(leveled);
+  }, [categoryTree]);
 
   // Görünüm modu değişince sayfa boyutunu ayarla
   useEffect(() => {
@@ -455,7 +436,7 @@ export default function ProductList() {
     <div className="row product-list">
       <div className="col-xxl-3 col-lg-4 col-12">
         <CategorySidebar
-          items={cats}
+          items={categoryTree}
           selectedId={selectedCat}
           onSelect={(c) => {
             setSelectedCat(c ? c.id : null);

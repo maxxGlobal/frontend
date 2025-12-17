@@ -6,18 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getUnreadCount } from "../../../../services/notifications/header";
-import { listAllCategories } from "../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../../public/assets/icons/MedicalIcons";
 import { getFavoriteCount } from "../../../../services/favorites/count";
 import { BiChevronRight } from "react-icons/bi";
 import Bell from "../../Helpers/icons/Bell";
 import NotificationCart from "../../Notifications/Cart";
 import LanguageSwitcher from "../../Helpers/LanguageSwitcher";
+import { useAllCategoryTree } from "../../../../services/categories/queries";
 
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../../../services/categories/buildTree";
+import { type CatNode } from "../../../../services/categories/buildTree";
 
 type DrawerProps = {
   open?: boolean;
@@ -46,7 +43,7 @@ function collectDescendantsIds(node: CatNode): number[] {
 }
 
 export default function Drawer({ className, open, action }: DrawerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: wishlistCount = 0 } = useQuery({
     queryKey: ["favoriteCount"],
     queryFn: getFavoriteCount,
@@ -59,7 +56,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
   });
 
   const [categoryToggle, setToggle] = useState(false);
-  const [roots, setRoots] = useState<CatNode[]>([]);
+  const { data: roots = [] } = useAllCategoryTree();
   // const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
@@ -72,18 +69,6 @@ export default function Drawer({ className, open, action }: DrawerProps) {
     action?.();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setRoots(tree);
-      } catch (e) {}
-    })();
-    return () => controller.abort();
-  }, []);
 
   useEffect(() => {
     if (categoryToggle) {

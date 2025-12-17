@@ -3,12 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Arrow from "../../../Helpers/icons/Arrow";
 import { useTranslation } from "react-i18next";
-import { listAllCategories } from "../../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../../../public/assets/icons/MedicalIcons";
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../../../../services/categories/buildTree";
+import { type CatNode } from "../../../../../services/categories/buildTree";
+import { useAllCategoryTree } from "../../../../../services/categories/queries";
 
 // --- yardımcılar
 function findNodeById(nodes: CatNode[], id: number): CatNode | null {
@@ -44,25 +41,14 @@ function countNodes(nodes: CatNode[]): number {
 }
 
 export default function Navbar({ className }: { className?: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categoryToggle, setToggle] = useState(false);
-  const [roots, setRoots] = useState<CatNode[]>([]);
+  const { data: roots = [] } = useAllCategoryTree();
   const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
 
   // Kategorileri yükle (sadece kökler)
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setRoots(tree);
-      } catch (e) {}
-    })();
-    return () => controller.abort();
-  }, []);
 
   // Dropdown yükseklik ölçümü
   useEffect(() => {
