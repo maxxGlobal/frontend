@@ -408,6 +408,7 @@ const resources = {
           status: {
             completed: "Tamamlandı",
             cancelled: "İptal edildi",
+            pending: "Beklemede",
             editPending: "Düzenleme onayı bekliyor",
             processing: "{{status}}",
           },
@@ -942,6 +943,7 @@ const resources = {
           status: {
             completed: "Completed",
             cancelled: "Cancelled",
+            pending: "Pending",
             editPending: "Awaiting edit approval",
             processing: "{{status}}",
           },

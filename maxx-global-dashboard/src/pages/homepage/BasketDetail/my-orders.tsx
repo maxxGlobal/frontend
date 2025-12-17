@@ -38,6 +38,9 @@ export default function MyOrdersPage() {
     if (normalized.includes("IPTAL") || normalized.includes("İPTAL")) {
       return t("pages.myOrders.status.cancelled");
     }
+    if (normalized === "BEKLEMEDE") {
+      return t("pages.myOrders.status.pending");
+    }
     if (normalized === "DÜZENLEME ONAY BEKLIYOR" || normalized === "DÜZENLEME ONAY BEKLİYOR") {
       return t("pages.myOrders.status.editPending");
     }
