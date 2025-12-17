@@ -59,7 +59,13 @@ export default function Drawer({ className, open, action }: DrawerProps) {
   });
 
   const [categoryToggle, setToggle] = useState(false);
-  const [roots, setRoots] = useState<CatNode[]>([]);
+  const { data: roots = [] } = useQuery<CatNode[]>({
+    queryKey: ["allCategories", i18n.language],
+    queryFn: async ({ signal }) => {
+      const flat = await listAllCategories({ signal });
+      return buildCategoryTree(flat);
+    },
+  });
   // const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
@@ -72,18 +78,6 @@ export default function Drawer({ className, open, action }: DrawerProps) {
     action?.();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setRoots(tree);
-      } catch (e) {}
-    })();
-    return () => controller.abort();
-  }, [i18n.language]);
 
   useEffect(() => {
     if (categoryToggle) {

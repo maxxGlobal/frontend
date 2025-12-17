@@ -1,5 +1,5 @@
 // src/components/CategoriesSidebar.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { listAllCategories } from "../../../services/categories/listAll";
 import {
@@ -7,6 +7,7 @@ import {
   type CatNode,
 } from "../../../services/categories/buildTree";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 
 function collectDescendantsIds(node: CatNode): number[] {
   const out: number[] = [node.id];
@@ -108,11 +109,17 @@ function NodeItem({
 }
 
 export default function CategoriesSidebar() {
-  const [tree, setTree] = useState<CatNode[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openNodeId, setOpenNodeId] = useState<number | null>(null);
 
   const { t, i18n } = useTranslation();
+  const { data: tree = [] } = useQuery<CatNode[]>({
+    queryKey: ["allCategories", i18n.language],
+    queryFn: async ({ signal }) => {
+      const flat = await listAllCategories({ signal });
+      return buildCategoryTree(flat);
+    },
+  });
 
   const navigate = useNavigate();
   const [sp] = useSearchParams();
@@ -125,29 +132,6 @@ export default function CategoriesSidebar() {
       : catParam && catParam !== "0"
       ? Number(catParam)
       : null;
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let isMounted = true;
-
-    (async () => {
-      if (!isMounted) return;
-
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        if (isMounted && !controller.signal.aborted) {
-          setTree(buildCategoryTree(flat));
-        }
-      } catch (e) {
-        // Hata durumunda sessizce devam et
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [i18n.language]);
 
   const handlePick = (node: CatNode) => {
     const ids = collectDescendantsIds(node);

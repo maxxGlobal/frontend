@@ -9,6 +9,7 @@ import {
   buildCategoryTree,
   type CatNode,
 } from "../../../../../services/categories/buildTree";
+import { useQuery } from "@tanstack/react-query";
 
 // --- yardımcılar
 function findNodeById(nodes: CatNode[], id: number): CatNode | null {
@@ -46,23 +47,18 @@ function countNodes(nodes: CatNode[]): number {
 export default function Navbar({ className }: { className?: string }) {
   const { t, i18n } = useTranslation();
   const [categoryToggle, setToggle] = useState(false);
-  const [roots, setRoots] = useState<CatNode[]>([]);
+  const { data: roots = [] } = useQuery<CatNode[]>({
+    queryKey: ["allCategories", i18n.language],
+    queryFn: async ({ signal }) => {
+      const flat = await listAllCategories({ signal });
+      return buildCategoryTree(flat);
+    },
+  });
   const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
 
   // Kategorileri yükle (sadece kökler)
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setRoots(tree);
-      } catch (e) {}
-    })();
-    return () => controller.abort();
-  }, [i18n.language]);
 
   // Dropdown yükseklik ölçümü
   useEffect(() => {

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMedicalIcon } from "../../../../public/assets/icons/MedicalIcons";
 import { listAllCategories } from "../../../services/categories/listAll";
@@ -7,23 +6,18 @@ import {
   type CatNode,
 } from "../../../services/categories/buildTree";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CategoriesSection() {
-  const [roots, setRoots] = useState<CatNode[]>([]);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const flat = await listAllCategories({ signal: controller.signal });
-        const tree = buildCategoryTree(flat);
-        setRoots(tree);
-      } catch (e) {}
-    })();
-    return () => controller.abort();
-  }, [i18n.language]);
+  const { data: roots = [] } = useQuery<CatNode[]>({
+    queryKey: ["allCategories", i18n.language],
+    queryFn: async ({ signal }) => {
+      const flat = await listAllCategories({ signal });
+      return buildCategoryTree(flat);
+    },
+  });
 
   const handlePick = (cat: CatNode) => {
     navigate(`/homepage/all-product?cat=${cat.id}`);
