@@ -112,13 +112,20 @@ export function useUsersList() {
         if (activeOnly) {
           // service zaten PageResponse'a normalize ediyor
           const res = await listActiveUsers(baseReq, { signal: c.signal });
-          const filtered = dealerId
-            ? res.content.filter((u) => u.dealer?.id === Number(dealerId))
-            : res.content;
+          // Eğer bayi filtresi yoksa, backend'den gelen sayfalama verisini aynen kullan.
+          if (!dealerId) {
+            if (!cancelled) setData(res);
+            return;
+          }
+
+          // Bayiye göre filtre gerekiyorsa mevcut sayfadaki kayıtları daralt ve sayfalama değerlerini güncelle.
+          const filtered = res.content.filter((u) => u.dealer?.id === Number(dealerId));
+          const totalElements = filtered.length;
+          const totalPages = Math.max(1, Math.ceil(totalElements / size));
           const paged: PageResponse<UserRow> = {
             ...res,
-            totalElements: filtered.length,
-            totalPages: Math.max(1, Math.ceil(filtered.length / size)),
+            totalElements,
+            totalPages,
             content: filtered.slice(page * size, page * size + size),
           };
           if (!cancelled) setData(paged);
