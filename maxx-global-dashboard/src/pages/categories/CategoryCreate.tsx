@@ -1,14 +1,10 @@
 // src/pages/categories/CategoryCreate.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { hasPermission } from "../../utils/permissions";
 import { createCategory } from "../../services/categories/create";
-import { listAllCategories } from "../../services/categories/listAll";
-import {
-  buildCategoryTree,
-  flattenNodesToOptions,
-  type CatNode,
-} from "../../services/categories/buildTree";
+import { flattenNodesToOptions, type CatNode } from "../../services/categories/buildTree";
 import type { CategoryCreateRequest } from "../../types/category";
+import { useAllCategoryTree } from "../../services/categories/queries";
 
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -52,36 +48,18 @@ export default function CategoryCreate() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [tree, setTree] = useState<CatNode[]>([]);
-  const [loadingTree, setLoadingTree] = useState(true);
-  const [treeErr, setTreeErr] = useState<string | null>(null);
-
-  async function loadAll(signal?: AbortSignal) {
-    const flat = await listAllCategories({ signal });
-    const t = buildCategoryTree(flat);
-    setTree(t);
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        setLoadingTree(true);
-        setTreeErr(null);
-        await loadAll(controller.signal);
-      } catch (e: any) {
-        if (e?.name !== "AbortError" && e?.name !== "CanceledError") {
-          setTreeErr("Kategori listesi yüklenemedi.");
-        }
-      } finally {
-        setLoadingTree(false);
-      }
-    })();
-    return () => controller.abort();
-  }, []);
+  const {
+    data: tree = [],
+    isLoading: loadingTree,
+    error: treeErr,
+    refetch: refetchCategories,
+  } = useAllCategoryTree();
+  const treeErrorMessage = treeErr
+    ? (treeErr as any)?.message ?? "Kategori listesi yüklenemedi."
+    : null;
 
   const options: SelectOption[] = useMemo(() => {
-    const flat = flattenNodesToOptions(tree).map((o) => ({
+    const flat = flattenNodesToOptions(tree as CatNode[]).map((o) => ({
       value: o.value,
       label: o.label,
     }));
@@ -129,7 +107,7 @@ export default function CategoryCreate() {
         timer: 2000,
         timerProgressBar: true,
       });
-      await loadAll();
+      await refetchCategories();
       setForm({
         name: "",
         nameEn: "",
@@ -323,8 +301,8 @@ export default function CategoryCreate() {
                   <label className="sherah-wc__form-label">Üst Kategori</label>
                   {loadingTree ? (
                     <div className="form-text">Kategoriler yükleniyor…</div>
-                  ) : treeErr ? (
-                    <div className="text-danger small">{treeErr}</div>
+                  ) : treeErrorMessage ? (
+                    <div className="text-danger small">{treeErrorMessage}</div>
                   ) : (
                     <select
                       name="parentId"

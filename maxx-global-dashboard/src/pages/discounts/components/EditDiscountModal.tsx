@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import type { Discount, DiscountUpdateRequest } from "../../../types/discount";
 import { updateDiscount } from "../../../services/discounts/update";
-import { listSimpleProducts } from "../../../services/products/simple";
-import { listSimpleDealers } from "../../../services/dealers/simple";
-import { listAllCategories } from "../../../services/categories/listAll";
 import { getProductById } from "../../../services/products/getById";
 import type { ProductSimple } from "../../../types/product";
 import type { DealerSummary } from "../../../types/dealer";
 import type { CategoryRow } from "../../../types/category";
 import type { ProductVariant } from "../../../services/products/getById";
+import { useSimpleProducts } from "../../../services/products/queries";
+import { useSimpleDealers } from "../../../services/dealers/queries";
+import { useAllCategories } from "../../../services/categories/queries";
 
 type DiscountTypeCanonical = "PERCENTAGE" | "FIXED_AMOUNT";
 function normalizeDiscountType(input: unknown): DiscountTypeCanonical {
@@ -89,10 +89,13 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   );
 
   // Seçenekler
-  const [productOpts, setProductOpts] = useState<ProductSimple[]>([]);
-  const [dealerOpts, setDealerOpts] = useState<DealerSummary[]>([]);
-  const [categoryOpts, setCategoryOpts] = useState<CategoryRow[]>([]);
-  const [optsLoading, setOptsLoading] = useState<boolean>(true);
+  const { data: productOpts = [], isLoading: loadingProducts } =
+    useSimpleProducts();
+  const { data: dealerOpts = [], isLoading: loadingDealers } =
+    useSimpleDealers();
+  const { data: categoryOpts = [], isLoading: loadingCategories } =
+    useAllCategories();
+  const optsLoading = loadingProducts || loadingDealers || loadingCategories;
 
   // ✅ Variant seçimi
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -182,29 +185,18 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
     else setDiscountScope("general");
   }, [target]);
 
-  // Seçenekleri getir
-  useEffect(() => {
-    (async () => {
-      try {
-        setOptsLoading(true);
-        const [prods, dealers, categories] = await Promise.all([
-          listSimpleProducts(),
-          listSimpleDealers(),
-          listAllCategories(),
-        ]);
-        prods.sort((a, b) => a.name.localeCompare(b.name));
-        dealers.sort((a, b) => a.name.localeCompare(b.name));
-
-        setProductOpts(prods);
-        setDealerOpts(dealers);
-        setCategoryOpts(categories);
-      } catch {
-        Swal.fire("Hata", "Seçenek listeleri yüklenemedi", "error");
-      } finally {
-        setOptsLoading(false);
-      }
-    })();
-  }, []);
+  const sortedProducts = useMemo(
+    () => [...productOpts].sort((a, b) => a.name.localeCompare(b.name)),
+    [productOpts]
+  );
+  const sortedDealers = useMemo(
+    () => [...dealerOpts].sort((a, b) => a.name.localeCompare(b.name)),
+    [dealerOpts]
+  );
+  const sortedCategories = useMemo(
+    () => [...categoryOpts].sort((a, b) => a.name.localeCompare(b.name)),
+    [categoryOpts]
+  );
 
   // ✅ Mevcut variant'ların ürünlerini yükle
   useEffect(() => {
@@ -279,25 +271,27 @@ export default function EditDiscountModal({ target, onClose, onSaved }: Props) {
   // Filtrelenmiş listeler
   const filteredProducts = useMemo(() => {
     const q = productFilter.trim().toLowerCase();
-    if (!q) return productOpts;
-    return productOpts.filter(
+    if (!q) return sortedProducts;
+    return sortedProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         (p.code ? p.code.toLowerCase().includes(q) : false)
     );
-  }, [productFilter, productOpts]);
+  }, [productFilter, sortedProducts]);
 
   const filteredDealers = useMemo(() => {
     const q = dealerFilter.trim().toLowerCase();
-    if (!q) return dealerOpts;
-    return dealerOpts.filter((d) => d.name.toLowerCase().includes(q));
-  }, [dealerFilter, dealerOpts]);
+    if (!q) return sortedDealers;
+    return sortedDealers.filter((d) => d.name.toLowerCase().includes(q));
+  }, [dealerFilter, sortedDealers]);
 
   const filteredCategories = useMemo(() => {
     const q = categoryFilter.trim().toLowerCase();
-    if (!q) return categoryOpts;
-    return categoryOpts.filter((c) => c.name.toLowerCase().includes(q));
-  }, [categoryFilter, categoryOpts]);
+    if (!q) return sortedCategories;
+    return sortedCategories.filter((c) =>
+      c.name.toLowerCase().includes(q)
+    );
+  }, [categoryFilter, sortedCategories]);
 
   // Checkbox helpers
   function toggleId(

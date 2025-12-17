@@ -3,13 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Arrow from "../../../Helpers/icons/Arrow";
 import { useTranslation } from "react-i18next";
-import { listAllCategories } from "../../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../../../public/assets/icons/MedicalIcons";
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../../../../services/categories/buildTree";
-import { useQuery } from "@tanstack/react-query";
+import { type CatNode } from "../../../../../services/categories/buildTree";
+import { useAllCategoryTree } from "../../../../../services/categories/queries";
 
 // --- yardımcılar
 function findNodeById(nodes: CatNode[], id: number): CatNode | null {
@@ -47,13 +43,7 @@ function countNodes(nodes: CatNode[]): number {
 export default function Navbar({ className }: { className?: string }) {
   const { t, i18n } = useTranslation();
   const [categoryToggle, setToggle] = useState(false);
-  const { data: roots = [] } = useQuery<CatNode[]>({
-    queryKey: ["allCategories", i18n.language],
-    queryFn: async ({ signal }) => {
-      const flat = await listAllCategories({ signal });
-      return buildCategoryTree(flat);
-    },
-  });
+  const { data: roots = [] } = useAllCategoryTree();
   const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();

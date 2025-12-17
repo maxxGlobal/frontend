@@ -1,13 +1,9 @@
 // src/components/CategoriesSidebar.tsx
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { listAllCategories } from "../../../services/categories/listAll";
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../../services/categories/buildTree";
+import { type CatNode } from "../../../services/categories/buildTree";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useAllCategoryTree } from "../../../services/categories/queries";
 
 function collectDescendantsIds(node: CatNode): number[] {
   const out: number[] = [node.id];
@@ -112,14 +108,8 @@ export default function CategoriesSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openNodeId, setOpenNodeId] = useState<number | null>(null);
 
-  const { t, i18n } = useTranslation();
-  const { data: tree = [] } = useQuery<CatNode[]>({
-    queryKey: ["allCategories", i18n.language],
-    queryFn: async ({ signal }) => {
-      const flat = await listAllCategories({ signal });
-      return buildCategoryTree(flat);
-    },
-  });
+  const { t } = useTranslation();
+  const { data: tree = [] } = useAllCategoryTree();
 
   const navigate = useNavigate();
   const [sp] = useSearchParams();

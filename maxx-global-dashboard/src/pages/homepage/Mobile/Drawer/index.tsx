@@ -6,18 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getUnreadCount } from "../../../../services/notifications/header";
-import { listAllCategories } from "../../../../services/categories/listAll";
 import { getMedicalIcon } from "../../../../../public/assets/icons/MedicalIcons";
 import { getFavoriteCount } from "../../../../services/favorites/count";
 import { BiChevronRight } from "react-icons/bi";
 import Bell from "../../Helpers/icons/Bell";
 import NotificationCart from "../../Notifications/Cart";
 import LanguageSwitcher from "../../Helpers/LanguageSwitcher";
+import { useAllCategoryTree } from "../../../../services/categories/queries";
 
-import {
-  buildCategoryTree,
-  type CatNode,
-} from "../../../../services/categories/buildTree";
+import { type CatNode } from "../../../../services/categories/buildTree";
 
 type DrawerProps = {
   open?: boolean;
@@ -59,13 +56,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
   });
 
   const [categoryToggle, setToggle] = useState(false);
-  const { data: roots = [] } = useQuery<CatNode[]>({
-    queryKey: ["allCategories", i18n.language],
-    queryFn: async ({ signal }) => {
-      const flat = await listAllCategories({ signal });
-      return buildCategoryTree(flat);
-    },
-  });
+  const { data: roots = [] } = useAllCategoryTree();
   // const [elementsSize, setSize] = useState("0px");
   const listRef = useRef<HTMLUListElement | null>(null);
   const navigate = useNavigate();
