@@ -24,6 +24,9 @@ export function useAllCategories(
     queryKey: [...baseKey, i18n.language],
     queryFn: ({ signal }) => listAllCategories({ signal }),
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     ...options,
   });
 }
@@ -41,6 +44,9 @@ export function useAllCategoryTree(
     queryFn: ({ signal }) => listAllCategories({ signal }),
     select: (flat) => buildCategoryTree(flat),
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     ...options,
   });
 }

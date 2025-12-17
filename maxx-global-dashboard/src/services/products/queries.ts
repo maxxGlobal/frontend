@@ -16,6 +16,9 @@ export function useSimpleProducts(
     queryKey: ["simpleProducts"],
     queryFn: () => listSimpleProducts(),
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     ...options,
   });
 }

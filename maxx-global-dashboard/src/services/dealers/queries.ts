@@ -16,6 +16,9 @@ export function useSimpleDealers(
     queryKey: ["simpleDealers"],
     queryFn: () => listSimpleDealers(),
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     ...options,
   });
 }
