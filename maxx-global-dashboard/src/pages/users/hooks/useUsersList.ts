@@ -110,7 +110,37 @@ export function useUsersList() {
         const baseReq: PageRequest = { page, size, sortBy, sortDirection };
 
         if (activeOnly) {
-          // service zaten PageResponse'a normalize ediyor
+          const qTrim = dq.trim();
+
+          // Arama yapılıyorsa search endpoint'ini kullan, aktif filtreyi client-side uygula.
+          if (qTrim.length >= 3) {
+            const searchRes = await searchUsers(
+              { ...baseReq, q: qTrim },
+              { signal: c.signal }
+            );
+
+            const filteredActive = searchRes.content.filter((u) =>
+              isActiveStatus(u.status)
+            );
+            const filtered = dealerId
+              ? filteredActive.filter((u) => u.dealer?.id === Number(dealerId))
+              : filteredActive;
+
+            const totalElements = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalElements / size));
+
+            const paged: PageResponse<UserRow> = {
+              ...searchRes,
+              totalElements,
+              totalPages,
+              content: filtered.slice(page * size, page * size + size),
+            };
+
+            if (!cancelled) setData(paged);
+            return;
+          }
+
+          // Arama yoksa aktif endpoint'ini kullan.
           const res = await listActiveUsers(baseReq, { signal: c.signal });
           // Eğer bayi filtresi yoksa, backend'den gelen sayfalama verisini aynen kullan.
           if (!dealerId) {
