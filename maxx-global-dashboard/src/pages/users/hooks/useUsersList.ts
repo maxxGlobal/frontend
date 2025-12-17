@@ -108,26 +108,38 @@ export function useUsersList() {
         setError(null);
 
         const baseReq: PageRequest = { page, size, sortBy, sortDirection };
+        const qTrim = dq.trim();
+        const dealerParam = dealerId ? Number(dealerId) : undefined;
 
-        if (activeOnly) {
-          // service zaten PageResponse'a normalize ediyor
-          const res = await listActiveUsers(baseReq, { signal: c.signal });
-          const filtered = dealerId
-            ? res.content.filter((u) => u.dealer?.id === Number(dealerId))
-            : res.content;
-          const paged: PageResponse<UserRow> = {
-            ...res,
-            totalElements: filtered.length,
-            totalPages: Math.max(1, Math.ceil(filtered.length / size)),
-            content: filtered.slice(page * size, page * size + size),
-          };
-          if (!cancelled) setData(paged);
+        // 🔎 Arama öncelikli: dealer/aktif filtrelerini de ilet
+        if (qTrim.length >= 3) {
+          const searchRes = await searchUsers(
+            {
+              ...baseReq,
+              q: qTrim,
+              dealerId: dealerParam,
+              activeOnly: activeOnly || undefined,
+            },
+            { signal: c.signal }
+          );
+
+          if (!cancelled) setData(searchRes);
           return;
         }
 
-        if (dealerId) {
+        if (activeOnly) {
+          const res = await listActiveUsers(
+            { ...baseReq, dealerId: dealerParam },
+            { signal: c.signal }
+          );
+
+          if (!cancelled) setData(res);
+          return;
+        }
+
+        if (dealerParam) {
           const res = await listUsersByDealer(
-            { ...baseReq, dealerId: Number(dealerId) },
+            { ...baseReq, dealerId: dealerParam },
             { signal: c.signal }
           );
           if (!cancelled) setData(res);

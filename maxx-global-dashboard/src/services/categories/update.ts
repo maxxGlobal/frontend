@@ -8,6 +8,9 @@ export async function updateCategory(
 ): Promise<CategoryRow> {
   const body: any = {
     name: payload.name,
+    nameEn: payload.nameEn,
+    description: payload.description ?? null,
+    descriptionEn: payload.descriptionEn ?? null,
     status: payload.status,
   };
   if (payload.parentId !== undefined) {

@@ -19,11 +19,7 @@ import {
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-import {
-  downloadProductsExcelTemplate,
-  importProductsExcel,
-  type ExcelImportResult,
-} from "../../services/products/excel";
+import { importProductsExcel, type ExcelImportResult } from "../../services/products/excel";
 
 // ✅ MySwal'ı tanımlayın
 const MySwal = withReactContent(Swal);
@@ -37,6 +33,7 @@ function numOrUndef(v: any): number | undefined {
 function getFieldDisplayName(fieldName: string): string {
   const fieldMap: Record<string, string> = {
     name: "Ürün Adı",
+    nameEn: "Ürün Adı (İngilizce)",
     code: "Ürün Kodu",
     categoryId: "Kategori",
     stockQuantity: "Stok Adedi",
@@ -61,6 +58,7 @@ function getFieldDisplayName(fieldName: string): string {
     minimumOrderQuantity: "Minimum Sipariş",
     maximumOrderQuantity: "Maksimum Sipariş",
     description: "Açıklama",
+    descriptionEn: "Açıklama (İngilizce)",
   };
 
   return fieldMap[fieldName] || fieldName;
@@ -96,8 +94,10 @@ export default function ProductCreate() {
     }
   >({
     name: "",
+    nameEn: "",
     code: "",
     description: "",
+    descriptionEn: "",
     categoryId: 0,
 
     material: "",
@@ -135,14 +135,12 @@ export default function ProductCreate() {
   const [catOpts, setCatOpts] = useState<CategoryOption[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
 
-  const [excelMode, setExcelMode] = useState<"TEMPLATE" | "UPLOAD">("TEMPLATE");
   const [excelBusy, setExcelBusy] = useState(false);
   const [excelErr, setExcelErr] = useState<string | null>(null);
   const [excelResult, setExcelResult] = useState<ExcelImportResult | null>(
     null
   );
   const [pickedFile, setPickedFile] = useState<File | null>(null);
-  const [userConfirmedDownloaded, setUserConfirmedDownloaded] = useState(false);
 
   const variantKeyRef = useRef(0);
   const createVariant = (isDefault = false): VariantForm => {
@@ -335,10 +333,14 @@ export default function ProductCreate() {
       }, 0);
 
       // Payload hazırlama
+      const trimmedNameEn = form.nameEn?.trim();
+      const trimmedDescriptionEn = form.descriptionEn?.trim();
       const payload: ProductCreateRequest = {
         name: form.name.trim(),
+        nameEn: trimmedNameEn || undefined,
         code: form.code.trim(),
         description: form.description?.trim() || "",
+        descriptionEn: trimmedDescriptionEn || undefined,
         categoryId: Number(form.categoryId),
         material: form.material?.trim() || "",
         size: form.size?.trim() || "",
@@ -488,19 +490,6 @@ export default function ProductCreate() {
     }
   }
 
-  async function handleDownloadTemplate() {
-    try {
-      setExcelErr(null);
-      setExcelBusy(true);
-      await downloadProductsExcelTemplate();
-      setExcelMode("UPLOAD");
-    } catch (e: any) {
-      setExcelErr(e?.message || "Şablon indirilemedi.");
-    } finally {
-      setExcelBusy(false);
-    }
-  }
-
   function onPickExcel(e: React.ChangeEvent<HTMLInputElement>) {
     setExcelErr(null);
     setExcelResult(null);
@@ -510,10 +499,6 @@ export default function ProductCreate() {
   async function handleExcelImport() {
     if (!pickedFile) {
       setExcelErr("Lütfen Excel dosyası seçin.");
-      return;
-    }
-    if (!userConfirmedDownloaded) {
-      setExcelErr("Lütfen önce şablonu indirdiğinizi onaylayın.");
       return;
     }
     try {
@@ -575,6 +560,24 @@ export default function ProductCreate() {
                             setForm({ ...form, name: e.target.value })
                           }
                           required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Ad (İngilizce)
+                        <small className="text-muted ms-1">(optional)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.nameEn}
+                          onChange={(e) =>
+                            setForm({ ...form, nameEn: e.target.value })
+                          }
+                          placeholder="Titanium Implant"
                         />
                       </div>
                     </div>
@@ -1143,6 +1146,23 @@ export default function ProductCreate() {
                       }
                     />
                   </div>
+                  <div className="col-12">
+                    <label className="sherah-wc__form-label">
+                      Açıklama (İngilizce)
+                      <small className="text-muted ms-1">
+                        (optional)
+                      </small>
+                    </label>
+                    <textarea
+                      className="herah-wc__form-inpu"
+                      rows={3}
+                      value={form.descriptionEn ?? ""}
+                      onChange={(e) =>
+                        setForm({ ...form, descriptionEn: e.target.value })
+                      }
+                      placeholder="High quality titanium implant"
+                    />
+                  </div>
                   <div className="col-lg-3 col-md-12 col-12">
                     <div className="form-group mt-1">
                       <div className="sherah-wc__button sherah-wc__button--bottom">
@@ -1170,170 +1190,98 @@ export default function ProductCreate() {
                   Ürünleri Excel'e Aktar
                 </button>
               </div>
-              <div className="sherah-default-bg p-3 mb-4 border border-primary rounded-3">
-                <h5 className="mb-2">Excel ile Ürün Ekle</h5>
+              <p className="text-muted">
+                Excel dosyanızı yükleyerek ürünleri oluşturun veya güncelleyin.
+              </p>
 
-                {excelMode === "TEMPLATE" ? (
-                  <>
-                    <p className="text-muted mb-2">
-                      Önce Excel şablonunu indirip ürünleri tabloya ekleyin.
-                    </p>
-                    <button
-                      type="button"
-                      className="sherah-btn sherah-btn__primary"
-                      onClick={handleDownloadTemplate}
-                      disabled={excelBusy}
-                    >
-                      {excelBusy
-                        ? "İndiriliyor…"
-                        : "Excel ile Ürün Ekle (Şablonu İndir)"}
-                    </button>
-                    {excelErr && (
-                      <div className="alert alert-danger mt-3" role="alert">
-                        {excelErr}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="text-muted">
-                      Şablonu doldurduysanız Excel’i yükleyerek ürünleri
-                      oluşturun/güncelleyin.
-                    </p>
-
-                    <div className="d-flex align-items-center gap-2 mb-2">
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        className="form-control"
-                        onChange={onPickExcel}
-                        disabled={excelBusy}
-                      />
-                    </div>
-
-                    <div className="form-check mb-2">
-                      <input
-                        id="confirmDownloaded"
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={userConfirmedDownloaded}
-                        onChange={(e) =>
-                          setUserConfirmedDownloaded(e.target.checked)
-                        }
-                        disabled={excelBusy}
-                      />
-                      <label
-                        className="form-check-label"
-                        htmlFor="confirmDownloaded"
-                      >
-                        Şablonu indirdim ve doldurdum
-                      </label>
-                    </div>
-
-                    <div className="d-flex gap-2">
-                      <button
-                        type="button"
-                        className="sherah-btn sherah-btn__primary bg-primary"
-                        onClick={handleExcelImport}
-                        disabled={
-                          excelBusy || !pickedFile || !userConfirmedDownloaded
-                        }
-                      >
-                        {excelBusy ? "Yükleniyor…" : "Excel ile Ürün Yükle"}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="sherah-btn sherah-btn__primary"
-                        onClick={() => {
-                          // akışı başa almak istersen:
-                          setExcelMode("TEMPLATE");
-                          setExcelErr(null);
-                          setExcelResult(null);
-                          setPickedFile(null);
-                          setUserConfirmedDownloaded(false);
-                        }}
-                        disabled={excelBusy}
-                      >
-                        Başa Dön
-                      </button>
-                    </div>
-
-                    {excelErr && (
-                      <div className="alert alert-danger mt-3" role="alert">
-                        {excelErr}
-                      </div>
-                    )}
-
-                    {excelResult && (
-                      <div className="mt-3">
-                        <h6>İçe Aktarma Özeti</h6>
-                        <ul className="list-group list-group-flush">
-                          <li className="list-group-item">
-                            Toplam Satır:{" "}
-                            <strong>{excelResult.totalRows}</strong>
-                          </li>
-                          <li className="list-group-item">
-                            Başarılı:{" "}
-                            <strong>{excelResult.successCount}</strong>
-                          </li>
-                          <li className="list-group-item">
-                            Başarısız:{" "}
-                            <strong>{excelResult.failedCount}</strong>
-                          </li>
-                          <li className="list-group-item">
-                            Güncellenen:{" "}
-                            <strong>{excelResult.updatedCount}</strong>
-                          </li>
-                          <li className="list-group-item">
-                            Oluşturulan:{" "}
-                            <strong>{excelResult.createdCount}</strong>
-                          </li>
-                        </ul>
-
-                        {excelResult.errors?.length > 0 && (
-                          <>
-                            <h6 className="mt-3">
-                              Hatalar ({excelResult.errors.length})
-                            </h6>
-                            <div className="table-responsive">
-                              <table className="table table-sm table-striped align-middle">
-                                <thead>
-                                  <tr>
-                                    <th># Satır</th>
-                                    <th>Ürün Kodu</th>
-                                    <th>Hata</th>
-                                    <th>Ham Satır</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {excelResult.errors.map((e, i) => (
-                                    <tr key={i}>
-                                      <td>{e.rowNumber}</td>
-                                      <td>{e.productCode || "-"}</td>
-                                      <td>{e.errorMessage || "-"}</td>
-                                      <td
-                                        className="text-truncate"
-                                        style={{ maxWidth: 420 }}
-                                      >
-                                        {e.rowData || "-"}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="form-control"
+                  onChange={onPickExcel}
+                  disabled={excelBusy}
+                />
               </div>
+
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  className="sherah-btn sherah-btn__primary bg-primary"
+                  onClick={handleExcelImport}
+                  disabled={excelBusy || !pickedFile}
+                >
+                  {excelBusy ? "Yükleniyor…" : "Excel ile Ürün Yükle"}
+                </button>
+              </div>
+
+              {excelErr && (
+                <div className="alert alert-danger mt-3" role="alert">
+                  {excelErr}
+                </div>
+              )}
+
+              {excelResult && (
+                <div className="mt-3">
+                  <h6>İçe Aktarma Özeti</h6>
+                  <ul className="list-group list-group-flush">
+                    <li className="list-group-item">
+                      Toplam Satır: <strong>{excelResult.totalRows}</strong>
+                    </li>
+                    <li className="list-group-item">
+                      Başarılı: <strong>{excelResult.successCount}</strong>
+                    </li>
+                    <li className="list-group-item">
+                      Başarısız: <strong>{excelResult.failedCount}</strong>
+                    </li>
+                    <li className="list-group-item">
+                      Güncellenen: <strong>{excelResult.updatedCount}</strong>
+                    </li>
+                    <li className="list-group-item">
+                      Oluşturulan: <strong>{excelResult.createdCount}</strong>
+                    </li>
+                  </ul>
+
+                  {excelResult.errors?.length > 0 && (
+                    <>
+                      <h6 className="mt-3">
+                        Hatalar ({excelResult.errors.length})
+                      </h6>
+                      <div className="table-responsive">
+                        <table className="table table-sm table-striped align-middle">
+                          <thead>
+                            <tr>
+                              <th># Satır</th>
+                              <th>Ürün Kodu</th>
+                              <th>Hata</th>
+                              <th>Ham Satır</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {excelResult.errors.map((e, i) => (
+                              <tr key={i}>
+                                <td>{e.rowNumber}</td>
+                                <td>{e.productCode || "-"}</td>
+                                <td>{e.errorMessage || "-"}</td>
+                                <td
+                                  className="text-truncate"
+                                  style={{ maxWidth: 420 }}
+                                >
+                                  {e.rowData || "-"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
-    </div>
+        </div>
+      </div>  
   );
 }

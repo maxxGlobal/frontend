@@ -4,6 +4,9 @@ import type { ApiEnvelope } from "../common";
 export type CategoryDetail = {
   id: number;
   name: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   status?: string | null;
   parentId?: number | null; // <- normalize edilmiş alan
   parentCategoryId?: number | null; // backend böyle de dönebilir
@@ -14,6 +17,9 @@ function normalizeDetail(raw: any): CategoryDetail {
   return {
     id: Number(raw?.id),
     name: String(raw?.name ?? ""),
+    nameEn: raw?.nameEn ?? null,
+    description: raw?.description ?? null,
+    descriptionEn: raw?.descriptionEn ?? null,
     status: raw?.status ?? null,
     parentId: raw?.parentId ?? raw?.parentCategoryId ?? null,
     parentCategoryId: raw?.parentCategoryId ?? null,

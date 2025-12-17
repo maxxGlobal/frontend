@@ -10,7 +10,10 @@ import type {
 export type ApiProductListItem = {
   id: number;
   name: string;
+  nameEn?: string | null;
   code: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   categoryName?: string | null;
   primaryImageUrl?: string | null;
   stockQuantity?: number | null;
@@ -101,7 +104,10 @@ export function normalizeProductList(rows: any[]): ProductRow[] {
     return {
       id: Number(r?.id),
       name: String(r?.name ?? ""),
+      nameEn: r?.nameEn ?? null,
       code: String(r?.code ?? ""),
+      description: r?.description ?? null,
+      descriptionEn: r?.descriptionEn ?? null,
       categoryId: r?.categoryId != null ? Number(r.categoryId) : undefined,
       categoryName: r?.categoryName ?? null,
       primaryImageUrl: r?.primaryImageUrl ?? null,
@@ -139,8 +145,10 @@ export function normalizeProductDetail(raw: any): Product {
   return {
     id: Number(raw?.id),
     name: String(raw?.name ?? ""),
+    nameEn: raw?.nameEn ?? null,
     code: String(raw?.code ?? ""),
     description: raw?.description ?? null,
+    descriptionEn: raw?.descriptionEn ?? null,
     categoryId: raw?.categoryId ?? null,
     categoryName: raw?.categoryName ?? null,
     material: raw?.material ?? null,

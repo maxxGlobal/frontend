@@ -20,6 +20,9 @@ type SelectOption = { value: number | null; label: string };
 function getFieldDisplayName(fieldName: string): string {
   const fieldMap: Record<string, string> = {
     name: "Kategori Adı",
+    nameEn: "Kategori Adı (İngilizce)",
+    description: "Açıklama",
+    descriptionEn: "Açıklama (İngilizce)",
     parentId: "Üst Kategori",
   };
 
@@ -41,6 +44,9 @@ export default function CategoryCreate() {
 
   const [form, setForm] = useState<CategoryCreateRequest>({
     name: "",
+    nameEn: "",
+    description: "",
+    descriptionEn: "",
     parentId: null,
   });
   const [saving, setSaving] = useState(false);
@@ -93,6 +99,15 @@ export default function CategoryCreate() {
       });
       return;
     }
+    if (!form.nameEn.trim()) {
+      await MySwal.fire({
+        icon: "warning",
+        title: "Eksik Bilgi",
+        text: "İngilizce kategori adı zorunludur.",
+        confirmButtonText: "Tamam",
+      });
+      return;
+    }
 
     try {
       setSaving(true);
@@ -100,6 +115,9 @@ export default function CategoryCreate() {
 
       await createCategory({
         name: form.name.trim(),
+        nameEn: form.nameEn.trim(),
+        description: form.description?.trim() || "",
+        descriptionEn: form.descriptionEn?.trim() || "",
         parentId: form.parentId ?? undefined,
       });
 
@@ -112,7 +130,13 @@ export default function CategoryCreate() {
         timerProgressBar: true,
       });
       await loadAll();
-      setForm({ name: "", parentId: null });
+      setForm({
+        name: "",
+        nameEn: "",
+        description: "",
+        descriptionEn: "",
+        parentId: null,
+      });
     } catch (err: any) {
       let errorTitle = "Kategori Oluşturma Hatası";
       let errorMessage = "Kategori oluşturulurken bilinmeyen bir hata oluştu.";
@@ -231,6 +255,65 @@ export default function CategoryCreate() {
                       required
                       title="Kategori adı zorunlu bir alandır"
                       placeholder="Kategori adını girin"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">
+                    İngilizce Ad *
+                  </label>
+                  <div className="form-group__input">
+                    <input
+                      name="nameEn"
+                      className="sherah-wc__form-input"
+                      value={form.nameEn}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, nameEn: e.target.value }))
+                      }
+                      required
+                      title="İngilizce kategori adı zorunlu bir alandır"
+                      placeholder="Kategori adını İngilizce girin"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">Açıklama</label>
+                  <div className="form-group__input">
+                    <textarea
+                      name="description"
+                      className="sherah-wc__form-input"
+                      value={form.description ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, description: e.target.value }))
+                      }
+                      rows={3}
+                      placeholder="Kategori açıklamasını girin"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="form-group">
+                  <label className="sherah-wc__form-label">
+                    Açıklama (İngilizce)
+                  </label>
+                  <div className="form-group__input">
+                    <textarea
+                      name="descriptionEn"
+                      className="sherah-wc__form-input"
+                      value={form.descriptionEn ?? ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          descriptionEn: e.target.value,
+                        }))
+                      }
+                      rows={3}
+                      placeholder="Kategori açıklamasını İngilizce girin"
                     />
                   </div>
                 </div>

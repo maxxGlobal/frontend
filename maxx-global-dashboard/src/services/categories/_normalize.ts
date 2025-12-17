@@ -5,6 +5,9 @@ import type { CategoryRow, Category } from "../../types/category";
 export type ApiCategoryListItem = {
   id: number;
   name: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentCategoryName?: string | null;
   createdAt?: string | null;
   status?: string | null;
@@ -24,6 +27,9 @@ export function normalizeCategoryList(
   return (items ?? []).map((it) => ({
     id: it.id,
     name: it.name,
+    nameEn: it.nameEn,
+    description: it.description ?? null,
+    descriptionEn: it.descriptionEn ?? null,
     parentName: it.parentCategoryName ?? null,
     createdAt: it.createdAt ?? null,
     status: (it.status as any) ?? null,
@@ -33,6 +39,9 @@ export function normalizeCategoryList(
 export type ApiCategoryDetail = {
   id: number;
   name: string;
+  nameEn?: string;
+  description?: string | null;
+  descriptionEn?: string | null;
   parentCategoryId?: number | null;
   parentCategoryName?: string | null;
   status?: string | null;
@@ -44,6 +53,9 @@ export function normalizeCategoryDetail(it: ApiCategoryDetail): Category {
   return {
     id: Number(it?.id),
     name: String(it?.name ?? ""),
+    nameEn: it?.nameEn ?? null,
+    description: it?.description ?? null,
+    descriptionEn: it?.descriptionEn ?? null,
     parentId: it?.parentCategoryId ?? null,
     parentCategoryName: it?.parentCategoryName ?? null,
     status: (it?.status as any) ?? null,
