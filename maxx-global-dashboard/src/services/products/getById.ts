@@ -26,8 +26,10 @@ export interface ProductVariant {
 export interface ProductDetail {
   id: number;
   name: string;
+  nameEn?: string | null;
   code: string;
   description?: string | null;
+  descriptionEn?: string | null;
   categoryId?: number | null;
   categoryName?: string | null;
   unit?: string | null;
@@ -240,8 +242,10 @@ const norm = (raw: any): ProductDetail => {
   return {
     id: Number(raw?.id),
     name: String(raw?.name ?? raw?.productName ?? ""),
+    nameEn: raw?.nameEn ?? null,
     code: String(raw?.code ?? raw?.productCode ?? ""),
     description: raw?.description ?? null,
+    descriptionEn: raw?.descriptionEn ?? null,
     categoryId: raw?.categoryId ?? null,
     categoryName: raw?.categoryName ?? null,
     unit: raw?.unit ?? null,

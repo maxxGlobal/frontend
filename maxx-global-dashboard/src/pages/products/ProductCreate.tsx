@@ -37,6 +37,7 @@ function numOrUndef(v: any): number | undefined {
 function getFieldDisplayName(fieldName: string): string {
   const fieldMap: Record<string, string> = {
     name: "Ürün Adı",
+    nameEn: "Ürün Adı (İngilizce)",
     code: "Ürün Kodu",
     categoryId: "Kategori",
     stockQuantity: "Stok Adedi",
@@ -61,6 +62,7 @@ function getFieldDisplayName(fieldName: string): string {
     minimumOrderQuantity: "Minimum Sipariş",
     maximumOrderQuantity: "Maksimum Sipariş",
     description: "Açıklama",
+    descriptionEn: "Açıklama (İngilizce)",
   };
 
   return fieldMap[fieldName] || fieldName;
@@ -96,8 +98,10 @@ export default function ProductCreate() {
     }
   >({
     name: "",
+    nameEn: "",
     code: "",
     description: "",
+    descriptionEn: "",
     categoryId: 0,
 
     material: "",
@@ -335,10 +339,14 @@ export default function ProductCreate() {
       }, 0);
 
       // Payload hazırlama
+      const trimmedNameEn = form.nameEn?.trim();
+      const trimmedDescriptionEn = form.descriptionEn?.trim();
       const payload: ProductCreateRequest = {
         name: form.name.trim(),
+        nameEn: trimmedNameEn || undefined,
         code: form.code.trim(),
         description: form.description?.trim() || "",
+        descriptionEn: trimmedDescriptionEn || undefined,
         categoryId: Number(form.categoryId),
         material: form.material?.trim() || "",
         size: form.size?.trim() || "",
@@ -575,6 +583,24 @@ export default function ProductCreate() {
                             setForm({ ...form, name: e.target.value })
                           }
                           required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Ad (İngilizce)
+                        <small className="text-muted ms-1">(optional)</small>
+                      </label>
+                      <div className="form-group__input">
+                        <input
+                          className="sherah-wc__form-input"
+                          value={form.nameEn}
+                          onChange={(e) =>
+                            setForm({ ...form, nameEn: e.target.value })
+                          }
+                          placeholder="Titanium Implant"
                         />
                       </div>
                     </div>
@@ -1141,6 +1167,23 @@ export default function ProductCreate() {
                       onChange={(e) =>
                         setForm({ ...form, description: e.target.value })
                       }
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="sherah-wc__form-label">
+                      Açıklama (İngilizce)
+                      <small className="text-muted ms-1">
+                        (optional)
+                      </small>
+                    </label>
+                    <textarea
+                      className="herah-wc__form-inpu"
+                      rows={3}
+                      value={form.descriptionEn ?? ""}
+                      onChange={(e) =>
+                        setForm({ ...form, descriptionEn: e.target.value })
+                      }
+                      placeholder="High quality titanium implant"
                     />
                   </div>
                   <div className="col-lg-3 col-md-12 col-12">

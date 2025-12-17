@@ -31,8 +31,10 @@ export interface ProductVariantInput {
 export interface ProductRow {
   id: number;
   name: string;
+  nameEn?: string | null;
   code: string;
   description?: string;
+  descriptionEn?: string | null;
   categoryId?: number;
   categoryName?: string | null;
   primaryImageUrl?: string | null;
@@ -47,6 +49,7 @@ export interface ProductRow {
 }
 
 export interface Product extends ProductRow {
+  nameEn?: string | null;
   material?: string | null;
   size?: string | null;
   diameter?: string | null;
@@ -82,8 +85,10 @@ export interface Product extends ProductRow {
 
 export interface ProductCreateRequest {
   name: string;
+  nameEn?: string;
   code: string;
   description?: string;
+  descriptionEn?: string;
   categoryId: number;
   material?: string;
   size?: string;
@@ -116,8 +121,10 @@ export interface ProductCreateRequest {
 
 export interface ProductUpdateRequest extends Partial<ProductCreateRequest> {
   name: string;
+  nameEn?: string;
   code: string;
   description: string;
+  descriptionEn?: string;
   categoryId: number;
   price?: number;
   stock?: number;

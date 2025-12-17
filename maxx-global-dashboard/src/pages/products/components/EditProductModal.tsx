@@ -72,8 +72,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
         const f: ProductUpdateRequest = {
           name: p.name,
+          nameEn: p.nameEn ?? "",
           code: p.code,
           description: p.description ?? "",
+          descriptionEn: p.descriptionEn ?? "",
           categoryId: p.categoryId ?? 0,
           material: p.material ?? "",
           size: p.size ?? "",
@@ -388,6 +390,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
       const payload: ProductUpdateRequest = {
         ...form,
+        name: form.name.trim(),
+        nameEn: form.nameEn?.trim(),
+        code: form.code.trim(),
+        description: form.description?.trim() ?? "",
+        descriptionEn: form.descriptionEn?.trim(),
         categoryId: Number(form.categoryId) || 0,
         weightGrams: num(form.weightGrams),
         shelfLifeMonths: num(form.shelfLifeMonths),
@@ -590,6 +597,21 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         value={form.name}
                         onChange={onChange}
                         required
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6 col-md-12 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Ad (İngilizce)
+                        <small className="text-muted ms-1">(optional)</small>
+                      </label>
+                      <input
+                        name="nameEn"
+                        className="sherah-wc__form-input"
+                        value={form.nameEn ?? ""}
+                        onChange={onChange}
+                        placeholder="Titanium Implant"
                       />
                     </div>
                   </div>
@@ -1083,6 +1105,22 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                         rows={3}
                         value={form.description ?? ""}
                         onChange={onChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-12 col-md-6 col-12">
+                    <div className="form-group">
+                      <label className="sherah-wc__form-label">
+                        Açıklama (İngilizce)
+                        <small className="text-muted ms-1">(optional)</small>
+                      </label>
+                      <textarea
+                        name="descriptionEn"
+                        className="sherah-wc__form-input"
+                        rows={3}
+                        value={form.descriptionEn ?? ""}
+                        onChange={onChange}
+                        placeholder="High quality titanium implant"
                       />
                     </div>
                   </div>
