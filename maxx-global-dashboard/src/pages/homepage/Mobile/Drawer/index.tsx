@@ -43,7 +43,7 @@ function collectDescendantsIds(node: CatNode): number[] {
 }
 
 export default function Drawer({ className, open, action }: DrawerProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { data: wishlistCount = 0 } = useQuery({
     queryKey: ["favoriteCount"],
     queryFn: getFavoriteCount,

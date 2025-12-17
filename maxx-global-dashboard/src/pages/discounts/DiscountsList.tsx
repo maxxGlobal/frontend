@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { listDiscounts } from "../../services/discounts/list";
-import { restoreDiscount } from "../../services/discounts/restore";
+import { listDiscounts } from "../../services/discounts/list"; 
 import { searchDiscounts } from "../../services/discounts/search";
 import type { Discount, PageResponse } from "../../types/discount";
 import EditDiscountModal from "./components/EditDiscountModal";
@@ -73,29 +72,29 @@ export default function DiscountsList() {
     return () => clearTimeout(t);
   }, [q]);
 
-  async function handleRestore(id: number) {
-    const result = await Swal.fire({
-      title: "Geri Yükle",
-      text: "Bu indirim geri yüklenecek. Onaylıyor musunuz?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Evet, geri yükle",
-      cancelButtonText: "Vazgeç",
-    });
-    if (!result.isConfirmed) return;
+  // async function handleRestore(id: number) {
+  //   const result = await Swal.fire({
+  //     title: "Geri Yükle",
+  //     text: "Bu indirim geri yüklenecek. Onaylıyor musunuz?",
+  //     icon: "question",
+  //     showCancelButton: true,
+  //     confirmButtonText: "Evet, geri yükle",
+  //     cancelButtonText: "Vazgeç",
+  //   });
+  //   if (!result.isConfirmed) return;
 
-    try {
-      await restoreDiscount(id);
-      await Swal.fire("Başarılı", "İndirim geri yüklendi", "success");
-      loadData(page);
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Geri yükleme yapılamadı";
-      Swal.fire("Hata", msg, "error");
-    }
-  }
+  //   try {
+  //     await restoreDiscount(id);
+  //     await Swal.fire("Başarılı", "İndirim geri yüklendi", "success");
+  //     loadData(page);
+  //   } catch (err: any) {
+  //     const msg =
+  //       err?.response?.data?.message ||
+  //       err?.message ||
+  //       "Geri yükleme yapılamadı";
+  //     Swal.fire("Hata", msg, "error");
+  //   }
+  // }
 
   const hasRows =
     !!pageData &&

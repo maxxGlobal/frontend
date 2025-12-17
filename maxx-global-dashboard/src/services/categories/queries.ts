@@ -14,16 +14,16 @@ const baseKey = ["allCategories"];
 
 export function useAllCategories(
   options?: Omit<
-    UseQueryOptions<CategoryList, unknown, CategoryList>,
+    UseQueryOptions<CategoryList, Error, CategoryList>,
     "queryKey" | "queryFn"
   >
-): UseQueryResult<CategoryList> {
+): UseQueryResult<CategoryList, Error> {
   const { i18n } = useTranslation();
 
-  return useQuery<CategoryList>({
+  return useQuery<CategoryList, Error>({
     queryKey: [...baseKey, i18n.language],
     queryFn: ({ signal }) => listAllCategories({ signal }),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 300000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
@@ -33,20 +33,21 @@ export function useAllCategories(
 
 export function useAllCategoryTree(
   options?: Omit<
-    UseQueryOptions<CategoryList, unknown, CatNode[]>,
+    UseQueryOptions<CategoryList, Error, CatNode[]>,
     "queryKey" | "queryFn"
   >
-): UseQueryResult<CatNode[]> {
+): UseQueryResult<CatNode[], Error> {
   const { i18n } = useTranslation();
 
-  return useQuery<CategoryList, unknown, CatNode[]>({
+  return useQuery<CategoryList, Error, CatNode[]>({
     queryKey: [...baseKey, i18n.language],
     queryFn: ({ signal }) => listAllCategories({ signal }),
     select: (flat) => buildCategoryTree(flat),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 300000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchOnMount: false,
     ...options,
   });
 }
+

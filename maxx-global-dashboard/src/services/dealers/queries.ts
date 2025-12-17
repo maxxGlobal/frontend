@@ -8,12 +8,12 @@ import type { DealerSummary } from "../../types/dealer";
 
 export function useSimpleDealers(
   options?: Omit<
-    UseQueryOptions<DealerSummary[], unknown, DealerSummary[]>,
+    UseQueryOptions<DealerSummary[], Error, DealerSummary[]>,
     "queryKey" | "queryFn"
   >
-): UseQueryResult<DealerSummary[]> {
-  return useQuery<DealerSummary[]>({
-    queryKey: ["simpleDealers"],
+): UseQueryResult<DealerSummary[], Error> {
+  return useQuery<DealerSummary[], Error>({
+    queryKey: ["simpleDealers"] as const,
     queryFn: () => listSimpleDealers(),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,

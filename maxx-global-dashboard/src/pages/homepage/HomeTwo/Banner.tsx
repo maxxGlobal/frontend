@@ -69,9 +69,10 @@ export default function Banner({ className }: BannerProps) {
                     </h2>
                     <p className="text-sm text-gray-200 my-4">
                       {t("pages.homeTwo.banner.stock", {
-                        count: products[0].stockQuantity,
+                        count: products[0].stockQuantity ?? 0, // or omit when null/undefined
                         unit: products[0].unit ?? "",
                       })}
+
                     </p>
                     <Link
                       to={`/homepage/product/${products[0].id}`}
@@ -109,9 +110,10 @@ export default function Banner({ className }: BannerProps) {
                         </h2>
                         <p className="text-sm text-gray-200 my-4">
                           {t("pages.homeTwo.banner.stock", {
-                            count: p.stockQuantity,
+                            count: p.stockQuantity ?? 0,    // coerce null/undefined to a number
                             unit: p.unit ?? "",
                           })}
+
                         </p>
                         <Link
                           to={`/homepage/product/${p.id}`}

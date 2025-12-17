@@ -1,6 +1,5 @@
-import { Link } from "react-router-dom";
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+ 
+import type { ReactNode } from "react"; 
 
 type ViewMoreTitleProps = {
   categoryTitle?: string;
@@ -12,10 +11,8 @@ type ViewMoreTitleProps = {
 export default function ViewMoreTitle({
   categoryTitle = "",
   className,
-  children,
-  seeMoreUrl = "/homepage/all-product",
-}: ViewMoreTitleProps) {
-  const { t } = useTranslation();
+  children, 
+}: ViewMoreTitleProps) { 
   return (
     <div className={`section-wrapper w-full ${className || ""}`}>
       <div className="container-x mx-auto">

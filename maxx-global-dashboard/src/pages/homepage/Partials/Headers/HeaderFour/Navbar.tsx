@@ -41,7 +41,7 @@ function countNodes(nodes: CatNode[]): number {
 }
 
 export default function Navbar({ className }: { className?: string }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [categoryToggle, setToggle] = useState(false);
   const { data: roots = [] } = useAllCategoryTree();
   const [elementsSize, setSize] = useState("0px");

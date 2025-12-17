@@ -49,6 +49,8 @@ export default function CartPage() {
     () => (i18n.language?.startsWith("en") ? "en-US" : "tr-TR"),
     [i18n.language]
   );
+  type Crumb = { label: string; href: string; active?: boolean };
+
   const crumbs: Crumb[] = useMemo(
     () => [
       { name: t("drawer.home"), path: "/homepage" },

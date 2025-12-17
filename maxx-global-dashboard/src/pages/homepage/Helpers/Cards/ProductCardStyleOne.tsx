@@ -41,22 +41,12 @@ function matchesMaterials(prod: Product, selected: string[] = []) {
 export default function ProductCardStyleOne({ datas, filterMaterials }: Props) {
   if (datas.status !== "AKTİF") return null;
   if (!matchesMaterials(datas, filterMaterials)) return null;
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const d = datas;
   const [isFav, setIsFav] = useState<boolean>(!!d.isFavorite);
 
-  const formatAmount = (amount: number, currency?: string | null) => {
-    try {
-      return new Intl.NumberFormat(i18n.language || "tr", {
-        style: "currency",
-        currency: currency || "TRY",
-      }).format(amount);
-    } catch {
-      const formatted = Number.isFinite(amount) ? amount.toFixed(2) : String(amount);
-      return `${formatted}${currency ? ` ${currency}` : ""}`.trim();
-    }
-  };
+ 
 
 
   async function handleFavorite(e: React.MouseEvent) {
