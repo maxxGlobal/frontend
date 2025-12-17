@@ -111,54 +111,31 @@ export function useUsersList() {
 
         if (activeOnly) {
           const qTrim = dq.trim();
+          const dealerParam = dealerId ? Number(dealerId) : undefined;
 
           // Arama yapılıyorsa search endpoint'ini kullan, aktif filtreyi client-side uygula.
           if (qTrim.length >= 3) {
             const searchRes = await searchUsers(
-              { ...baseReq, q: qTrim },
+              {
+                ...baseReq,
+                q: qTrim,
+                dealerId: dealerParam,
+                activeOnly: true,
+              },
               { signal: c.signal }
             );
 
-            const filteredActive = searchRes.content.filter((u) =>
-              isActiveStatus(u.status)
-            );
-            const filtered = dealerId
-              ? filteredActive.filter((u) => u.dealer?.id === Number(dealerId))
-              : filteredActive;
-
-            const totalElements = filtered.length;
-            const totalPages = Math.max(1, Math.ceil(totalElements / size));
-
-            const paged: PageResponse<UserRow> = {
-              ...searchRes,
-              totalElements,
-              totalPages,
-              content: filtered.slice(page * size, page * size + size),
-            };
-
-            if (!cancelled) setData(paged);
+            if (!cancelled) setData(searchRes);
             return;
           }
 
           // Arama yoksa aktif endpoint'ini kullan.
-          const res = await listActiveUsers(baseReq, { signal: c.signal });
-          // Eğer bayi filtresi yoksa, backend'den gelen sayfalama verisini aynen kullan.
-          if (!dealerId) {
-            if (!cancelled) setData(res);
-            return;
-          }
+          const res = await listActiveUsers(
+            { ...baseReq, dealerId: dealerParam },
+            { signal: c.signal }
+          );
 
-          // Bayiye göre filtre gerekiyorsa mevcut sayfadaki kayıtları daralt ve sayfalama değerlerini güncelle.
-          const filtered = res.content.filter((u) => u.dealer?.id === Number(dealerId));
-          const totalElements = filtered.length;
-          const totalPages = Math.max(1, Math.ceil(totalElements / size));
-          const paged: PageResponse<UserRow> = {
-            ...res,
-            totalElements,
-            totalPages,
-            content: filtered.slice(page * size, page * size + size),
-          };
-          if (!cancelled) setData(paged);
+          if (!cancelled) setData(res);
           return;
         }
 

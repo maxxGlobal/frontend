@@ -22,14 +22,22 @@ export async function listUsers(
 
 /** Arama */
 export async function searchUsers(
-  req: PageRequest & { q: string },
+  req: PageRequest & { q: string; dealerId?: number; activeOnly?: boolean },
   opts?: { signal?: AbortSignal }
 ): Promise<PageResponse<UserRow>> {
-  const { q, page, size, sortBy, sortDirection } = req;
+  const { q, page, size, sortBy, sortDirection, dealerId, activeOnly } = req;
   const res = await api.get<ApiEnvelope<PageResponse<UserRow>>>(
     `/users/search`,
     {
-      params: { q: q.trim(), page, size, sortBy, sortDirection },
+      params: {
+        q: q.trim(),
+        page,
+        size,
+        sortBy,
+        sortDirection,
+        dealerId,
+        activeOnly,
+      },
       signal: opts?.signal,
     }
   );
@@ -54,7 +62,7 @@ export async function listUsersByDealer(
 
 /** Sadece aktif kullanıcılar (dizi veya PageResponse gelebilir) */
 export async function listActiveUsers(
-  req: PageRequest,
+  req: PageRequest & { dealerId?: number },
   opts?: { signal?: AbortSignal }
 ): Promise<PageResponse<UserRow>> {
   const res = await api.get<ApiEnvelope<PageResponse<UserRow> | UserRow[]>>(
@@ -65,6 +73,7 @@ export async function listActiveUsers(
         size: req.size,
         sortBy: req.sortBy,
         sortDirection: req.sortDirection,
+        dealerId: req.dealerId,
       },
       signal: opts?.signal,
     }
