@@ -297,10 +297,7 @@ export default function ProductDetails() {
                         <td>Üretim Tarihi</td>
                         <td>{product!.manufacturingDate || "-"}</td>
                       </tr>
-                      <tr>
-                        <td>Son Kullanma</td>
-                        <td>{product!.expiryDate || "-"}</td>
-                      </tr>
+                      
                     </tbody>
                   </table>
                 </div>

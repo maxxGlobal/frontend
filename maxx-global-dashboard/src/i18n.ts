@@ -945,6 +945,7 @@ const resources = {
             cancelled: "Cancelled",
             pending: "Pending",
             editPending: "Awaiting edit approval",
+            shipped:"Shipped",
             processing: "{{status}}",
           },
           actions: {

@@ -1282,7 +1282,6 @@ export default function ProductCreate() {
           </div>
         </div>
         </div>
-      </div>
-    </div>
+      </div>  
   );
 }
