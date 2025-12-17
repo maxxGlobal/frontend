@@ -112,7 +112,7 @@ export default function CategoriesSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openNodeId, setOpenNodeId] = useState<number | null>(null);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const navigate = useNavigate();
   const [sp] = useSearchParams();
@@ -129,10 +129,10 @@ export default function CategoriesSidebar() {
   useEffect(() => {
     const controller = new AbortController();
     let isMounted = true;
-    
+
     (async () => {
       if (!isMounted) return;
-      
+
       try {
         const flat = await listAllCategories({ signal: controller.signal });
         if (isMounted && !controller.signal.aborted) {
@@ -142,12 +142,12 @@ export default function CategoriesSidebar() {
         // Hata durumunda sessizce devam et
       }
     })();
-    
+
     return () => {
       isMounted = false;
       controller.abort();
     };
-  }, []);
+  }, [i18n.language]);
 
   const handlePick = (node: CatNode) => {
     const ids = collectDescendantsIds(node);

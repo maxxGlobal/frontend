@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 export default function CategoriesSection() {
   const [roots, setRoots] = useState<CatNode[]>([]);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -23,7 +23,7 @@ export default function CategoriesSection() {
       } catch (e) {}
     })();
     return () => controller.abort();
-  }, []);
+  }, [i18n.language]);
 
   const handlePick = (cat: CatNode) => {
     navigate(`/homepage/all-product?cat=${cat.id}`);

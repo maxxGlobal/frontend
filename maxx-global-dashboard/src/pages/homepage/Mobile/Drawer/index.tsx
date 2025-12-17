@@ -46,7 +46,7 @@ function collectDescendantsIds(node: CatNode): number[] {
 }
 
 export default function Drawer({ className, open, action }: DrawerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: wishlistCount = 0 } = useQuery({
     queryKey: ["favoriteCount"],
     queryFn: getFavoriteCount,
@@ -83,7 +83,7 @@ export default function Drawer({ className, open, action }: DrawerProps) {
       } catch (e) {}
     })();
     return () => controller.abort();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (categoryToggle) {

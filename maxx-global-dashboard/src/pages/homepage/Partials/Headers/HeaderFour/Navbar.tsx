@@ -44,7 +44,7 @@ function countNodes(nodes: CatNode[]): number {
 }
 
 export default function Navbar({ className }: { className?: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categoryToggle, setToggle] = useState(false);
   const [roots, setRoots] = useState<CatNode[]>([]);
   const [elementsSize, setSize] = useState("0px");
@@ -62,7 +62,7 @@ export default function Navbar({ className }: { className?: string }) {
       } catch (e) {}
     })();
     return () => controller.abort();
-  }, []);
+  }, [i18n.language]);
 
   // Dropdown yükseklik ölçümü
   useEffect(() => {
