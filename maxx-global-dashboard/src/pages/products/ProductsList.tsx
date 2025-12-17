@@ -13,6 +13,7 @@ import type { ProductRow, Product } from "../../types/product";
 import { listProducts } from "../../services/products/list";
 import { listProductsByCategory } from "../../services/products/listByCategory";
 import { listProductsBySearch } from "../../services/products/search";
+import { listActiveProducts } from "../../services/products/active";
 import { listAllCategories } from "../../services/categories/listAll";
 import { deleteProduct } from "../../services/products/delete";
 import { restoreProduct } from "../../services/products/restore";
@@ -39,6 +40,8 @@ function makeDefaultPage<T>(size: number): PageResponse<T> {
 type StatusFilter = "ALL" | "AKTİF" | "SİLİNDİ";
 type ViewMode = "detail" | "compact";
 
+const ACTIVE_STATUS: ProductRow["status"] = "AKTİF";
+
 function isAbortError(err: any) {
   return (
     err?.name === "AbortError" ||
@@ -57,6 +60,7 @@ export default function ProductList() {
   const urlQ = searchParams.get("q") || "";
   const urlCat = searchParams.get("cat");
   const urlView = (searchParams.get("view") as ViewMode) || "detail";
+  const urlActive = searchParams.get("active") === "1";
 
   const initialCat = urlCat ? Number(urlCat) : null;
 
@@ -67,7 +71,7 @@ export default function ProductList() {
   const [sort] = useState<"top" | "popular" | "newest">("top");
   const [statusFilter] = useState<StatusFilter>("ALL");
   const [debouncedQ, setDebouncedQ] = useState(urlQ);
-const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
+  const [activeOnly, setActiveOnly] = useState<boolean>(urlActive);
 
   const [page, setPage] = useState(Math.max(0, urlPage - 1)); // 0-based
 
@@ -167,16 +171,27 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
           sortDirection: sort === "newest" ? "desc" : "asc",
         };
 
+        const baseReqWithActive = activeOnly
+          ? { ...baseReq, isActive: true }
+          : baseReq;
+
         let res: PageResponse<ProductRow>;
 
         if (debouncedQ && debouncedQ.trim() !== "") {
-          res = await listProductsBySearch(debouncedQ.trim(), baseReq, {
-            signal: controller.signal,
-          });
+          res = await listProductsBySearch(
+            debouncedQ.trim(),
+            baseReqWithActive as PageRequest & { isActive?: boolean },
+            {
+              signal: controller.signal,
+            }
+          );
         } else if (selectedCat) {
           res = await listProductsByCategory(selectedCat, {
             signal: controller.signal,
+            isActive: activeOnly ? true : undefined,
           } as any);
+        } else if (activeOnly) {
+          res = await listActiveProducts(baseReq, { signal: controller.signal });
         } else {
           res = await listProducts(baseReq, { signal: controller.signal });
         }
@@ -194,7 +209,7 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
 
     fetchProducts();
     return () => controller.abort();
-  }, [debouncedQ, page, size, sort, selectedCat]);
+  }, [debouncedQ, page, size, sort, selectedCat, activeOnly]);
 
   // URL ile state'i senkronize et
   useEffect(() => {
@@ -212,8 +227,12 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
 
     params.set("view", viewMode);
 
+    if (activeOnly) {
+      params.set("active", "1");
+    }
+
     setSearchParams(params, { replace: true });
-  }, [page, debouncedQ, selectedCat, viewMode, setSearchParams]);
+  }, [page, debouncedQ, selectedCat, viewMode, activeOnly, setSearchParams]);
 
   // Debounce
   useEffect(() => {
@@ -345,6 +364,7 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
       (updated as any).status ?? (updated.isActive ? "AKTİF" : "SİLİNDİ");
     const failsStatusFilter =
       statusFilter !== "ALL" && updatedStatus !== statusFilter;
+    const failsActiveOnly = activeOnly && updatedStatus !== "AKTİF";
 
     setData((prev) => {
       let content = prev.content.map((row) => {
@@ -368,7 +388,7 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
         return patched;
       });
 
-      if (movedOut || failsStatusFilter) {
+      if (movedOut || failsStatusFilter || failsActiveOnly) {
         content = content.filter((r) => r.id !== updated.id);
       }
       return { ...prev, content };
@@ -397,6 +417,8 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
         );
 
         if (statusFilter === "AKTİF") {
+          content = content.filter((r) => r.isActive === true);
+        } else if (activeOnly) {
           content = content.filter((r) => r.isActive === true);
         }
 
@@ -480,6 +502,23 @@ const ACTIVE_STATUS = "AKTİF" as ProductRow["status"];
                 Aranıyor...
               </small>
             )}
+
+            <div className="d-flex align-items-center gap-2 ms-2">
+              <span className="small text-muted">Aktif Ürünler</span>
+              <div className="form-check form-switch m-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="activeProductsOnly"
+                  checked={activeOnly}
+                  onChange={() => {
+                    setActiveOnly((prev) => !prev);
+                    setPage(0);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="sherah-breadcrumb__right--second d-flex align-items-center gap-2">
