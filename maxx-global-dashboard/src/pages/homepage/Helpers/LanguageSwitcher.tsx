@@ -11,9 +11,13 @@ type LanguageSwitcherProps = {
   className?: string;
 };
 
-const languages: { code: SupportedLanguage; labelKey: string; short: string }[] = [
-  { code: "tr", labelKey: "common.turkish", short: "TR" },
-  { code: "en", labelKey: "common.english", short: "EN" },
+const languages: {
+  code: SupportedLanguage;
+  labelKey: string;
+  flag: string;
+}[] = [
+  { code: "tr", labelKey: "common.turkish", flag: "🇹🇷" },
+  { code: "en", labelKey: "common.english", flag: "🇬🇧" },
 ];
 
 export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
@@ -53,8 +57,10 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                   : "text-qblack hover:bg-gray-100"
               }`}
             >
-              <span className="hidden sm:inline">{t(item.labelKey)}</span>
-              <span className="sm:hidden">{item.short}</span>
+                <span aria-hidden className="text-lg sm:text-xl leading-none">
+                {item.flag}
+              </span>
+              <span className="sr-only">{t(item.labelKey)}</span>
             </button>
           );
         })}
