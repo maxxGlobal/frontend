@@ -13,7 +13,7 @@ export default function Banner({ className }: BannerProps) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     (async () => {
@@ -28,7 +28,7 @@ export default function Banner({ className }: BannerProps) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [i18n.language]);
 
   return (
     <div className={`w-full ${className || ""}`}>
