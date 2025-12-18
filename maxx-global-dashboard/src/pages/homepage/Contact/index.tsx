@@ -9,6 +9,7 @@ const phoneIcon = "/assets/img/phone.svg";
 import { Helmet } from "react-helmet-async";
 import "../../../theme.css";
 import "../../../../public/assets/homepage.css";
+import { getToken } from "../../../services/auth/authService";
 
 function getDealerIdFromLocal(): number | null {
   const userStr = localStorage.getItem("user");
@@ -26,12 +27,20 @@ export default function Contact() {
   const [dealer, setDealer] = useState<DealerRow | null>(null);
 
   useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+
     const dealerId = getDealerIdFromLocal();
     if (!dealerId) return;
 
+    let mounted = true;
     getDealerById(dealerId)
-      .then((res) => setDealer(res))
+      .then((res) => mounted && setDealer(res))
       .catch((err) => console.error("Dealer fetch error", err));
+
+    return () => {
+      mounted = false;
+    };
   }, []);
   const mapUrl = dealer?.address
     ? `https://www.google.com/maps?q=${encodeURIComponent(

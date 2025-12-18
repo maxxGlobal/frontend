@@ -44,6 +44,9 @@ export default function MyOrdersPage() {
     if (normalized === "DÜZENLEME ONAY BEKLIYOR" || normalized === "DÜZENLEME ONAY BEKLİYOR") {
       return t("pages.myOrders.status.editPending");
     }
+     if (normalized === "REDDEDİLDİ" || normalized === "REDDEDILDI") {
+      return t("pages.myOrders.status.rejected");
+    }
     if (normalized === "KARGOLANDI" || normalized === "KARGOLANDİ") {
       return t("pages.myOrders.status.shipped");
     }

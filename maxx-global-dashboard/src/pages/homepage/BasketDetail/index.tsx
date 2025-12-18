@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import Layout from "../Partials/Layout";
 import PageTitle from "../Helpers/PageTitle";
+import type { Crumb } from "../Helpers/PageTitle";
 import LoaderStyleOne from "../Helpers/Loaders/LoaderStyleOne";
 import { useCart } from "../Helpers/CartContext";
 import { Helmet } from "react-helmet-async";
@@ -49,8 +50,6 @@ export default function CartPage() {
     () => (i18n.language?.startsWith("en") ? "en-US" : "tr-TR"),
     [i18n.language]
   );
-  type Crumb = { label: string; href: string; active?: boolean };
-
   const crumbs: Crumb[] = useMemo(
     () => [
       { name: t("drawer.home"), path: "/homepage" },

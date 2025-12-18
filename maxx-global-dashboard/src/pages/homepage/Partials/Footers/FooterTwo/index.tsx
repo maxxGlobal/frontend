@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import Facebook from "../../../Helpers/icons/Facebook";
-import Instagram from "../../../Helpers/icons/Instagram";
-import Youtube from "../../../Helpers/icons/Youtube";
+import { useTranslation } from "react-i18next"; 
 const Logo = "/assets/img/medintera-logo.png";
 
 export default function Footer() {
@@ -109,34 +106,7 @@ export default function Footer() {
               </div>
             </div>
           </div>
-        </div>
-        <div className="bottom-bar border-t border-qgray-border lg:h-[82px] lg:flex justify-between items-center">
-          <div className="flex lg:space-x-5 justify-between items-center mb-3 w-full">
-            <div className="flex space-x-5 items-center">
-              <a href="#">
-                <Instagram className="fill-current text-qgray hover:text-qblack" />
-              </a>
-              <a href="#">
-                <Facebook className="fill-current text-qgray hover:text-qblack" />
-              </a>
-              <a href="#">
-                <Youtube className="fill-current text-qgray hover:text-qblack" />
-              </a>
-            </div>
-            <div className="blok sm:text-base text-[10px] text-qgray font-300">
-              ©{new Date().getFullYear()}
-              <a
-                href="https://quomodosoft.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="font-500 text-qblack mx-1"
-              >
-                {t("footer.brand")}
-              </a>
-              {t("footer.rights")}
-            </div>
-          </div>
-        </div>
+        </div> 
       </div>
     </footer>
   );

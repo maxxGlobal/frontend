@@ -46,10 +46,7 @@ export default function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className || ""}`}>
-      <span className="text-xs text-qgray whitespace-nowrap">
-        {t("common.language")}
-      </span>
+    <div className={`flex items-center gap-2 ${className || ""}`}> 
 
       <div className="flex overflow-hidden rounded-full border border-qgray-border bg-white">
         {languages.map((item) => {

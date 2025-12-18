@@ -411,6 +411,7 @@ const resources = {
             pending: "Beklemede",
             editPending: "Düzenleme onayı bekliyor",
             processing: "{{status}}",
+            rejected:"Reddedildi",
           },
           actions: {
             approve: "Onayla",
@@ -947,6 +948,7 @@ const resources = {
             editPending: "Awaiting edit approval",
             shipped:"Shipped",
             processing: "{{status}}",
+            rejected:"Rejected",
           },
           actions: {
             approve: "Approve",

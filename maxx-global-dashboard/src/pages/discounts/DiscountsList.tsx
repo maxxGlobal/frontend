@@ -261,7 +261,7 @@ export default function DiscountsList() {
 
                           <td>
                             <div className="sherah-table__product-content sherah-table__product-desc">
-                              {d.discountType === "PERCENTAGE"
+                              {d.discountType === "Yüzdesel"
                                 ? `%${d.discountValue}`
                                 : `${d.discountValue} ₺`}
                             </div>

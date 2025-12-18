@@ -55,6 +55,7 @@ export default function DiscountCreate() {
     useAllCategories();
   const optsLoading = loadingProducts || loadingDealers || loadingCategories;
 
+
   // ✅ YENİ - Variant seçimi için
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [productVariants, setProductVariants] = useState<Map<number, ProductVariant[]>>(
@@ -113,6 +114,10 @@ export default function DiscountCreate() {
 
   // ✅ YENİ - Ürün checkbox toggle
   const toggleProduct = (productId: number) => {
+      setPriority("")
+      setIsActive(true)
+      setAutoApply(false)
+      setStackable(false)
     setSelectedProducts((prev) => {
       if (prev.includes(productId)) {
         // Ürün kaldırılıyorsa, o ürüne ait varyantları da temizle
@@ -314,7 +319,7 @@ export default function DiscountCreate() {
         `İndirim oluşturuldu (ID: ${created.id ?? "-"})`,
         "success"
       );
-      navigate("/discounts", { replace: true });
+      navigate("/discounts-list", { replace: true });
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -457,74 +462,11 @@ export default function DiscountCreate() {
                 />
               </div>
             </div>
-          </div>
+          </div> 
 
-          {/* ✅ Öncelik */}
-          <div className="col-lg-6 col-12">
-            <div className="form-group">
-              <label className="sherah-wc__form-label">Öncelik (0-100)</label>
-              <div className="form-group__input">
-                <input
-                  type="number"
-                  className="sherah-wc__form-input"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  min="0"
-                  max="100"
-                  placeholder="örn. 10"
-                />
-              </div>
-            </div>
-          </div>
+           
 
-          {/* Durum ve Uygulama Ayarları */}
-          <div className="col-lg-4 col-12">
-            <div className="form-group d-flex align-items-center justify-content-between">
-              <label className="sherah-wc__form-label mb-0">Aktif</label>
-              <div className="form-check form-switch m-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  id="discountActive"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-4 col-12">
-            <div className="form-group d-flex align-items-center justify-content-between">
-              <label className="sherah-wc__form-label mb-0">Otomatik Uygula</label>
-              <div className="form-check form-switch m-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  id="discountAutoApply"
-                  checked={autoApply}
-                  onChange={(e) => setAutoApply(e.target.checked)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-4 col-12">
-            <div className="form-group d-flex align-items-center justify-content-between">
-              <label className="sherah-wc__form-label mb-0">Birlikte Kullanılabilir</label>
-              <div className="form-check form-switch m-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  id="discountStackable"
-                  checked={stackable}
-                  onChange={(e) => setStackable(e.target.checked)}
-                />
-              </div>
-            </div>
-          </div>
+           
 
           {/* ✅ İndirim Kapsamı Seçimi */}
           <div className="col-12">
@@ -1165,7 +1107,7 @@ export default function DiscountCreate() {
         <button
           type="button"
           className="sherah-btn bg-secondary ms-3"
-          onClick={() => navigate("/discounts")}
+          onClick={() => navigate("/discounts-list")}
           disabled={saving}
         >
           Vazgeç
