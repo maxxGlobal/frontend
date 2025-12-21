@@ -10,6 +10,7 @@ import ThinBag from "../../../Helpers/icons/ThinBag";
 import ThinLove from "../../../Helpers/icons/ThinLove";
 import Bell from "../../../Helpers/icons/Bell";
 import SearchBox from "../../../Helpers/SearchBox";
+import { getCurrentUser } from "../../../../../services/auth/authService";
 const Logo = "/assets/img/medintera-logo.png";
 
 import { getFavoriteCount } from "../../../../../services/favorites/count";
@@ -65,6 +66,29 @@ export default function Middlebar({ className }: { className?: string }) {
     refreshCart();
   }, [refreshCart]);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const populateName = () => {
+      const user = getCurrentUser();
+      if (user?.firstName || user?.lastName) {
+        setUserName([user.firstName, user.lastName].filter(Boolean).join(" "));
+      } else {
+        setUserName(null);
+      }
+    };
+
+    populateName();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "user") {
+        populateName();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   const [items, setItems] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -145,6 +169,16 @@ export default function Middlebar({ className }: { className?: string }) {
 
           <div className="flex gap-4 items-center">
             <LanguageSwitcher className="hidden md:flex" />
+            {userName && (
+              <div className="hidden lg:flex flex-col leading-4 text-right">
+                <span className="text-[12px] text-gray-500">
+                  {t("common.welcome")}
+                </span>
+                <span className="text-[13px] font-semibold text-qblack">
+                  {userName}
+                </span>
+              </div>
+            )}
             <div
               className="group relative py-4"
               onMouseEnter={loadNotifications}

@@ -112,7 +112,7 @@ export default function AppRoutes() {
       </Route>
 
       {/* Protected area with layout */}
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute disallowDealers dealerFallback="/homepage" />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<ProfilePage />} />

@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ThinBag from "../../../Helpers/icons/ThinBag";
 import Middlebar from "./Middlebar";
 import Navbar from "./Navbar";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useCart } from "../../../Helpers/CartContext";
+import { getCurrentUser } from "../../../../../services/auth/authService"
 const Logo = "/assets/img/medintera-logo.png";
 
 type HeaderFourProps = {
@@ -19,12 +20,35 @@ export default function HeaderFour({
   const { t } = useTranslation();
   const { items } = useCart();
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const [userName, setUserName] = useState<string | null>(null);
   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
+
+  useEffect(() => {
+    const populateName = () => {
+      const user = getCurrentUser();
+      if (user?.firstName || user?.lastName) {
+        setUserName([user.firstName, user.lastName].filter(Boolean).join(" "));
+      } else {
+        setUserName(null);
+      }
+    };
+
+    populateName();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "user") {
+        populateName();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
   return (
     <header className={`${className || ""} header-section-wrapper relative`}>
       <Middlebar className="quomodo-shop-middle-bar lg:block hidden" />
@@ -58,6 +82,16 @@ export default function HeaderFour({
             </Link>
           </div>
           <div className="flex items-center gap-4">
+            {userName && (
+              <div className="flex flex-col leading-4 text-right">
+                <span className="text-[11px] text-gray-500">
+                  {t("common.welcome")}
+                </span>
+                <span className="text-[12px] font-semibold text-qblack">
+                  {userName}
+                </span>
+              </div>
+            )}
             <div className="cart relative cursor-pointer mt-2">
               <Link to="/homepage/basket">
                 <span>

@@ -13,6 +13,10 @@ type Props = {
   allOf?: string[];
   /** Yetkisizse yönlendirilecek sayfa */
   fallback?: string; // default: "/403"
+  /** Bayi/son kullanıcı erişimini engelle */
+  disallowDealers?: boolean;
+  /** Bayi engelinde yönlendirilecek sayfa */
+  dealerFallback?: string;
 };
 
 function readUserSafe() {
@@ -37,6 +41,8 @@ export default function ProtectedRoute({
   anyOf,
   allOf,
   fallback = "/403",
+  disallowDealers = false,
+  dealerFallback = "/homepage",
 }: Props) {
   const location = useLocation();
   const [isValidating, setIsValidating] = useState(true);
@@ -77,6 +83,22 @@ export default function ProtectedRoute({
   // 1) Giriş kontrolü
   if (!token) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // 2) Bayi / son kullanıcı engeli
+  if (disallowDealers) {
+    const isDealer = localStorage.getItem("isDealer") === "true";
+
+    if (isDealer) {
+      console.warn("Dealer users cannot access admin routes");
+      return (
+        <Navigate
+          to={dealerFallback}
+          replace
+          state={{ from: location, message: "Admin paneline erişim yetkiniz yok." }}
+        />
+      );
+    }
   }
 
   // 2) İzin kontrolü (props verilmişse)
