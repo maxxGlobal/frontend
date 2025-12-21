@@ -20,6 +20,7 @@ const resources = {
         logout: "Çıkış Yap",
         viewAll: "Tümünü Gör",
         ok: "Tamam",
+        welcome:"Hoş Geldin",
       },
       footer: {
         logoAlt: "Medintera logosu",
@@ -558,6 +559,7 @@ const resources = {
             logout: "Logout",
             viewAll: "View All",
             ok: "OK",
+            welcome:"Welcome",
           },
           footer: {
             logoAlt: "Medintera logo",

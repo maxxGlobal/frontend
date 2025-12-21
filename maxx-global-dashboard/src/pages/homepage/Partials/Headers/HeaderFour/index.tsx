@@ -5,7 +5,7 @@ import Middlebar from "./Middlebar";
 import Navbar from "./Navbar";
 import { useEffect, useState } from "react";
 import { useCart } from "../../../Helpers/CartContext";
-import { getCurrentUser } from "../../../../services/auth/authService";
+import { getCurrentUser } from "../../../../../services/auth/authService"
 const Logo = "/assets/img/medintera-logo.png";
 
 type HeaderFourProps = {
