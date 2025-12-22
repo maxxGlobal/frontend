@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import { listNotifications } from "../../../services/notifications/list";
 import type { NotificationRow } from "../../../types/notifications";
 import { markAllNotificationsRead } from "../../../services/notifications/header";
@@ -13,9 +16,11 @@ import { getAcceptLanguageHeader } from "../../../utils/language";
 
 export default function NotificationsPage() {
   const { t, i18n } = useTranslation();
+  const qc = useQueryClient();
   const [items, setItems] = useState<NotificationRow[] | null>(null);
   const [updating, setUpdating] = useState(false);
   const locale = getAcceptLanguageHeader(i18n.language);
+  const MySwal = withReactContent(Swal);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,10 +40,41 @@ export default function NotificationsPage() {
   }, []);
   const handleMarkAll = async () => {
     if (!items || items.length === 0) return;
+
+    const confirm = await MySwal.fire({
+      title: t("header.notifications.markAllTitle"),
+      text: t("header.notifications.markAllBody"),
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: t("header.notifications.confirm"),
+      cancelButtonText: t("header.notifications.cancel"),
+    });
+    if (!confirm.isConfirmed) return;
+
     try {
       setUpdating(true);
       await markAllNotificationsRead();
       setItems((prev) => prev?.map((n) => ({ ...n, isRead: true })) ?? []);
+
+      // Unread counterları ve ilgili listeleri güncelle
+      qc.setQueryData(["notifications", "unreadCount"], 0);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["notifications", "unreadCount"] }),
+        qc.invalidateQueries({ queryKey: ["notifications", "summary"] }),
+        qc.invalidateQueries({ queryKey: ["notifications", "latest"] }),
+      ]);
+
+      await MySwal.fire(
+        t("header.notifications.title"),
+        t("header.notifications.success"),
+        "success"
+      );
+    } catch (err: any) {
+      await MySwal.fire(
+        t("header.notifications.title"),
+        err?.message ?? t("header.notifications.error"),
+        "error"
+      );
     } finally {
       setUpdating(false);
     }

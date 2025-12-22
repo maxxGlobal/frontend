@@ -11,6 +11,7 @@ import ThinLove from "../../../Helpers/icons/ThinLove";
 import Bell from "../../../Helpers/icons/Bell";
 import SearchBox from "../../../Helpers/SearchBox";
 import { getCurrentUser } from "../../../../../services/auth/authService";
+import { performLogout } from "../../../../../lib/api";
 const Logo = "/assets/img/medintera-logo.png";
 
 import { getFavoriteCount } from "../../../../../services/favorites/count";
@@ -145,8 +146,7 @@ export default function Middlebar({ className }: { className?: string }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    performLogout("User initiated logout");
     navigate("/login");
   };
 
