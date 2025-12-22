@@ -75,6 +75,9 @@ export function persistAuth(data: LoginResponse): void {
   
   // 4. isDealer flag'ini de sakla
   localStorage.setItem('isDealer', String(isDealer));
+
+  // Storage'daki kullanıcı bilgisi değiştiğinde diğer bileşenleri haberdar et
+  window.dispatchEvent(new CustomEvent('userUpdated', { detail: { user, isDealer } }));
    
 }
 
