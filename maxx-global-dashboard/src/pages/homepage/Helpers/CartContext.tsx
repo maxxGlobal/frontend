@@ -28,24 +28,40 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-function getDealerId(): number | null {
-  try {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const id = user?.dealer?.id;
-    return typeof id === "number" && Number.isFinite(id) && id > 0 ? id : null;
-  } catch {
-    return null;
+function getDealerIdFromStorage(): number | null {
+  const sources = [localStorage, sessionStorage];
+  for (const storage of sources) {
+    try {
+      const rawUser = storage.getItem("user");
+      if (!rawUser) continue;
+
+      const user = JSON.parse(rawUser);
+      const id = user?.dealer?.id;
+      if (typeof id === "number" && Number.isFinite(id) && id > 0) {
+        return id;
+      }
+    } catch {
+      // Malformed data, try next storage source
+    }
   }
+  return null;
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dealerId] = useState<number | null>(getDealerId());
+  const [dealerId, setDealerId] = useState<number | null>(() => getDealerIdFromStorage());
+
+  const resolveDealerId = useCallback(() => {
+    const latestId = getDealerIdFromStorage();
+    setDealerId(latestId);
+    return latestId;
+  }, []);
 
   const refresh = useCallback(async () => {
-    if (!dealerId) {
+    const activeDealerId = resolveDealerId();
+    if (!activeDealerId) {
       setCart(null);
       setLoading(false);
       return;
@@ -54,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const data = await getActiveCart(dealerId);
+      const data = await getActiveCart(activeDealerId);
       setCart(data);
     } catch (err: any) {
       console.error("Sepet yüklenirken hata:", err);
@@ -69,17 +85,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [dealerId]);
+  }, [resolveDealerId]);
 
   const addItem = useCallback(
     async (request: Omit<CartItemRequest, "dealerId">) => {
-      if (!dealerId) {
+      const activeDealerId = resolveDealerId();
+      if (!activeDealerId) {
         throw new Error("Bayi bilgisi bulunamadı");
       }
 
       const fullRequest: CartItemRequest = {
         ...request,
-        dealerId,
+        dealerId: activeDealerId,
       };
 
       const response = await addCartItem(fullRequest);
@@ -88,7 +105,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Sepet değişikliği event'i
       window.dispatchEvent(new Event("cart:changed"));
     },
-    [dealerId]
+    [resolveDealerId]
   );
 
   const updateItem = useCallback(
@@ -113,21 +130,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const clearCart = useCallback(async () => {
-    if (!dealerId) {
+    const activeDealerId = resolveDealerId();
+    if (!activeDealerId) {
       throw new Error("Bayi bilgisi bulunamadı");
     }
 
-    await clearCartService(dealerId);
+    await clearCartService(activeDealerId);
     setCart(null);
     
     // Sepet değişikliği event'i
     window.dispatchEvent(new Event("cart:changed"));
-  }, [dealerId]);
+  }, [resolveDealerId]);
 
   // İlk yükleme
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const syncDealer = () => setDealerId(getDealerIdFromStorage());
+    const handleLogout = () => setDealerId(null);
+
+    window.addEventListener("userUpdated", syncDealer);
+    window.addEventListener("storage", syncDealer);
+    window.addEventListener("userLoggedOut", handleLogout);
+
+    return () => {
+      window.removeEventListener("userUpdated", syncDealer);
+      window.removeEventListener("storage", syncDealer);
+      window.removeEventListener("userLoggedOut", handleLogout);
+    };
+  }, []);
 
   // Sepet değişikliklerini dinle
   useEffect(() => {
