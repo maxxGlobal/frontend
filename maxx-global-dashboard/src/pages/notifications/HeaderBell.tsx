@@ -47,6 +47,7 @@ function initialOf(n: NotificationRow) {
 export default function HeaderBell() {
   const qc = useQueryClient();
   const location = useLocation();
+  const isAdminNotificationsPage = location.pathname === "/notifications";
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
@@ -63,23 +64,25 @@ export default function HeaderBell() {
 
   // Sayfa değişimlerinde notification verilerini yenile
   useEffect(() => {
-    // Sayfa her değiştiğinde bildirim verilerini background'da yenile
-    const refreshNotifications = () => {
-      qc.invalidateQueries({ queryKey: qkUnread });
-      qc.invalidateQueries({ queryKey: qkSummary });
-      qc.invalidateQueries({ queryKey: qkLatest });
-    };
+    if (!isAdminNotificationsPage) {
+      // Sayfa her değiştiğinde bildirim verilerini background'da yenile
+      const refreshNotifications = () => {
+        qc.invalidateQueries({ queryKey: qkUnread });
+        qc.invalidateQueries({ queryKey: qkSummary });
+        qc.invalidateQueries({ queryKey: qkLatest });
+      };
 
-    // Sayfa yüklendiğinde bir kere çalıştır
-    refreshNotifications();
-  }, [location.pathname, qc]);
+      // Sayfa yüklendiğinde bir kere çalıştır
+      refreshNotifications();
+    }
+  }, [isAdminNotificationsPage, qc]);
 
   // Bildirim kutusunu açtığında verileri yenile
   useEffect(() => {
-    if (open) {
+    if (open && !isAdminNotificationsPage) {
       qc.invalidateQueries({ queryKey: qkLatest });
     }
-  }, [open, qc]);
+  }, [open, qc, isAdminNotificationsPage]);
 
   const unreadQ = useQuery({
     queryKey: qkUnread,
@@ -101,6 +104,7 @@ export default function HeaderBell() {
       const res = await api.get(`/notifications?page=0&size=5`);
       return res.data?.data?.content ?? [];
     },
+    enabled: !isAdminNotificationsPage,
     staleTime: 2 * 60 * 1000, // 2 dakika fresh kalsin
     // refetchInterval kaldırıldı
   });
