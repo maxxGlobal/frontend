@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import { useEffect, useState } from "react";
 import { useCart } from "../../../Helpers/CartContext";
 import { getCurrentUser } from "../../../../../services/auth/authService"
+import { performLogout } from "../../../../../lib/api";
 const Logo = "/assets/img/medintera-logo.png";
 
 type HeaderFourProps = {
@@ -23,8 +24,7 @@ export default function HeaderFour({
   const [userName, setUserName] = useState<string | null>(null);
   const navigate = useNavigate();
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    performLogout("User initiated logout");
     navigate("/login");
   };
 
